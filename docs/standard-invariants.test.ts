@@ -5,7 +5,7 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(import.meta.dir, "..");
 
-const LEGACY_OWNER_SLUG = ["github.com", "AndryOre", "andryore-web"].join("/");
+const LEGACY_OWNER_SLUG = ["AndryOre", "andryore-web"].join("/");
 const LEGACY_NAME = ["for", "ge"].join("");
 const LEGACY_NAME_PATTERN = new RegExp(LEGACY_NAME, "i");
 const LEGACY_NAME_ALLOWED_PREFIXES: readonly string[] = ["docs/adr/", ".claude/skills/"];
