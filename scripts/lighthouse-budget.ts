@@ -327,7 +327,7 @@ export async function main(): Promise<number> {
   const server = serveDistribution(distributionDirectory);
   try {
     const results = await auditPages(`http://127.0.0.1:${String(server.port)}`, AUDITED_PATHS, {
-      chromePath: process.env.CHROME_PATH,
+      ...(process.env.CHROME_PATH && { chromePath: process.env.CHROME_PATH }),
     });
     console.log(formatTable(results));
     const failures = findFailures(results);

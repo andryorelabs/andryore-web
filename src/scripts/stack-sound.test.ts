@@ -1,6 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 
-import { mountStackSound, type StackSoundDependencies, type StackSoundScene } from "./stack-sound";
+import {
+  mountStackSound,
+  mountStackSoundInBrowser,
+  type StackSoundDependencies,
+  type StackSoundScene,
+} from "./stack-sound";
 
 const VIEWPORT = 800;
 const HEIGHT = 2000;
@@ -11,7 +16,7 @@ function topFor(progress: number): number {
 }
 
 function createHarness(overrides: Partial<StackSoundDependencies> = {}) {
-  const played: { event: string; rate?: number }[] = [];
+  const played: { event: string; rate?: number | undefined }[] = [];
   const frames: (() => void)[] = [];
   const state = { top: topFor(0), now: 0, near: undefined as unknown };
   let scrollListener: (() => void) | undefined;
@@ -188,5 +193,86 @@ describe("mountStackSound", () => {
     harness.stop();
     expect(harness.wasDisconnected()).toBe(true);
     expect(harness.isListening()).toBe(false);
+  });
+});
+
+describe("mountStackSoundInBrowser", () => {
+  const restorers: (() => void)[] = [];
+
+  const stubGlobal = (name: string, value: unknown): void => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+    Object.defineProperty(globalThis, name, {
+      value,
+      configurable: true,
+      writable: true,
+    });
+    restorers.push(() => {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else Reflect.deleteProperty(globalThis, name);
+    });
+  };
+
+  afterEach(() => {
+    for (const restore of restorers.splice(0)) restore();
+  });
+
+  test("wires the browser APIs and stops cleanly", () => {
+    const listeners: string[] = [];
+    const frames: FrameRequestCallback[] = [];
+    const observed: unknown[] = [];
+    let observerCallback: IntersectionObserverCallback | undefined;
+    stubGlobal("document", { hidden: false });
+    stubGlobal("matchMedia", () => ({ matches: false }));
+    stubGlobal("CSS", { supports: () => true });
+    stubGlobal("innerHeight", VIEWPORT);
+    stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    stubGlobal("addEventListener", (type: string) => {
+      listeners.push(`add:${type}`);
+    });
+    stubGlobal("removeEventListener", (type: string) => {
+      listeners.push(`remove:${type}`);
+    });
+    stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          observerCallback = callback;
+        }
+        observe(target: unknown): void {
+          observed.push(target);
+        }
+        disconnect(): void {
+          observed.push("disconnected");
+        }
+      },
+    );
+    stubGlobal("HTMLElement", EventTarget);
+    class FakeScene extends HTMLElement {
+      override getBoundingClientRect(): DOMRect {
+        return { top: topFor(0.5), height: HEIGHT } as DOMRect;
+      }
+    }
+    const scene = new FakeScene();
+
+    const stop = mountStackSoundInBrowser(scene);
+    expect(observed).toEqual([scene]);
+
+    observerCallback?.(
+      [{ isIntersecting: true }] as IntersectionObserverEntry[],
+      {} as IntersectionObserver,
+    );
+    expect(listeners).toEqual(["add:scroll"]);
+
+    observerCallback?.(
+      [{ isIntersecting: false }] as IntersectionObserverEntry[],
+      {} as IntersectionObserver,
+    );
+    expect(listeners).toEqual(["add:scroll", "remove:scroll"]);
+
+    stop();
+    expect(observed).toEqual([scene, "disconnected"]);
   });
 });
