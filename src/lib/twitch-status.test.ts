@@ -4,7 +4,7 @@ import { CACHE_TTL_MS, createLiveStatus, statusResponse, type FetchLike } from "
 
 interface Call {
   url: string;
-  init?: RequestInit;
+  init?: RequestInit | undefined;
 }
 
 const json = (body: unknown, status = 200): Response => Response.json(body, { status });

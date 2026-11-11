@@ -137,7 +137,7 @@ export async function main(environment: MainEnvironment): Promise<number> {
       ref,
       token,
       outputDirectory: environment.outputDirectory ?? DEFAULT_OUTPUT,
-      fetch: environment.fetch,
+      ...(environment.fetch && { fetch: environment.fetch }),
     });
     log(`fetch-sounds: ${String(written.length)} files from ${repository}@${ref}`);
     return 0;
