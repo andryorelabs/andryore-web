@@ -54,7 +54,6 @@
     "**/.astro",
     ".claude",
     ".agents",
-    ".forge",
     "GLOSSARY.md",
     "parity/fixtures",
     "parity/.corpus",

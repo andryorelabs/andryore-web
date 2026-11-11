@@ -143,12 +143,5 @@ export default defineConfig([
       ],
     },
   },
-  globalIgnores([
-    "**/.astro/**",
-    "**/dist/**",
-    "**/coverage/**",
-    ".claude/**",
-    ".agents/**",
-    ".forge/**",
-  ]),
+  globalIgnores(["**/.astro/**", "**/dist/**", "**/coverage/**", ".claude/**", ".agents/**"]),
 ]);

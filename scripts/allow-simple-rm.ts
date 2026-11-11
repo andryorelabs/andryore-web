@@ -43,7 +43,7 @@ export function decideRmApproval(hookInput: string): string | undefined {
       hookEventName: "PreToolUse",
       permissionDecision: "allow",
       permissionDecisionReason:
-        "auto-approved by project settings: a single plain rm; forge waves, workers and cleanup shell out to it unattended",
+        "auto-approved by project settings: a single plain rm; waves, workers and cleanup shell out to it unattended",
     },
   });
 }

@@ -392,7 +392,6 @@ export const OXLINT_IGNORE_PATTERNS = [
   "**/coverage/**",
   ".claude/**",
   ".agents/**",
-  ".forge/**",
   "parity/fixtures/**",
   ...(process.env.PARITY_CORPUS === "1" ? [] : ["parity/.corpus/**"]),
 ];
