@@ -8,7 +8,9 @@ the emet config schema. This file holds the "why"
 prose and everything a JSON value can't express.
 
 **Trunk.** `repo.trunk` is `develop`: waves merge there and a promotion PR ships
-them to `main` ([ADR 0015](../adr/0015-develop-as-integration-branch.md)).
+them to `main` with a merge commit
+([ADR 0015](../adr/0015-develop-as-integration-branch.md),
+[ADR 0026](../adr/0026-develop-promoted-to-main-by-merge-commit.md)).
 
 ## Tracker
 
