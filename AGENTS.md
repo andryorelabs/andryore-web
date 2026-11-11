@@ -53,7 +53,7 @@ never use another package manager (this repo uses `bun.lock`). Read
 - `bun run lint:docs` — offline link and anchor check of the Markdown. Run this
   after any docs change.
 - `bun run fix` — formats the repository with Oxfmt, then autofixes Oxlint and
-  ESLint. Prose wraps always.
+  ESLint. Prose keeps its line breaks (Oxfmt default).
 - `bun run build` — **do not run unless explicitly asked.** It is slow and not
   needed to verify most changes.
 
@@ -155,7 +155,8 @@ never disable the rule file-wide or project-wide:
   ([ADR 0023](docs/adr/0023-oxc-toolchain-and-typescript-7-1.md)). Fix a finding
   by renaming or returning `undefined`, never by disabling the rule.
 - Bun is pinned to `1.4.4` (`packageManager` and `engines`).
-- Oxfmt wraps prose always; run `bun run fix` instead of reflowing by hand.
+- Oxfmt runs on its defaults (double quotes, semicolons, prose line breaks
+  preserved); run `bun run fix` instead of reformatting by hand.
 - Actions are SHA-pinned and workflows are linted; edit them with care:
   [`docs/development.md#ci`](docs/development.md#ci).
 - Releases are tag-driven and have no npm step; never publish by hand:
