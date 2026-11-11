@@ -27,6 +27,7 @@
     "docs/adr",
     "docs/brand/tools",
     "docs/brand/tokens-contrast.test.ts",
+    "docs/standard-invariants.test.ts",
     "scripts",
     "e2e",
     "playwright.config.ts",
