@@ -9,7 +9,7 @@ const SETTINGS_FILE = path.resolve(import.meta.dirname, "repo-settings.json");
 const GITHUB_ACTIONS_INTEGRATION_ID = 15_368;
 const REQUIRED_CHECKS = ["CI passed", "Validate PR title", "Check markdown links"];
 const PROMOTION_SKIP_CONDITION =
-  "github.event_name == 'pull_request' && !(github.base_ref == 'main' && github.head_ref == 'develop')";
+  "github.event_name == 'pull_request' && !(github.base_ref == 'main' && github.head_ref == 'develop' && !github.event.pull_request.head.repo.fork)";
 
 type JsonRecord = Record<string, unknown>;
 
