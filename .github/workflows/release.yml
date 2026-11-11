@@ -4,6 +4,10 @@ on:
   push:
     tags: ["v*"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -26,6 +30,23 @@ jobs:
           git fetch --no-tags origin main
           if ! git merge-base --is-ancestor "${GITHUB_SHA}" FETCH_HEAD; then
             echo "Tagged commit ${GITHUB_SHA} is not on main"
+            exit 1
+          fi
+
+      - name: Require a changelog section for the tag
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          awk -v ver="${tag_version}" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "## [" ver "]") == 1) { found = 1 }
+              next
+            }
+            /^\[[^]]+\]: / { if (found) exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if ! grep -qv -e '^[[:space:]]*$' -e '^#' release-notes.md; then
+            echo "::error file=CHANGELOG.md::CHANGELOG.md has no non-empty \"## [${tag_version}]\" section for tag ${GITHUB_REF_NAME}"
             exit 1
           fi
 
@@ -58,23 +79,6 @@ jobs:
             echo "CI passed is ${status:-missing}, checking again in 30s"
             sleep 30
           done
-
-      - name: Extract changelog section
-        run: |
-          tag_version="${GITHUB_REF_NAME#v}"
-          awk -v ver="${tag_version}" '
-            /^## \[/ {
-              if (found) exit
-              if (index($0, "## [" ver "]") == 1) { found = 1 }
-              next
-            }
-            /^\[[^]]+\]: / { if (found) exit }
-            found { print }
-          ' CHANGELOG.md > release-notes.md
-          if [[ -z "$(tr -d '[:space:]' < release-notes.md)" ]]; then
-            echo "No CHANGELOG.md section found for version ${tag_version}"
-            exit 1
-          fi
 
       - name: Create GitHub Release
         env:
