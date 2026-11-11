@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -130,6 +130,101 @@ function hasReadOnlyTopLevelPermissions(workflow: Workflow): boolean {
     entries.length === 0 ||
     (entries.length === 1 && entries[0]?.[0] === "contents" && entries[0][1] === "read")
   );
+}
+
+type ConcurrencyAwareWorkflow = Workflow & { readonly concurrency?: unknown };
+
+/**
+ * Reads the top-level `concurrency` of a workflow, in its string or mapping
+ * form.
+ * @param workflow The parsed workflow.
+ * @returns The group and the `cancel-in-progress` value, when a group is set.
+ */
+function readConcurrency(
+  workflow: ConcurrencyAwareWorkflow,
+): { group: string; cancelInProgress: unknown } | undefined {
+  const concurrency = workflow.concurrency;
+  if (typeof concurrency === "string") {
+    return concurrency.trim() === "" ? undefined : { group: concurrency, cancelInProgress: false };
+  }
+  if (concurrency === null || typeof concurrency !== "object") return undefined;
+  const { group, "cancel-in-progress": cancelInProgress = false } = concurrency as Record<
+    string,
+    unknown
+  >;
+  return typeof group !== "string" || group.trim() === "" ? undefined : { group, cancelInProgress };
+}
+
+const SETUP_NODE_PREFIX = "actions/setup-node@";
+const NODE_VERSION_FILE = ".node-version";
+
+/**
+ * Finds `actions/setup-node` steps that do not read the Node version from
+ * `.node-version`.
+ * @param workflow The parsed workflow.
+ * @returns The `with:` blocks of the offending steps.
+ */
+function findSetupNodeWithoutVersionFile(workflow: Workflow): Record<string, unknown>[] {
+  return collectSteps(workflow)
+    .filter((step) => step.uses?.startsWith(SETUP_NODE_PREFIX))
+    .map((step) => step.with ?? {})
+    .filter(
+      (inputs) =>
+        inputs["node-version-file"] !== NODE_VERSION_FILE || inputs["node-version"] !== undefined,
+    );
+}
+
+/**
+ * Lists the languages the CodeQL `init` step scans.
+ * @param workflow The parsed CodeQL workflow.
+ * @returns The language names, in the order the step lists them.
+ */
+function collectCodeqlLanguages(workflow: Workflow): string[] {
+  return collectSteps(workflow)
+    .filter((step) => step.uses?.startsWith("github/codeql-action/init@"))
+    .flatMap((step) => {
+      const languages = step.with?.languages;
+      return typeof languages === "string" ? languages.split(",") : [];
+    })
+    .map((language) => language.trim())
+    .filter(Boolean);
+}
+
+const CHANGELOG_GUARD_STEP = "Require a changelog section for the tag";
+
+/**
+ * Runs the release workflow's changelog guard the way the runner does, in a
+ * scratch directory that holds only the given `CHANGELOG.md`.
+ * @param tag The pushed tag, as `GITHUB_REF_NAME`.
+ * @param changelog The content of `CHANGELOG.md`.
+ * @returns The exit code, the output and the extracted release notes.
+ */
+function runChangelogGuard(
+  tag: string,
+  changelog: string,
+): { status: number | null; output: string; notes: string } {
+  const script = collectSteps(readWorkflow("release.yml")).find(
+    (step) => step.name === CHANGELOG_GUARD_STEP,
+  )?.run;
+  if (script === undefined) throw new Error(`release.yml has no "${CHANGELOG_GUARD_STEP}" step`);
+  const directory = mkdtempSync(path.join(tmpdir(), "changelog-guard-"));
+  try {
+    writeFileSync(path.join(directory, "CHANGELOG.md"), changelog);
+    writeFileSync(path.join(directory, "guard.sh"), script);
+    const result = spawnSync("bash", ["--noprofile", "--norc", "-eo", "pipefail", "guard.sh"], {
+      cwd: directory,
+      env: { PATH: process.env.PATH ?? "", GITHUB_REF_NAME: tag },
+      encoding: "utf8",
+    });
+    const notesFile = path.join(directory, "release-notes.md");
+    return {
+      status: result.status,
+      output: `${result.stdout}${result.stderr}`,
+      notes: existsSync(notesFile) ? readFileSync(notesFile, "utf8") : "",
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 /**
@@ -415,6 +510,38 @@ jobs:
 `;
 const CHECKOUT = `actions/checkout@${PINNED_SHA}`;
 
+/**
+ * Builds a one-job workflow whose only step uses the given action.
+ * @param uses The action reference.
+ * @param inputs The `with:` entries, one `key: value` line each.
+ * @returns The parsed workflow.
+ */
+function workflowWithStep(uses: string, inputs: readonly string[]): Workflow {
+  const withBlock =
+    inputs.length === 0
+      ? ""
+      : `        with:\n${inputs.map((input) => `          ${input}\n`).join("")}`;
+  return parseWorkflow(`${JOB_HEADER}    steps:\n      - uses: ${uses}\n${withBlock}`);
+}
+
+/**
+ * Builds a one-job workflow whose only step sets up Node.
+ * @param inputs The `with:` entries, one `key: value` line each.
+ * @returns The parsed workflow.
+ */
+function workflowWithSetupNode(inputs: readonly string[]): Workflow {
+  return workflowWithStep(`actions/setup-node@${PINNED_SHA}`, inputs);
+}
+
+/**
+ * Builds a job-less workflow with the given top-level concurrency.
+ * @param concurrency The `concurrency:` YAML, newline-terminated, or `""`.
+ * @returns The parsed workflow.
+ */
+function workflowWithConcurrency(concurrency: string): Workflow {
+  return parseWorkflow(`on: push\n${concurrency}jobs: {}\n`);
+}
+
 describe("hardening detectors", () => {
   test("flags a job without timeout-minutes", () => {
     const bad = parseWorkflow(`${JOB_HEADER}    steps:
@@ -490,6 +617,51 @@ ${steps}`);
       hasReadOnlyTopLevelPermissions(withPermissions("{ contents: read, issues: write }")),
     ).toBe(false);
     expect(hasReadOnlyTopLevelPermissions(parseWorkflow("on: push\njobs: {}\n"))).toBe(false);
+  });
+
+  test("flags a workflow without a concurrency group", () => {
+    expect(readConcurrency(workflowWithConcurrency(""))).toBeUndefined();
+    expect(readConcurrency(workflowWithConcurrency("concurrency: {}\n"))).toBeUndefined();
+    expect(readConcurrency(workflowWithConcurrency('concurrency: ""\n'))).toBeUndefined();
+    expect(
+      readConcurrency(workflowWithConcurrency("concurrency:\n  cancel-in-progress: true\n")),
+    ).toBeUndefined();
+    expect(readConcurrency(workflowWithConcurrency("concurrency: release\n"))).toEqual({
+      group: "release",
+      cancelInProgress: false,
+    });
+    expect(
+      readConcurrency(
+        workflowWithConcurrency("concurrency:\n  group: release\n  cancel-in-progress: true\n"),
+      ),
+    ).toEqual({ group: "release", cancelInProgress: true });
+  });
+
+  test("flags a setup-node step that does not read .node-version", () => {
+    const fromFile = "node-version-file: .node-version";
+    expect(findSetupNodeWithoutVersionFile(workflowWithSetupNode([fromFile]))).toEqual([]);
+    expect(findSetupNodeWithoutVersionFile(workflowWithSetupNode([]))).toHaveLength(1);
+    expect(
+      findSetupNodeWithoutVersionFile(workflowWithSetupNode(["node-version: 24"])),
+    ).toHaveLength(1);
+    expect(
+      findSetupNodeWithoutVersionFile(workflowWithSetupNode(["node-version-file: package.json"])),
+    ).toHaveLength(1);
+    expect(
+      findSetupNodeWithoutVersionFile(workflowWithSetupNode([fromFile, "node-version: 24"])),
+    ).toHaveLength(1);
+  });
+
+  test("lists the languages of the CodeQL init step", () => {
+    const initStep = `github/codeql-action/init@${PINNED_SHA}`;
+    expect(
+      collectCodeqlLanguages(workflowWithStep(initStep, ["languages: javascript-typescript"])),
+    ).toEqual(["javascript-typescript"]);
+    expect(
+      collectCodeqlLanguages(
+        workflowWithStep(initStep, ["languages: actions, javascript-typescript"]),
+      ),
+    ).toEqual(["actions", "javascript-typescript"]);
   });
 });
 
@@ -743,6 +915,81 @@ describe("release.yml gates", () => {
   test("keeps main ancestry, notes, idempotent create and prerelease flags", () => {
     expect(findMissingReleaseBehaviour(release)).toEqual([]);
   });
+
+  test("checks the changelog before the CI wait and before the Release", () => {
+    const names = collectSteps(release).map((step) => step.name);
+    const guard = names.indexOf(CHANGELOG_GUARD_STEP);
+    expect(guard).toBeGreaterThan(-1);
+    expect(guard).toBeLessThan(names.indexOf("Require green CI on the tagged commit"));
+    expect(guard).toBeLessThan(names.indexOf("Create GitHub Release"));
+  });
+});
+
+const CHANGELOG_HEADER = "# Changelog\n\n## [Unreleased]\n\n### Added\n\n- Pending work.\n\n";
+const CHANGELOG_LINKS = "[1.2.3]: https://example.test/releases/v1.2.3\n";
+
+describe("release.yml changelog guard", () => {
+  test("passes and extracts the notes when the tag has a section with a body", () => {
+    const result = runChangelogGuard(
+      "v1.2.3",
+      `${CHANGELOG_HEADER}## [1.2.3] - 2026-11-11\n\n### Fixed\n\n- A real entry.\n\n## [1.2.2]\n\n- Older entry.\n\n${CHANGELOG_LINKS}`,
+    );
+    expect(result.status).toBe(0);
+    expect(result.notes).toContain("- A real entry.");
+    expect(result.notes).not.toContain("Older entry");
+    expect(result.notes).not.toContain("Pending work");
+    expect(result.notes).not.toContain("example.test");
+  });
+
+  test("fails when the changelog has no section for the tag", () => {
+    const result = runChangelogGuard(
+      "v1.2.3",
+      `${CHANGELOG_HEADER}## [1.2.2]\n\n- Older entry.\n\n## [11.2.3]\n\n- Other entry.\n`,
+    );
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("## [1.2.3]");
+  });
+
+  test("fails on an empty changelog", () => {
+    expect(runChangelogGuard("v1.2.3", "").status).toBe(1);
+  });
+
+  test.each([
+    ["nothing", "## [1.2.3]\n## [1.2.2]\n\n- Older entry.\n"],
+    ["blank lines", "## [1.2.3] - 2026-11-11\n\n   \n\n## [1.2.2]\n\n- Older entry.\n"],
+    ["only headings", "## [1.2.3]\n\n### Added\n\n### Fixed\n\n## [1.2.2]\n\n- Older entry.\n"],
+    ["only link references", `## [1.2.3]\n\n${CHANGELOG_LINKS}`],
+  ])("fails when the section for the tag holds %s", (_label, sections) => {
+    const result = runChangelogGuard("v1.2.3", `${CHANGELOG_HEADER}${sections}`);
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("## [1.2.3]");
+  });
+
+  test("a pre-release tag needs its own section, not the one of the final version", () => {
+    const finalOnly = `${CHANGELOG_HEADER}## [1.2.3]\n\n- A real entry.\n`;
+    expect(runChangelogGuard("v1.2.3-rc.1", finalOnly).status).toBe(1);
+
+    const result = runChangelogGuard(
+      "v1.2.3-rc.1",
+      `${CHANGELOG_HEADER}## [1.2.3-rc.1] - 2026-11-11\n\n- A candidate entry.\n\n## [1.2.2]\n\n- Older entry.\n`,
+    );
+    expect(result.status).toBe(0);
+    expect(result.notes).toContain("- A candidate entry.");
+  });
+
+  test("a final tag does not accept the section of its pre-release", () => {
+    const candidateOnly = `${CHANGELOG_HEADER}## [1.2.3-rc.1]\n\n- A candidate entry.\n`;
+    expect(runChangelogGuard("v1.2.3", candidateOnly).status).toBe(1);
+  });
+});
+
+describe("codeql.yml", () => {
+  test("scans the workflows as well as the code", () => {
+    expect(collectCodeqlLanguages(readWorkflow("codeql.yml"))).toEqual([
+      "actions",
+      "javascript-typescript",
+    ]);
+  });
 });
 
 describe("ci.yml gates", () => {
@@ -822,7 +1069,22 @@ describe.each(listWorkflowFiles())("%s", (fileName) => {
   test("top-level permissions are contents: read or stricter", () => {
     expect(hasReadOnlyTopLevelPermissions(workflow)).toBe(true);
   });
+
+  test("declares a concurrency group", () => {
+    expect(readConcurrency(workflow)).toBeDefined();
+  });
+
+  test("every setup-node reads .node-version", () => {
+    expect(findSetupNodeWithoutVersionFile(workflow)).toEqual([]);
+  });
 });
+
+test.each(["release.yml", "grid-snapshot.yml"])(
+  "%s never cancels a run in progress",
+  (fileName) => {
+    expect(readConcurrency(readWorkflow(fileName))?.cancelInProgress).toBe(false);
+  },
+);
 
 const ZERO_SHA = "0".repeat(40);
 const SOME_SHA = "a".repeat(40);
