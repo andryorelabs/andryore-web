@@ -103,7 +103,9 @@ jobs:
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
-    if: github.event_name == 'pull_request'
+    # A develop to main promotion carries the squash commits of develop, each
+    # already linted on its own PR and impossible to rewrite there.
+    if: github.event_name == 'pull_request' && !(github.base_ref == 'main' && github.head_ref == 'develop')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
