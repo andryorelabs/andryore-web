@@ -1,8 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "contentMappers": [
-    { "package": "@astrojs/ts-content-mapper", "extensions": [".astro"] }
-  ],
+  "contentMappers": [{ "package": "@astrojs/ts-content-mapper", "extensions": [".astro"] }],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2025"],

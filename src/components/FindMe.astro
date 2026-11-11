@@ -1,30 +1,27 @@
 ---
-import chrome from '../content/chrome.json'
-import findMe from '../content/find-me.json'
-import type { Locale } from '../i18n/locales'
-import { CONTACT_EMAIL } from '../lib/contact'
-import {
-  externalLinkAttributes,
-  labelWithNewTabNote,
-} from '../lib/external-link'
-import type { IconId } from '../lib/icons'
-import { resolveIcon } from '../lib/icons'
-import BrandIcon from './BrandIcon.astro'
-import CopyEmailButton from './CopyEmailButton'
+import chrome from "../content/chrome.json";
+import findMe from "../content/find-me.json";
+import type { Locale } from "../i18n/locales";
+import { CONTACT_EMAIL } from "../lib/contact";
+import { externalLinkAttributes, labelWithNewTabNote } from "../lib/external-link";
+import type { IconId } from "../lib/icons";
+import { resolveIcon } from "../lib/icons";
+import BrandIcon from "./BrandIcon.astro";
+import CopyEmailButton from "./CopyEmailButton";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = findMe[locale]
-const chromeCopy = chrome[locale]
-const emailId = 'find-me-email'
+const { locale } = Astro.props;
+const copy = findMe[locale];
+const chromeCopy = chrome[locale];
+const emailId = "find-me-email";
 
 const hasDarkMark = (icon: string): boolean => {
-  const { light, dark } = resolveIcon(icon as IconId)
-  return light !== dark
-}
+  const { light, dark } = resolveIcon(icon as IconId);
+  return light !== dark;
+};
 ---
 
 <section
@@ -49,11 +46,7 @@ const hasDarkMark = (icon: string): boolean => {
           {hasDarkMark(item.icon) ? (
             <>
               <BrandIcon id={item.icon as IconId} class="size-7 dark:hidden" />
-              <BrandIcon
-                id={item.icon as IconId}
-                variant="dark"
-                class="hidden size-7 dark:block"
-              />
+              <BrandIcon id={item.icon as IconId} variant="dark" class="hidden size-7 dark:block" />
             </>
           ) : (
             <BrandIcon id={item.icon as IconId} class="size-7" />

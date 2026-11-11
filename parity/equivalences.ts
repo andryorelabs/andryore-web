@@ -1,4 +1,4 @@
-import type { Finding } from './diff'
+import type { Finding } from "./diff";
 
 /**
  * ESLint rules that Oxlint cannot run but whose findings other Oxlint rules
@@ -10,21 +10,18 @@ import type { Finding } from './diff'
  */
 export const EQUIVALENCES: ReadonlyMap<string, readonly string[]> = new Map([
   [
-    'unicorn/no-useless-template-literals',
-    [
-      '@typescript-eslint/no-base-to-string',
-      '@typescript-eslint/restrict-template-expressions',
-    ],
+    "unicorn/no-useless-template-literals",
+    ["@typescript-eslint/no-base-to-string", "@typescript-eslint/restrict-template-expressions"],
   ],
-])
+]);
 
 interface CoveredFinding extends Finding {
-  coveredBy: string
+  coveredBy: string;
 }
 
 export interface EquivalenceResult {
-  covered: CoveredFinding[]
-  remaining: Finding[]
+  covered: CoveredFinding[];
+  remaining: Finding[];
 }
 
 /**
@@ -42,18 +39,18 @@ export function resolveEquivalences(
   oxlintFindings: readonly Finding[],
   equivalences: ReadonlyMap<string, readonly string[]> = EQUIVALENCES,
 ): EquivalenceResult {
-  const covered: CoveredFinding[] = []
-  const remaining: Finding[] = []
+  const covered: CoveredFinding[] = [];
+  const remaining: Finding[] = [];
   for (const finding of eslintOnly) {
-    const coveringRules = equivalences.get(finding.rule) ?? []
+    const coveringRules = equivalences.get(finding.rule) ?? [];
     const cover = oxlintFindings.find(
       (candidate) =>
         candidate.file === finding.file &&
         candidate.line === finding.line &&
         coveringRules.includes(candidate.rule),
-    )
-    if (cover) covered.push({ ...finding, coveredBy: cover.rule })
-    else remaining.push(finding)
+    );
+    if (cover) covered.push({ ...finding, coveredBy: cover.rule });
+    else remaining.push(finding);
   }
-  return { covered, remaining }
+  return { covered, remaining };
 }

@@ -4,7 +4,7 @@
  * @returns `true` for absolute `http` and `https` URLs.
  */
 export function isExternalHref(href: string): boolean {
-  return /^https?:\/\//i.test(href)
+  return /^https?:\/\//i.test(href);
 }
 
 /**
@@ -14,10 +14,8 @@ export function isExternalHref(href: string): boolean {
  * @param options.sponsored Marks a paid or affiliate link.
  * @returns The `rel` attribute value.
  */
-export function externalLinkTokens({
-  sponsored = false,
-}: { sponsored?: boolean } = {}): string {
-  return sponsored ? 'sponsored noopener noreferrer' : 'noopener noreferrer'
+export function externalLinkTokens({ sponsored = false }: { sponsored?: boolean } = {}): string {
+  return sponsored ? "sponsored noopener noreferrer" : "noopener noreferrer";
 }
 
 /**
@@ -26,20 +24,20 @@ export function externalLinkTokens({
  * @returns The external `rel`, or `undefined` for internal links.
  */
 export function tokensForHref(href: string): string | undefined {
-  return isExternalHref(href) ? externalLinkTokens() : undefined
+  return isExternalHref(href) ? externalLinkTokens() : undefined;
 }
 
 /**
 The origin of the Site, used to tell same-origin links from external ones.
  */
-const SITE_ORIGIN = 'https://andryore.dev'
+const SITE_ORIGIN = "https://andryore.dev";
 
 /**
 The `target` and `rel` attributes of an external link.
  */
 export interface ExternalLinkAttributes {
-  target: '_blank'
-  rel: string
+  target: "_blank";
+  rel: string;
 }
 
 /**
@@ -55,15 +53,15 @@ export function externalLinkAttributes(
   href: string,
   siteOrigin: string = SITE_ORIGIN,
 ): ExternalLinkAttributes | undefined {
-  let url: URL
+  let url: URL;
   try {
-    url = new URL(href, siteOrigin)
+    url = new URL(href, siteOrigin);
   } catch {
-    return undefined
+    return undefined;
   }
-  if (url.origin === new URL(siteOrigin).origin) return undefined
-  const tokens = tokensForHref(url.href)
-  return tokens === undefined ? undefined : { target: '_blank', rel: tokens }
+  if (url.origin === new URL(siteOrigin).origin) return undefined;
+  const tokens = tokensForHref(url.href);
+  return tokens === undefined ? undefined : { target: "_blank", rel: tokens };
 }
 
 /**
@@ -74,9 +72,6 @@ export function externalLinkAttributes(
  * @param copy.opensInNewTab The localized "opens in a new tab" note.
  * @returns The label with the note appended.
  */
-export function labelWithNewTabNote(
-  label: string,
-  copy: { opensInNewTab: string },
-): string {
-  return `${label}. ${copy.opensInNewTab}`
+export function labelWithNewTabNote(label: string, copy: { opensInNewTab: string }): string {
+  return `${label}. ${copy.opensInNewTab}`;
 }

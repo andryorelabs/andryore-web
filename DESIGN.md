@@ -1,49 +1,48 @@
 ---
 name: AndryOre Site
-description:
-  Static, bilingual personal site with a cool blue-grey neutral ground, one
+description: Static, bilingual personal site with a cool blue-grey neutral ground, one
   indigo accent and a light and dark theme.
 colors:
-  background: 'oklch(0.963 0.005 258.3)'
-  foreground: 'oklch(0.212 0.013 258.4)'
-  card: 'oklch(1 0 0)'
-  primary: 'oklch(0.549 0.249 264)'
-  primary-foreground: 'oklch(1 0 0)'
-  secondary: 'oklch(0.93 0.009 258.3)'
-  muted-foreground: 'oklch(0.446 0.026 256.8)'
-  destructive: 'oklch(0.539 0.194 26.7)'
-  success: 'oklch(0.492 0.109 157)'
-  border: 'oklch(0.883 0.013 255.5)'
-  ring: 'oklch(0.549 0.249 264)'
-  background-dark: 'oklch(0.176 0.014 258.4)'
-  foreground-dark: 'oklch(0.942 0.009 258.3)'
-  card-dark: 'oklch(0.22 0.018 255.7)'
-  primary-dark: 'oklch(0.661 0.179 265.2)'
-  primary-foreground-dark: 'oklch(0.176 0.014 258.4)'
-  secondary-dark: 'oklch(0.254 0.022 257.3)'
-  muted-foreground-dark: 'oklch(0.715 0.023 256.8)'
-  destructive-dark: 'oklch(0.712 0.181 22.8)'
-  success-dark: 'oklch(0.779 0.165 157.3)'
-  border-dark: 'oklch(0.314 0.023 256.4)'
-  ring-dark: 'oklch(0.661 0.179 265.2)'
+  background: "oklch(0.963 0.005 258.3)"
+  foreground: "oklch(0.212 0.013 258.4)"
+  card: "oklch(1 0 0)"
+  primary: "oklch(0.549 0.249 264)"
+  primary-foreground: "oklch(1 0 0)"
+  secondary: "oklch(0.93 0.009 258.3)"
+  muted-foreground: "oklch(0.446 0.026 256.8)"
+  destructive: "oklch(0.539 0.194 26.7)"
+  success: "oklch(0.492 0.109 157)"
+  border: "oklch(0.883 0.013 255.5)"
+  ring: "oklch(0.549 0.249 264)"
+  background-dark: "oklch(0.176 0.014 258.4)"
+  foreground-dark: "oklch(0.942 0.009 258.3)"
+  card-dark: "oklch(0.22 0.018 255.7)"
+  primary-dark: "oklch(0.661 0.179 265.2)"
+  primary-foreground-dark: "oklch(0.176 0.014 258.4)"
+  secondary-dark: "oklch(0.254 0.022 257.3)"
+  muted-foreground-dark: "oklch(0.715 0.023 256.8)"
+  destructive-dark: "oklch(0.712 0.181 22.8)"
+  success-dark: "oklch(0.779 0.165 157.3)"
+  border-dark: "oklch(0.314 0.023 256.4)"
+  ring-dark: "oklch(0.661 0.179 265.2)"
 typography:
   body:
     fontFamily: "'Space Grotesk Variable', 'Space Grotesk', sans-serif"
   mono:
     fontFamily: "'JetBrains Mono Variable', 'JetBrains Mono', monospace"
 rounded:
-  base: '0.25rem'
-  card: '1rem'
-  pill: '999px'
+  base: "0.25rem"
+  card: "1rem"
+  pill: "999px"
 components:
   button-primary:
-    backgroundColor: '{colors.primary}'
-    textColor: '{colors.primary-foreground}'
-    rounded: '{rounded.base}'
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.primary-foreground}"
+    rounded: "{rounded.base}"
   card:
-    backgroundColor: '{colors.card}'
-    textColor: '{colors.foreground}'
-    rounded: '{rounded.card}'
+    backgroundColor: "{colors.card}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.card}"
 ---
 
 # Design System: AndryOre Site

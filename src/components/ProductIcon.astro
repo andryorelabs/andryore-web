@@ -1,65 +1,58 @@
 ---
-import { glyphSvg } from '../lib/glyphs'
-import { resolveIcon } from '../lib/icons'
-import { classifyIcon } from '../lib/products'
-import { tintSvg } from '../lib/tint-svg'
+import { glyphSvg } from "../lib/glyphs";
+import { resolveIcon } from "../lib/icons";
+import { classifyIcon } from "../lib/products";
+import { tintSvg } from "../lib/tint-svg";
 
 interface Props {
-  name: string
-  size?: number
-  class?: string
-  tint?: boolean
+  name: string;
+  size?: number;
+  class?: string;
+  tint?: boolean;
 }
 
-const { name, size = 16, class: className, tint = false } = Astro.props
+const { name, size = 16, class: className, tint = false } = Astro.props;
 
-const brandUrls = import.meta.glob<string>('/src/assets/icons/*.svg', {
+const brandUrls = import.meta.glob<string>("/src/assets/icons/*.svg", {
   eager: true,
-  query: '?url',
-  import: 'default',
-})
+  query: "?url",
+  import: "default",
+});
 
-const brandSources = import.meta.glob<string>('/src/assets/icons/*.svg', {
+const brandSources = import.meta.glob<string>("/src/assets/icons/*.svg", {
   eager: true,
-  query: '?raw',
-  import: 'default',
-})
+  query: "?raw",
+  import: "default",
+});
 
-const icon = classifyIcon(name)
-if (!icon) throw new Error(`Unknown product icon "${name}".`)
+const icon = classifyIcon(name);
+if (!icon) throw new Error(`Unknown product icon "${name}".`);
 
-const brand = icon.kind === 'brand' ? resolveIcon(icon.id) : undefined
-const lightUrl = brand ? brandUrls[brand.light] : undefined
-const darkUrl = brand ? brandUrls[brand.dark] : undefined
-const tintedSource = brand ? brandSources[brand.light] : undefined
-const hasSplitMarks = lightUrl !== darkUrl
-const tintedHtml =
-  tint && tintedSource ? tintSvg(tintedSource, size) : undefined
+const brand = icon.kind === "brand" ? resolveIcon(icon.id) : undefined;
+const lightUrl = brand ? brandUrls[brand.light] : undefined;
+const darkUrl = brand ? brandUrls[brand.dark] : undefined;
+const tintedSource = brand ? brandSources[brand.light] : undefined;
+const hasSplitMarks = lightUrl !== darkUrl;
+const tintedHtml = tint && tintedSource ? tintSvg(tintedSource, size) : undefined;
 const brandMarks =
-  tintedHtml === undefined && lightUrl && darkUrl
-    ? { lightUrl, darkUrl }
-    : undefined
+  tintedHtml === undefined && lightUrl && darkUrl ? { lightUrl, darkUrl } : undefined;
 const glyphHtml =
-  tintedHtml === undefined && brandMarks === undefined && icon.kind === 'glyph'
+  tintedHtml === undefined && brandMarks === undefined && icon.kind === "glyph"
     ? glyphSvg(icon.name, size)
-    : undefined
+    : undefined;
 ---
 
 {tintedHtml !== undefined && (
-  <span
-    class:list={['inline-flex shrink-0', className]}
-    aria-hidden="true"
-    set:html={tintedHtml}
-  />
+  <span class:list={["inline-flex shrink-0", className]} aria-hidden="true" set:html={tintedHtml} />
 )}
 {brandMarks && (
-  <span class:list={['inline-flex shrink-0', className]} aria-hidden="true">
+  <span class:list={["inline-flex shrink-0", className]} aria-hidden="true">
     <img
       src={brandMarks.lightUrl}
       alt=""
       width={size}
       height={size}
-      class:list={[hasSplitMarks && 'dark:hidden']}
+      class:list={[hasSplitMarks && "dark:hidden"]}
       loading="lazy"
       decoding="async"
     />
@@ -77,9 +70,5 @@ const glyphHtml =
   </span>
 )}
 {glyphHtml !== undefined && (
-  <span
-    class:list={['inline-flex shrink-0', className]}
-    aria-hidden="true"
-    set:html={glyphHtml}
-  />
+  <span class:list={["inline-flex shrink-0", className]} aria-hidden="true" set:html={glyphHtml} />
 )}

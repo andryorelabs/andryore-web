@@ -1,32 +1,25 @@
 ---
-import { resolveIcon } from '../lib/icons'
-import {
-  GLOW_CLASSES,
-  sizeClass,
-  type GlowIconId,
-  type TileSize,
-} from '../lib/stack-scene'
-import BrandIcon from './BrandIcon.astro'
+import { resolveIcon } from "../lib/icons";
+import { GLOW_CLASSES, sizeClass, type GlowIconId, type TileSize } from "../lib/stack-scene";
+import BrandIcon from "./BrandIcon.astro";
 
 interface Props {
-  id: GlowIconId
-  size: TileSize
-  class?: string
-  'data-nf-delay'?: number
+  id: GlowIconId;
+  size: TileSize;
+  class?: string;
+  "data-nf-delay"?: number;
 }
 
-const { id, size, class: className, 'data-nf-delay': nfDelay } = Astro.props
-const { light, dark } = resolveIcon(id)
-const hasDarkMark = light !== dark
+const { id, size, class: className, "data-nf-delay": nfDelay } = Astro.props;
+const { light, dark } = resolveIcon(id);
+const hasDarkMark = light !== dark;
 ---
 
 <span
-  class:list={['stack-tile', sizeClass(size), GLOW_CLASSES[id], className]}
+  class:list={["stack-tile", sizeClass(size), GLOW_CLASSES[id], className]}
   data-nf-delay={nfDelay}
   aria-hidden="true"
 >
-  <BrandIcon id={id} class:list={[hasDarkMark && 'dark:hidden']} />
-  {hasDarkMark && (
-    <BrandIcon id={id} variant="dark" class="hidden dark:block" />
-  )}
+  <BrandIcon id={id} class:list={[hasDarkMark && "dark:hidden"]} />
+  {hasDarkMark && <BrandIcon id={id} variant="dark" class="hidden dark:block" />}
 </span>

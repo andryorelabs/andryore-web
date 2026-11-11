@@ -15,8 +15,7 @@
   box-shadow:
     inset 0 1px 0 var(--hl),
     var(--shadow),
-    0 0 calc(var(--s) * var(--glow-reach) * 1px)
-      calc(var(--s) * var(--glow-spread) * -1px)
+    0 0 calc(var(--s) * var(--glow-reach) * 1px) calc(var(--s) * var(--glow-spread) * -1px)
       color-mix(in oklab, var(--g) var(--glow-alpha), transparent);
 }
 
@@ -67,7 +66,7 @@ html:not(.dark) .stack-tile {
 }
 
 .stack-stage::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -84,11 +83,7 @@ html:not(.dark) .stack-tile {
       transparent 1px
     );
   background-size: 44px 44px;
-  mask-image: radial-gradient(
-    ellipse 65% 70% at 50% 50%,
-    #000 0%,
-    transparent 80%
-  );
+  mask-image: radial-gradient(ellipse 65% 70% at 50% 50%, #000 0%, transparent 80%);
 }
 
 .stack-field {
@@ -142,8 +137,7 @@ html:not(.dark) .stack-tile {
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.05;
-  text-shadow: 0 2px 40px
-    color-mix(in oklab, var(--background) 80%, transparent);
+  text-shadow: 0 2px 40px color-mix(in oklab, var(--background) 80%, transparent);
   text-wrap: balance;
 }
 
@@ -573,51 +567,51 @@ html:not(.dark) .stack-tile-end {
   rotate: var(--r);
 }
 
-.nf-tile[data-nf-delay='0.3'] {
+.nf-tile[data-nf-delay="0.3"] {
   --d: 0.3s;
 }
 
-.nf-tile[data-nf-delay='0.5'] {
+.nf-tile[data-nf-delay="0.5"] {
   --d: 0.5s;
 }
 
-.nf-tile[data-nf-delay='0.8'] {
+.nf-tile[data-nf-delay="0.8"] {
   --d: 0.8s;
 }
 
-.nf-tile[data-nf-delay='1'] {
+.nf-tile[data-nf-delay="1"] {
   --d: 1s;
 }
 
-.nf-tile[data-nf-delay='1.2'] {
+.nf-tile[data-nf-delay="1.2"] {
   --d: 1.2s;
 }
 
-.nf-tile[data-nf-delay='1.5'] {
+.nf-tile[data-nf-delay="1.5"] {
   --d: 1.5s;
 }
 
-.nf-tile[data-nf-delay='2'] {
+.nf-tile[data-nf-delay="2"] {
   --d: 2s;
 }
 
-.nf-tile[data-nf-delay='2.2'] {
+.nf-tile[data-nf-delay="2.2"] {
   --d: 2.2s;
 }
 
-.nf-tile[data-nf-delay='2.5'] {
+.nf-tile[data-nf-delay="2.5"] {
   --d: 2.5s;
 }
 
-.nf-tile[data-nf-delay='3'] {
+.nf-tile[data-nf-delay="3"] {
   --d: 3s;
 }
 
-.nf-tile[data-nf-delay='3.3'] {
+.nf-tile[data-nf-delay="3.3"] {
   --d: 3.3s;
 }
 
-.nf-tile[data-nf-delay='3.5'] {
+.nf-tile[data-nf-delay="3.5"] {
   --d: 3.5s;
 }
 

@@ -1,11 +1,11 @@
 ---
-import '../styles/global.css'
-import jetbrainsMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url'
-import spaceGroteskLatin from '@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url'
+import "../styles/global.css";
+import jetbrainsMonoLatin from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url";
+import spaceGroteskLatin from "@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url";
 
-import Dock from '../components/Dock'
-import chrome from '../content/chrome.json'
-import home from '../content/home.json'
+import Dock from "../components/Dock";
+import chrome from "../content/chrome.json";
+import home from "../content/home.json";
 import {
   absoluteUrl,
   alternatesFor,
@@ -13,48 +13,40 @@ import {
   localePath,
   splitLocalePath,
   type Locale,
-} from '../i18n/locales'
-import {
-  ANALYTICS_DOMAIN,
-  UMAMI_SCRIPT_URL,
-  UMAMI_WEBSITE_ID,
-} from '../lib/analytics'
-import { THEME_INIT_SCRIPT } from '../scripts/theme-init'
-import {
-  documentTitle,
-  imageMetaTags,
-  pageOpenGraphTags,
-} from '../seo/metadata'
-import { siteGraphJsonLd } from '../seo/structured-data'
+} from "../i18n/locales";
+import { ANALYTICS_DOMAIN, UMAMI_SCRIPT_URL, UMAMI_WEBSITE_ID } from "../lib/analytics";
+import { THEME_INIT_SCRIPT } from "../scripts/theme-init";
+import { documentTitle, imageMetaTags, pageOpenGraphTags } from "../seo/metadata";
+import { siteGraphJsonLd } from "../seo/structured-data";
 
 interface Props {
-  title: string
-  locale?: Locale
-  description?: string
-  noindex?: boolean
-  dark?: boolean
-  wide?: boolean
+  title: string;
+  locale?: Locale;
+  description?: string;
+  noindex?: boolean;
+  dark?: boolean;
+  wide?: boolean;
 }
 
 const {
   title,
-  locale = 'en',
+  locale = "en",
   description,
   noindex = false,
   dark = false,
   wide = false,
-} = Astro.props
+} = Astro.props;
 
-const copy = chrome[locale]
-const { path: routePath } = splitLocalePath(Astro.url.pathname)
-const path = routePath === '/404/' ? '/' : routePath
-const isHome = routePath === '/'
-const alternates = alternatesFor(path)
-const canonical = absoluteUrl(localePath(locale, path))
-const fullTitle = documentTitle(title, copy.wordmark)
-const pageDescription = description ?? home[locale].meta.description
+const copy = chrome[locale];
+const { path: routePath } = splitLocalePath(Astro.url.pathname);
+const path = routePath === "/404/" ? "/" : routePath;
+const isHome = routePath === "/";
+const alternates = alternatesFor(path);
+const canonical = absoluteUrl(localePath(locale, path));
+const fullTitle = documentTitle(title, copy.wordmark);
+const pageDescription = description ?? home[locale].meta.description;
 const socialTags = [
-  ...(Astro.slots.has('head')
+  ...(Astro.slots.has("head")
     ? []
     : pageOpenGraphTags({
         locale,
@@ -63,7 +55,7 @@ const socialTags = [
         url: canonical,
       })),
   ...imageMetaTags(locale, copy.ogImageAlt),
-]
+];
 ---
 
 <html lang={locale} class:list={{ dark }}>
@@ -89,11 +81,7 @@ const socialTags = [
     {!noindex && <link rel="canonical" href={canonical} />}
     {!noindex &&
       alternates.map((alternate) => (
-        <link
-          rel="alternate"
-          hreflang={alternate.hreflang}
-          href={absoluteUrl(alternate.path)}
-        />
+        <link rel="alternate" hreflang={alternate.hreflang} href={absoluteUrl(alternate.path)} />
       ))}
     {!noindex && (
       <link
@@ -102,20 +90,8 @@ const socialTags = [
         href={absoluteUrl(localePath(DEFAULT_LOCALE, path))}
       />
     )}
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href={spaceGroteskLatin}
-      crossorigin
-    />
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href={jetbrainsMonoLatin}
-      crossorigin
-    />
+    <link rel="preload" as="font" type="font/woff2" href={spaceGroteskLatin} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={jetbrainsMonoLatin} crossorigin />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -157,22 +133,19 @@ const socialTags = [
     <header class="site-header sticky top-0 z-30">
       <div
         class:list={[
-          'site-header-row mx-auto flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-10 sm:py-[22px]',
-          wide ? 'max-w-[75rem]' : 'max-w-reading',
+          "site-header-row mx-auto flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-10 sm:py-[22px]",
+          wide ? "max-w-[75rem]" : "max-w-reading",
         ]}
       >
         <a
-          href={localePath(locale, '/')}
+          href={localePath(locale, "/")}
           class="site-header-wordmark -my-2 inline-flex min-h-11 items-center text-xl font-bold tracking-[-0.02em] no-underline"
         >
           <span>{copy.wordmarkParts[0]}</span>
           <span class="text-primary">{copy.wordmarkParts[1]}</span>
         </a>
         <span class="site-header-chip inline-flex items-center gap-2 rounded-pill border border-border px-3 py-1.5 font-mono text-[0.6875rem] font-medium tracking-[0.06em] whitespace-nowrap text-muted-foreground uppercase">
-          <span
-            class="size-[7px] rounded-full bg-success"
-            aria-hidden="true"
-          ></span>
+          <span class="size-[7px] rounded-full bg-success" aria-hidden="true"></span>
           {copy.openToWork}
         </span>
       </div>
@@ -182,8 +155,8 @@ const socialTags = [
       id="main"
       tabindex="-1"
       class:list={[
-        'mx-auto grid w-full flex-1 grid-cols-[minmax(0,1fr)] content-start gap-7 px-4 pt-2 pb-[calc(var(--dock-height)+2rem)] focus:outline-none sm:gap-10 sm:px-10',
-        wide ? 'max-w-[75rem]' : 'max-w-reading',
+        "mx-auto grid w-full flex-1 grid-cols-[minmax(0,1fr)] content-start gap-7 px-4 pt-2 pb-[calc(var(--dock-height)+2rem)] focus:outline-none sm:gap-10 sm:px-10",
+        wide ? "max-w-[75rem]" : "max-w-reading",
       ]}
     >
       <slot />
@@ -191,7 +164,7 @@ const socialTags = [
 
     <div
       data-dock-slot
-      data-home={isHome ? '' : undefined}
+      data-home={isHome ? "" : undefined}
       class="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4"
     >
       <Dock
@@ -206,74 +179,65 @@ const socialTags = [
 </html>
 
 <script>
-  import { rememberLocale } from '../i18n/preference'
-  import { mountDockActive } from '../scripts/dock-active'
-  import { mountDockSoundState } from '../scripts/dock-state'
-  import { watchHeaderSurface } from '../scripts/header-surface'
-  import {
-    didRestoreLocaleScroll,
-    saveLocaleScroll,
-  } from '../scripts/locale-scroll'
-  import { soundTriggers } from '../scripts/sound-triggers'
+  import { rememberLocale } from "../i18n/preference";
+  import { mountDockActive } from "../scripts/dock-active";
+  import { mountDockSoundState } from "../scripts/dock-state";
+  import { watchHeaderSurface } from "../scripts/header-surface";
+  import { didRestoreLocaleScroll, saveLocaleScroll } from "../scripts/locale-scroll";
+  import { soundTriggers } from "../scripts/sound-triggers";
 
-  soundTriggers.mount(document)
-  mountDockSoundState(document.querySelector('[data-dock-sound]'))
+  soundTriggers.mount(document);
+  mountDockSoundState(document.querySelector("[data-dock-sound]"));
 
-  if (document.querySelector('[data-dock-slot][data-home]')) {
+  if (document.querySelector("[data-dock-slot][data-home]")) {
     mountDockActive({
-      anchors: [...document.querySelectorAll<HTMLElement>('[data-dock-page]')],
+      anchors: [...document.querySelectorAll<HTMLElement>("[data-dock-page]")],
       findSection: (id) => document.querySelector(`#${id}`),
       hash: location.hash,
       atPageEnd: () =>
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 2,
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2,
       onScroll: (listener) => {
-        window.addEventListener('scroll', listener, { passive: true })
+        window.addEventListener("scroll", listener, { passive: true });
       },
       createObserver:
-        typeof IntersectionObserver === 'undefined'
+        typeof IntersectionObserver === "undefined"
           ? undefined
           : (callback) =>
               new IntersectionObserver(
                 (entries) => {
-                  callback(entries)
+                  callback(entries);
                 },
-                { rootMargin: '-40% 0px -55% 0px' },
+                { rootMargin: "-40% 0px -55% 0px" },
               ),
-    })
+    });
   }
 
-  const header = document.querySelector('.site-header')
-  const sentinel = document.querySelector('[data-header-sentinel]')
+  const header = document.querySelector(".site-header");
+  const sentinel = document.querySelector("[data-header-sentinel]");
   if (header && sentinel) {
     watchHeaderSurface(
       header,
       sentinel,
-      typeof IntersectionObserver === 'undefined'
+      typeof IntersectionObserver === "undefined"
         ? undefined
         : (callback) => new IntersectionObserver(callback),
-    )
+    );
   }
 
-  document.addEventListener('click', (event) => {
-    const target = event.target
-    if (!(target instanceof Element)) return
-    const link = target.closest<HTMLElement>('[data-locale-switch]')
-    const locale = link?.dataset.localeSwitch
-    if (!(locale === 'en' || locale === 'es')) {
-      return
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const link = target.closest<HTMLElement>("[data-locale-switch]");
+    const locale = link?.dataset.localeSwitch;
+    if (!(locale === "en" || locale === "es")) {
+      return;
     }
 
-    rememberLocale(localStorage, locale)
+    rememberLocale(localStorage, locale);
     if (link instanceof HTMLAnchorElement) {
-      saveLocaleScroll(sessionStorage, globalThis, document, link.pathname)
+      saveLocaleScroll(sessionStorage, globalThis, document, link.pathname);
     }
-  })
+  });
 
-  didRestoreLocaleScroll(
-    sessionStorage,
-    globalThis,
-    document,
-    location.pathname,
-  )
+  didRestoreLocaleScroll(sessionStorage, globalThis, document, location.pathname);
 </script>

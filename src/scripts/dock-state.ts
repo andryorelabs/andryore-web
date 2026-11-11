@@ -1,15 +1,10 @@
-import {
-  getFxStorage,
-  isFxEnabled,
-  subscribeFx,
-  type FxStorage,
-} from '../lib/fx-store'
+import { getFxStorage, isFxEnabled, subscribeFx, type FxStorage } from "../lib/fx-store";
 
 /**
 The parts of the dock Sound switch the pre-hydration paint touches.
  */
 export interface DockSoundElement {
-  setAttribute: (name: string, value: string) => void
+  setAttribute: (name: string, value: string) => void;
 }
 
 /**
@@ -23,10 +18,10 @@ export function mountDockSoundState(
   element: DockSoundElement | null,
   storage: FxStorage | undefined = getFxStorage(),
 ): void {
-  if (!element) return
+  if (!element) return;
   const paint = (): void => {
-    element.setAttribute('aria-checked', String(isFxEnabled(storage)))
-  }
-  paint()
-  subscribeFx(paint)
+    element.setAttribute("aria-checked", String(isFxEnabled(storage)));
+  };
+  paint();
+  subscribeFx(paint);
 }

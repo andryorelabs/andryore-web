@@ -1,39 +1,39 @@
 ---
-import { Image } from 'astro:assets'
+import { Image } from "astro:assets";
 
-import memoji from '../../docs/brand/avatar/memoji.webp'
-import chrome from '../content/chrome.json'
-import home from '../content/home.json'
-import type { Locale } from '../i18n/locales'
-import { externalLinkAttributes } from '../lib/external-link'
-import { SESSION_WEEKDAYS } from '../lib/stream-state'
+import memoji from "../../docs/brand/avatar/memoji.webp";
+import chrome from "../content/chrome.json";
+import home from "../content/home.json";
+import type { Locale } from "../i18n/locales";
+import { externalLinkAttributes } from "../lib/external-link";
+import { SESSION_WEEKDAYS } from "../lib/stream-state";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = home[locale]
-const stream = copy.stream
+const { locale } = Astro.props;
+const copy = home[locale];
+const stream = copy.stream;
 
 const weekStrip = stream.weekdays.map((letter, column) => ({
   letter,
   column,
   session: SESSION_WEEKDAYS.includes((column + 1) % 7),
-}))
+}));
 
 const CALENDAR_DAYS_ICON =
-  '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/>'
-const CLOCK_ICON = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
+  '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 17h.01"/><path d="M12 17h.01"/><path d="M16 17h.01"/>';
+const CLOCK_ICON = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>';
 
 const ctas = [
-  { show: 'coming-soon', label: stream.follow },
-  { show: 'scheduled unavailable', label: stream.open },
-  { show: 'live', label: stream.watch },
-]
+  { show: "coming-soon", label: stream.follow },
+  { show: "scheduled unavailable", label: stream.open },
+  { show: "live", label: stream.watch },
+];
 
 const TWITCH_GLYPH =
-  'M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z'
+  "M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z";
 ---
 
 <article
@@ -50,12 +50,7 @@ const TWITCH_GLYPH =
   <div class="stream-inner flex flex-1 flex-col gap-3">
     <p class="stream-head">
       <span class="stream-who">
-        <svg
-          viewBox="0 0 24 24"
-          class="size-4"
-          fill="#9146ff"
-          aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" class="size-4" fill="#9146ff" aria-hidden="true">
           <path d={TWITCH_GLYPH}></path>
         </svg>
         {stream.handle}
@@ -86,17 +81,8 @@ const TWITCH_GLYPH =
           {stream.liveCaption}
         </p>
       </div>
-      <div
-        data-show="coming-soon scheduled unavailable"
-        class="stream-screen-copy"
-      >
-        <Image
-          src={memoji}
-          alt=""
-          width={44}
-          height={44}
-          class="stream-memoji"
-        />
+      <div data-show="coming-soon scheduled unavailable" class="stream-screen-copy">
+        <Image src={memoji} alt="" width={44} height={44} class="stream-memoji" />
         <p data-show="coming-soon" class="stream-screen-title">
           {stream.comingSoon}
         </p>
@@ -118,17 +104,9 @@ const TWITCH_GLYPH =
       </div>
     </div>
 
-    <ol
-      class="stream-week"
-      data-show="coming-soon scheduled"
-      aria-label={stream.weekLabel}
-    >
+    <ol class="stream-week" data-show="coming-soon scheduled" aria-label={stream.weekLabel}>
       {weekStrip.map((day) => (
-        <li
-          data-stream-day={day.column}
-          data-session={String(day.session)}
-          class="stream-day"
-        >
+        <li data-stream-day={day.column} data-session={String(day.session)} class="stream-day">
           {day.letter}
           {day.session && <i>{stream.sessionHour}</i>}
         </li>
@@ -173,12 +151,7 @@ const TWITCH_GLYPH =
         class="stream-cta"
         data-show={cta.show}
       >
-        <svg
-          viewBox="0 0 24 24"
-          class="stream-cta-glyph"
-          fill="currentColor"
-          aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" class="stream-cta-glyph" fill="currentColor" aria-hidden="true">
           <path d={TWITCH_GLYPH} />
         </svg>
         {cta.label}
@@ -189,23 +162,17 @@ const TWITCH_GLYPH =
 </article>
 
 <script>
-  import { soundTriggers } from '../scripts/sound-triggers'
-  import {
-    COUNTDOWN_INTERVAL_MS,
-    mountStreamTile,
-    refreshCountdown,
-  } from '../scripts/stream-tile'
+  import { soundTriggers } from "../scripts/sound-triggers";
+  import { COUNTDOWN_INTERVAL_MS, mountStreamTile, refreshCountdown } from "../scripts/stream-tile";
 
-  for (const tile of document.querySelectorAll<HTMLElement>(
-    '[data-stream-tile]',
-  )) {
+  for (const tile of document.querySelectorAll<HTMLElement>("[data-stream-tile]")) {
     void mountStreamTile(tile, undefined, new Date(), () => {
-      soundTriggers.playUnlocked('live')
+      soundTriggers.playUnlocked("live");
     }).then(() => {
-      if (tile.dataset.state !== 'scheduled') return
+      if (tile.dataset.state !== "scheduled") return;
       setInterval(() => {
-        refreshCountdown(tile, new Date())
-      }, COUNTDOWN_INTERVAL_MS)
-    })
+        refreshCountdown(tile, new Date());
+      }, COUNTDOWN_INTERVAL_MS);
+    });
   }
 </script>

@@ -1,9 +1,9 @@
-import type { Graph, Person, WebSite } from 'schema-dts'
+import type { Graph, Person, WebSite } from "schema-dts";
 
-import { absoluteUrl, homePath, localePath, type Locale } from '../i18n/locales'
+import { absoluteUrl, homePath, localePath, type Locale } from "../i18n/locales";
 
-const PERSON_ID = absoluteUrl('/#person')
-const WEBSITE_ID = absoluteUrl('/#website')
+const PERSON_ID = absoluteUrl("/#person");
+const WEBSITE_ID = absoluteUrl("/#website");
 
 /**
  * Builds the site-wide JSON-LD `@graph`: a `WebSite` and the `Person` behind
@@ -15,26 +15,26 @@ const WEBSITE_ID = absoluteUrl('/#website')
  */
 export function siteGraphJsonLd(locale: Locale, description: string): string {
   const person: Person = {
-    '@type': 'Person',
-    '@id': PERSON_ID,
-    name: 'Andry Orellana',
-    alternateName: 'AndryOre',
-    url: absoluteUrl(localePath(locale, '/about/')),
+    "@type": "Person",
+    "@id": PERSON_ID,
+    name: "Andry Orellana",
+    alternateName: "AndryOre",
+    url: absoluteUrl(localePath(locale, "/about/")),
     description,
-    knowsLanguage: ['es', 'en'],
-  }
+    knowsLanguage: ["es", "en"],
+  };
   const website: WebSite = {
-    '@type': 'WebSite',
-    '@id': WEBSITE_ID,
-    name: 'AndryOre',
+    "@type": "WebSite",
+    "@id": WEBSITE_ID,
+    name: "AndryOre",
     url: absoluteUrl(homePath(locale)),
     inLanguage: locale,
-    publisher: { '@id': PERSON_ID },
-    author: { '@id': PERSON_ID },
-  }
+    publisher: { "@id": PERSON_ID },
+    author: { "@id": PERSON_ID },
+  };
   const graph: Graph = {
-    '@context': 'https://schema.org',
-    '@graph': [website, person],
-  }
-  return JSON.stringify(graph).replaceAll('<', String.raw`\u003c`)
+    "@context": "https://schema.org",
+    "@graph": [website, person],
+  };
+  return JSON.stringify(graph).replaceAll("<", String.raw`\u003c`);
 }

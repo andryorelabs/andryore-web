@@ -1,11 +1,11 @@
 /**
  * Delay between consecutive items of a staggered reveal, in milliseconds.
  */
-export const REVEAL_STAGGER_MS = 60
+export const REVEAL_STAGGER_MS = 60;
 
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-const toStep = (index: number): number => Math.max(0, Math.floor(index))
+const toStep = (index: number): number => Math.max(0, Math.floor(index));
 
 /**
  * Delay before the item at `index` starts its reveal.
@@ -13,23 +13,23 @@ const toStep = (index: number): number => Math.max(0, Math.floor(index))
  * @returns The delay in milliseconds.
  */
 export function revealDelay(index: number): number {
-  return toStep(index) * REVEAL_STAGGER_MS
+  return toStep(index) * REVEAL_STAGGER_MS;
 }
 
 const REVEAL_CLASSES = [
-  'reveal-0',
-  'reveal-1',
-  'reveal-2',
-  'reveal-3',
-  'reveal-4',
-  'reveal-5',
-  'reveal-6',
-  'reveal-7',
-  'reveal-8',
-  'reveal-9',
-  'reveal-10',
-  'reveal-11',
-] as const
+  "reveal-0",
+  "reveal-1",
+  "reveal-2",
+  "reveal-3",
+  "reveal-4",
+  "reveal-5",
+  "reveal-6",
+  "reveal-7",
+  "reveal-8",
+  "reveal-9",
+  "reveal-10",
+  "reveal-11",
+] as const;
 
 /**
  * Class that sets the `.reveal` animation's stagger delay. The CSP forbids
@@ -39,8 +39,8 @@ const REVEAL_CLASSES = [
  * @returns A literal `reveal-N` class the Tailwind scanner can see.
  */
 export function revealClass(index: number): (typeof REVEAL_CLASSES)[number] {
-  const last = REVEAL_CLASSES.length - 1
-  return REVEAL_CLASSES[Math.min(toStep(index), last)] ?? 'reveal-0'
+  const last = REVEAL_CLASSES.length - 1;
+  return REVEAL_CLASSES[Math.min(toStep(index), last)] ?? "reveal-0";
 }
 
 /**
@@ -53,5 +53,5 @@ export function revealClass(index: number): (typeof REVEAL_CLASSES)[number] {
 export function isMotionReduced(
   win?: Readonly<{ matchMedia: (query: string) => { matches: boolean } }>,
 ): boolean {
-  return win?.matchMedia(REDUCED_MOTION_QUERY).matches ?? false
+  return win?.matchMedia(REDUCED_MOTION_QUERY).matches ?? false;
 }

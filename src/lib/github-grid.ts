@@ -1,4 +1,4 @@
-const GRAPHQL_ENDPOINT = 'https://api.github.com/graphql'
+const GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 
 const QUERY = `query($login: String!) {
   user(login: $login) {
@@ -9,9 +9,9 @@ const QUERY = `query($login: String!) {
       }
     }
   }
-}`
+}`;
 
-type GridLevel = 0 | 1 | 2 | 3 | 4
+type GridLevel = 0 | 1 | 2 | 3 | 4;
 
 const LEVELS: Readonly<Record<string, GridLevel>> = {
   NONE: 0,
@@ -19,15 +19,15 @@ const LEVELS: Readonly<Record<string, GridLevel>> = {
   SECOND_QUARTILE: 2,
   THIRD_QUARTILE: 3,
   FOURTH_QUARTILE: 4,
-}
+};
 
 /**
 One calendar day of the contribution grid.
  */
 export interface GridDay {
-  date: string
-  count: number
-  level: GridLevel
+  date: string;
+  count: number;
+  level: GridLevel;
 }
 
 /**
@@ -37,33 +37,31 @@ export interface GridSnapshot {
   /**
   ISO date (UTC) the data was fetched.
    */
-  capturedAt: string
-  total: number
-  weeks: GridDay[][]
+  capturedAt: string;
+  total: number;
+  weeks: GridDay[][];
 }
 
-type FetchLike = (url: string, init?: RequestInit) => Promise<Response>
+type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface FetchOptions {
-  token: string | undefined
-  login: string
-  now: Date
-  fetchImpl: FetchLike
+  token: string | undefined;
+  login: string;
+  now: Date;
+  fetchImpl: FetchLike;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && Boolean(value)
+  typeof value === "object" && Boolean(value);
 
 const toDay = (raw: unknown): GridDay | undefined => {
-  if (!isRecord(raw)) return undefined
-  const { date, contributionCount, contributionLevel } = raw
-  const level = LEVELS[String(contributionLevel)]
-  return typeof date !== 'string' ||
-    typeof contributionCount !== 'number' ||
-    level === undefined
+  if (!isRecord(raw)) return undefined;
+  const { date, contributionCount, contributionLevel } = raw;
+  const level = LEVELS[String(contributionLevel)];
+  return typeof date !== "string" || typeof contributionCount !== "number" || level === undefined
     ? undefined
-    : { date, count: contributionCount, level }
-}
+    : { date, count: contributionCount, level };
+};
 
 /**
  * Turns a GitHub GraphQL response into a snapshot.
@@ -71,32 +69,29 @@ const toDay = (raw: unknown): GridDay | undefined => {
  * @param now The capture moment, stored as an ISO date.
  * @returns The snapshot, or undefined when the body has no usable calendar.
  */
-export function parseContributionResponse(
-  body: unknown,
-  now: Date,
-): GridSnapshot | undefined {
+export function parseContributionResponse(body: unknown, now: Date): GridSnapshot | undefined {
   if (!isRecord(body) || !isRecord(body.data) || !isRecord(body.data.user)) {
-    return undefined
+    return undefined;
   }
-  const collection = body.data.user.contributionsCollection
+  const collection = body.data.user.contributionsCollection;
   if (!isRecord(collection) || !isRecord(collection.contributionCalendar)) {
-    return undefined
+    return undefined;
   }
-  const { totalContributions, weeks } = collection.contributionCalendar
-  if (typeof totalContributions !== 'number' || !Array.isArray(weeks)) {
-    return undefined
+  const { totalContributions, weeks } = collection.contributionCalendar;
+  if (typeof totalContributions !== "number" || !Array.isArray(weeks)) {
+    return undefined;
   }
   const parsed = (weeks as unknown[]).map((week) =>
     isRecord(week) && Array.isArray(week.contributionDays)
       ? (week.contributionDays as unknown[]).map((day) => toDay(day))
       : [undefined],
-  )
-  if (parsed.some((week) => week.includes(undefined))) return undefined
+  );
+  if (parsed.some((week) => week.includes(undefined))) return undefined;
   return {
     capturedAt: now.toISOString().slice(0, 10),
     total: totalContributions,
     weeks: parsed as GridDay[][],
-  }
+  };
 }
 
 /**
@@ -108,24 +103,22 @@ export function parseContributionResponse(
 export async function fetchContributionGrid(
   options: FetchOptions,
 ): Promise<GridSnapshot | undefined> {
-  if (!options.token) return undefined
+  if (!options.token) return undefined;
   try {
     const response = await options.fetchImpl(GRAPHQL_ENDPOINT, {
-      method: 'POST',
+      method: "POST",
       headers: {
         authorization: `Bearer ${options.token}`,
-        'content-type': 'application/json',
+        "content-type": "application/json",
       },
       body: JSON.stringify({
         query: QUERY,
         variables: { login: options.login },
       }),
-    })
-    return response.ok
-      ? parseContributionResponse(await response.json(), options.now)
-      : undefined
+    });
+    return response.ok ? parseContributionResponse(await response.json(), options.now) : undefined;
   } catch {
-    return undefined
+    return undefined;
   }
 }
 
@@ -138,5 +131,5 @@ export async function fetchContributionGrid(
 export async function resolveGridSnapshot(
   options: FetchOptions & { committed: GridSnapshot | undefined },
 ): Promise<GridSnapshot | undefined> {
-  return (await fetchContributionGrid(options)) ?? options.committed
+  return (await fetchContributionGrid(options)) ?? options.committed;
 }

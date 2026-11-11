@@ -2,6 +2,6 @@
 
 declare namespace astroHTML.JSX {
   interface IntrinsicAttributes {
-    'client:interaction'?: boolean
+    "client:interaction"?: boolean;
   }
 }

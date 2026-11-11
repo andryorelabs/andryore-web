@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from "node:child_process";
 import {
   chmodSync,
   copyFileSync,
@@ -10,16 +10,16 @@ import {
   renameSync,
   rmSync,
   writeFileSync,
-} from 'node:fs'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Pinned lychee release. It is the default `lycheeVersion` of the
  * `lycheeverse/lychee-action` version in {@link EXPECTED_LYCHEE_ACTION_VERSION}.
  */
-export const LYCHEE_VERSION = 'v0.24.2'
+export const LYCHEE_VERSION = "v0.24.2";
 
 /**
  * The `lycheeverse/lychee-action` version pinned in
@@ -27,20 +27,20 @@ export const LYCHEE_VERSION = 'v0.24.2'
  * workflow still pins it, so bumping the action fails the test until
  * {@link LYCHEE_VERSION} is re-checked against the new action default.
  */
-export const EXPECTED_LYCHEE_ACTION_VERSION = 'v2.9.0'
+export const EXPECTED_LYCHEE_ACTION_VERSION = "v2.9.0";
 
 /**
  * Arguments passed to lychee, identical to the `args:` of the workflow.
  * Globs are passed unexpanded, as the workflow's quoting does.
  */
 export const LYCHEE_ARGS = [
-  '--offline',
-  '--include-fragments=anchor-only',
-  '--no-progress',
-  '*.md',
-  'docs/**/*.md',
-  '.github/**/*.md',
-] as const
+  "--offline",
+  "--include-fragments=anchor-only",
+  "--no-progress",
+  "*.md",
+  "docs/**/*.md",
+  ".github/**/*.md",
+] as const;
 
 /**
  * Maps Node platform and architecture to the lychee Linux release arch.
@@ -51,17 +51,17 @@ export const LYCHEE_ARGS = [
 export function resolveLycheeArch(
   arch: NodeJS.Architecture = process.arch,
   platform: NodeJS.Platform = process.platform,
-): 'aarch64' | 'x86_64' {
-  if (platform !== 'linux') {
+): "aarch64" | "x86_64" {
+  if (platform !== "linux") {
     throw new Error(
       `lint-docs: unsupported platform "${platform}", lychee prebuilt binaries are Linux-only. Install lychee manually.`,
-    )
+    );
   }
-  if (arch === 'arm64') return 'aarch64'
-  if (arch === 'x64') return 'x86_64'
+  if (arch === "arm64") return "aarch64";
+  if (arch === "x64") return "x86_64";
   throw new Error(
     `lint-docs: unsupported architecture "${arch}", lychee only publishes x86_64 and aarch64 Linux binaries.`,
-  )
+  );
 }
 
 /**
@@ -71,7 +71,7 @@ export function resolveLycheeArch(
  * @returns An https GitHub release asset link.
  */
 export function buildLycheeDownloadUrl(version: string, arch: string): string {
-  return `https://github.com/lycheeverse/lychee/releases/download/lychee-${version}/lychee-${arch}-unknown-linux-gnu.tar.gz`
+  return `https://github.com/lycheeverse/lychee/releases/download/lychee-${version}/lychee-${arch}-unknown-linux-gnu.tar.gz`;
 }
 
 /**
@@ -80,44 +80,39 @@ export function buildLycheeDownloadUrl(version: string, arch: string): string {
  * @returns A path like `lychee/v0.24.2/lychee`.
  */
 export function buildLycheeCacheRelativePath(version: string): string {
-  return path.join('lychee', version, 'lychee')
+  return path.join("lychee", version, "lychee");
 }
 
 /**
 Injectable collaborators of {@link ensureLycheeBinary}.
  */
 export interface LycheeBinaryDependencies {
-  resolveCacheRoot: () => string
-  fetchArchive: (url: string) => Promise<Response>
-  arch: NodeJS.Architecture
-  platform: NodeJS.Platform
+  resolveCacheRoot: () => string;
+  fetchArchive: (url: string) => Promise<Response>;
+  arch: NodeJS.Architecture;
+  platform: NodeJS.Platform;
 }
 
 function resolveGitCommonDirectory(): string {
-  const result = spawnSync('git', ['rev-parse', '--git-common-dir'], {
-    encoding: 'utf8',
-  })
+  const result = spawnSync("git", ["rev-parse", "--git-common-dir"], {
+    encoding: "utf8",
+  });
   if (result.status !== 0) {
-    throw new Error(
-      `lint-docs: "git rev-parse --git-common-dir" failed: ${result.stderr}`,
-    )
+    throw new Error(`lint-docs: "git rev-parse --git-common-dir" failed: ${result.stderr}`);
   }
-  return path.resolve(result.stdout.trim())
+  return path.resolve(result.stdout.trim());
 }
 
-function findBinaryRecursively(
-  rootDirectory: string,
-  maxDepth: number,
-): string | undefined {
-  const entries = readdirSync(rootDirectory, { withFileTypes: true })
+function findBinaryRecursively(rootDirectory: string, maxDepth: number): string | undefined {
+  const entries = readdirSync(rootDirectory, { withFileTypes: true });
   for (const entry of entries) {
-    const entryPath = path.join(rootDirectory, entry.name)
-    if (entry.isFile() && entry.name === 'lychee') return entryPath
-    if (!entry.isDirectory() || maxDepth <= 0) continue
-    const found = findBinaryRecursively(entryPath, maxDepth - 1)
-    if (found) return found
+    const entryPath = path.join(rootDirectory, entry.name);
+    if (entry.isFile() && entry.name === "lychee") return entryPath;
+    if (!entry.isDirectory() || maxDepth <= 0) continue;
+    const found = findBinaryRecursively(entryPath, maxDepth - 1);
+    if (found) return found;
   }
-  return undefined
+  return undefined;
 }
 
 async function downloadLycheeBinary(
@@ -128,42 +123,37 @@ async function downloadLycheeBinary(
   const url = buildLycheeDownloadUrl(
     version,
     resolveLycheeArch(dependencies.arch, dependencies.platform),
-  )
-  const response = await dependencies.fetchArchive(url)
+  );
+  const response = await dependencies.fetchArchive(url);
   if (!response.ok) {
     throw new Error(
       `lint-docs: failed to download lychee from ${url} (HTTP ${String(response.status)}).`,
-    )
+    );
   }
 
-  const workingDirectory = mkdtempSync(path.join(tmpdir(), 'lint-docs-lychee-'))
+  const workingDirectory = mkdtempSync(path.join(tmpdir(), "lint-docs-lychee-"));
   try {
-    const archivePath = path.join(workingDirectory, 'lychee.tar.gz')
-    writeFileSync(archivePath, Buffer.from(await response.arrayBuffer()))
-    const extractedDirectory = path.join(workingDirectory, 'extracted')
-    mkdirSync(extractedDirectory)
-    const tar = spawnSync('tar', [
-      '-xzf',
-      archivePath,
-      '-C',
-      extractedDirectory,
-    ])
+    const archivePath = path.join(workingDirectory, "lychee.tar.gz");
+    writeFileSync(archivePath, Buffer.from(await response.arrayBuffer()));
+    const extractedDirectory = path.join(workingDirectory, "extracted");
+    mkdirSync(extractedDirectory);
+    const tar = spawnSync("tar", ["-xzf", archivePath, "-C", extractedDirectory]);
     if (tar.status !== 0) {
       throw new Error(
         `lint-docs: failed to extract the archive from ${url}: ${tar.stderr.toString()}`,
-      )
+      );
     }
-    const extractedBinaryPath = findBinaryRecursively(extractedDirectory, 2)
+    const extractedBinaryPath = findBinaryRecursively(extractedDirectory, 2);
     if (!extractedBinaryPath) {
-      throw new Error(`lint-docs: no "lychee" binary found in ${url}.`)
+      throw new Error(`lint-docs: no "lychee" binary found in ${url}.`);
     }
-    mkdirSync(path.dirname(destinationPath), { recursive: true })
-    const temporaryPath = `${destinationPath}.tmp-${String(process.pid)}-${String(Date.now())}`
-    copyFileSync(extractedBinaryPath, temporaryPath)
-    chmodSync(temporaryPath, 0o755)
-    renameSync(temporaryPath, destinationPath)
+    mkdirSync(path.dirname(destinationPath), { recursive: true });
+    const temporaryPath = `${destinationPath}.tmp-${String(process.pid)}-${String(Date.now())}`;
+    copyFileSync(extractedBinaryPath, temporaryPath);
+    chmodSync(temporaryPath, 0o755);
+    renameSync(temporaryPath, destinationPath);
   } finally {
-    rmSync(workingDirectory, { recursive: true, force: true })
+    rmSync(workingDirectory, { recursive: true, force: true });
   }
 }
 
@@ -173,7 +163,7 @@ function defaultLycheeDependencies(): LycheeBinaryDependencies {
     fetchArchive: (url) => fetch(url),
     arch: process.arch,
     platform: process.platform,
-  }
+  };
 }
 
 /**
@@ -189,41 +179,38 @@ export async function ensureLycheeBinary(
   const binaryPath = path.join(
     dependencies.resolveCacheRoot(),
     buildLycheeCacheRelativePath(version),
-  )
-  if (existsSync(binaryPath)) return binaryPath
-  console.log(`lint-docs: lychee ${version} not cached, downloading...`)
-  await downloadLycheeBinary(version, binaryPath, dependencies)
-  console.log(`lint-docs: cached lychee ${version} at ${binaryPath}.`)
-  return binaryPath
+  );
+  if (existsSync(binaryPath)) return binaryPath;
+  console.log(`lint-docs: lychee ${version} not cached, downloading...`);
+  await downloadLycheeBinary(version, binaryPath, dependencies);
+  console.log(`lint-docs: cached lychee ${version} at ${binaryPath}.`);
+  return binaryPath;
 }
 
 function exitCodeOf(code: number | null): number {
-  return typeof code === 'number' ? code : 1
+  return typeof code === "number" ? code : 1;
 }
 
-function spawnInherited(
-  binaryPath: string,
-  binaryArguments: string[],
-): Promise<number> {
-  const child = spawn(binaryPath, binaryArguments, { stdio: 'inherit' })
+function spawnInherited(binaryPath: string, binaryArguments: string[]): Promise<number> {
+  const child = spawn(binaryPath, binaryArguments, { stdio: "inherit" });
   return new Promise<number>((resolve, reject) => {
-    child.on('error', reject)
-    child.on('close', (code) => {
-      resolve(exitCodeOf(code))
-    })
-  })
+    child.on("error", reject);
+    child.on("close", (code) => {
+      resolve(exitCodeOf(code));
+    });
+  });
 }
 
 /**
 A Markdown link whose target is a gitignored path.
  */
 export interface IgnoredLink {
-  file: string
-  target: string
+  file: string;
+  target: string;
 }
 
-const MARKDOWN_LINK_PATTERN = /\]\(([^)\s]+)/g
-const EXTERNAL_TARGET_PATTERN = /^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i
+const MARKDOWN_LINK_PATTERN = /\]\(([^)\s]+)/g;
+const EXTERNAL_TARGET_PATTERN = /^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i;
 
 /**
  * Finds relative links, in tracked Markdown files, that point at gitignored
@@ -238,30 +225,30 @@ export function findLinksToIgnoredPaths(
   readFile: (file: string) => string,
   isIgnored: (repositoryPath: string) => boolean,
 ): IgnoredLink[] {
-  const found: IgnoredLink[] = []
+  const found: IgnoredLink[] = [];
   for (const file of files) {
     for (const match of readFile(file).matchAll(MARKDOWN_LINK_PATTERN)) {
-      const rawTarget = match[1]?.split('#', 1)[0] ?? ''
-      if (rawTarget === '' || EXTERNAL_TARGET_PATTERN.test(rawTarget)) continue
-      const resolved = rawTarget.startsWith('/')
+      const rawTarget = match[1]?.split("#", 1)[0] ?? "";
+      if (rawTarget === "" || EXTERNAL_TARGET_PATTERN.test(rawTarget)) continue;
+      const resolved = rawTarget.startsWith("/")
         ? path.posix.normalize(rawTarget.slice(1))
-        : path.posix.join(path.posix.dirname(file), rawTarget)
-      if (isIgnored(resolved.replace(/\/$/, ''))) {
-        found.push({ file, target: resolved })
+        : path.posix.join(path.posix.dirname(file), rawTarget);
+      if (isIgnored(resolved.replace(/\/$/, ""))) {
+        found.push({ file, target: resolved });
       }
     }
   }
-  return found
+  return found;
 }
 
 function listTrackedMarkdownFiles(): string[] {
-  const result = spawnSync('git', ['ls-files', '--', '*.md'], {
-    encoding: 'utf8',
-  })
+  const result = spawnSync("git", ["ls-files", "--", "*.md"], {
+    encoding: "utf8",
+  });
   if (result.status !== 0) {
-    throw new Error(`lint-docs: "git ls-files" failed: ${result.stderr}`)
+    throw new Error(`lint-docs: "git ls-files" failed: ${result.stderr}`);
   }
-  return result.stdout.split('\n').filter((line) => line !== '')
+  return result.stdout.split("\n").filter((line) => line !== "");
 }
 
 /**
@@ -271,34 +258,30 @@ function listTrackedMarkdownFiles(): string[] {
  */
 export function buildIgnoredMarkdownExcludeArguments(): string[] {
   const result = spawnSync(
-    'git',
-    ['ls-files', '--others', '--ignored', '--exclude-standard', '--', '*.md'],
-    { encoding: 'utf8' },
-  )
+    "git",
+    ["ls-files", "--others", "--ignored", "--exclude-standard", "--", "*.md"],
+    { encoding: "utf8" },
+  );
   if (result.status !== 0) {
-    throw new Error(`lint-docs: "git ls-files" failed: ${result.stderr}`)
+    throw new Error(`lint-docs: "git ls-files" failed: ${result.stderr}`);
   }
   return result.stdout
-    .split('\n')
+    .split("\n")
     .flatMap((line) =>
-      line === '' || line.startsWith('node_modules/')
-        ? []
-        : ['--exclude-path', line],
-    )
+      line === "" || line.startsWith("node_modules/") ? [] : ["--exclude-path", line],
+    );
 }
 
 function isGitIgnored(repositoryPath: string): boolean {
-  return (
-    spawnSync('git', ['check-ignore', '-q', '--', repositoryPath]).status === 0
-  )
+  return spawnSync("git", ["check-ignore", "-q", "--", repositoryPath]).status === 0;
 }
 
 function findIgnoredLinksInRepository(): IgnoredLink[] {
   return findLinksToIgnoredPaths(
     listTrackedMarkdownFiles(),
-    (file) => readFileSync(file, 'utf8'),
+    (file) => readFileSync(file, "utf8"),
     isGitIgnored,
-  )
+  );
 }
 
 /**
@@ -313,19 +296,16 @@ function findIgnoredLinksInRepository(): IgnoredLink[] {
 export async function runDocumentationLint(
   extraArguments: string[] = process.argv.slice(2),
   ensureBinary: (version: string) => Promise<string> = ensureLycheeBinary,
-  spawnBinary: (
-    binaryPath: string,
-    binaryArguments: string[],
-  ) => Promise<number> = spawnInherited,
+  spawnBinary: (binaryPath: string, binaryArguments: string[]) => Promise<number> = spawnInherited,
   findIgnoredLinks: () => IgnoredLink[] = findIgnoredLinksInRepository,
 ): Promise<number> {
-  const ignoredLinks = findIgnoredLinks()
+  const ignoredLinks = findIgnoredLinks();
   for (const { file, target } of ignoredLinks) {
-    console.error(`lint-docs: ${file} links to gitignored path ${target}`)
+    console.error(`lint-docs: ${file} links to gitignored path ${target}`);
   }
-  if (ignoredLinks.length > 0) return 1
-  const binaryPath = await ensureBinary(LYCHEE_VERSION)
-  return spawnBinary(binaryPath, [...LYCHEE_ARGS, ...extraArguments])
+  if (ignoredLinks.length > 0) return 1;
+  const binaryPath = await ensureBinary(LYCHEE_VERSION);
+  return spawnBinary(binaryPath, [...LYCHEE_ARGS, ...extraArguments]);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -333,9 +313,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exitCode = await runDocumentationLint([
       ...buildIgnoredMarkdownExcludeArguments(),
       ...process.argv.slice(2),
-    ])
+    ]);
   } catch (error: unknown) {
-    console.error(error instanceof Error ? error.message : error)
-    process.exitCode = 1
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
   }
 }

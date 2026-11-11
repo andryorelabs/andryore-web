@@ -1,4 +1,4 @@
-import tseslint from 'typescript-eslint'
+import tseslint from "typescript-eslint";
 
 /**
  * typescript-eslint's ESLint plugin as a default export, the shape Oxlint's
@@ -6,6 +6,6 @@ import tseslint from 'typescript-eslint'
  * `plugin`, so Oxlint loads this module under the `typescript-js` alias to
  * run the original rules that have no proven native port.
  */
-const typescriptEslintPlugin = tseslint.plugin
+const typescriptEslintPlugin = tseslint.plugin;
 
-export default typescriptEslintPlugin
+export default typescriptEslintPlugin;

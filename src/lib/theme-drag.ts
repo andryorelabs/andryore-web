@@ -1,25 +1,25 @@
-import type { ThemePreference } from './theme'
+import type { ThemePreference } from "./theme";
 import {
   levelFromRatio,
   squeezeForLevel,
   stopFromLevel,
   stopFromRatio,
   THEME_STOPS,
-} from './theme-stops'
+} from "./theme-stops";
 
 /**
  * The way the brightness bar runs: vertically or from left to right.
  */
-export type ThemeOrientation = 'vertical' | 'horizontal'
+export type ThemeOrientation = "vertical" | "horizontal";
 
 /**
  * The box of the brightness bar that a pointer position is measured in.
  */
 interface BarBox {
-  top: number
-  height: number
-  left?: number
-  width?: number
+  top: number;
+  height: number;
+  left?: number;
+  width?: number;
 }
 
 /**
@@ -28,14 +28,12 @@ interface BarBox {
  * @public
  */
 export interface DragBar {
-  getBoundingClientRect: () => BarBox
-  style: Pick<CSSStyleDeclaration, 'setProperty' | 'removeProperty'>
+  getBoundingClientRect: () => BarBox;
+  style: Pick<CSSStyleDeclaration, "setProperty" | "removeProperty">;
 }
 
 const browserMatchMedia = (query: string): { matches: boolean } | undefined =>
-  typeof globalThis.matchMedia === 'function'
-    ? globalThis.matchMedia(query)
-    : undefined
+  typeof globalThis.matchMedia === "function" ? globalThis.matchMedia(query) : undefined;
 
 /**
  * Whether the visitor asked the system to reduce motion.
@@ -43,7 +41,7 @@ const browserMatchMedia = (query: string): { matches: boolean } | undefined =>
  * @returns True when `prefers-reduced-motion: reduce` matches.
  */
 export function isReducedMotionPreferred(match = browserMatchMedia): boolean {
-  return match('(prefers-reduced-motion: reduce)')?.matches ?? false
+  return match("(prefers-reduced-motion: reduce)")?.matches ?? false;
 }
 
 /**
@@ -61,13 +59,13 @@ function ratioAt(
   position: number,
   orientation: ThemeOrientation,
 ): number | undefined {
-  const box = bar?.getBoundingClientRect()
-  if (!box) return undefined
-  if (orientation === 'horizontal') {
-    const { left = 0, width = 0 } = box
-    return width === 0 ? undefined : 1 - (position - left) / width
+  const box = bar?.getBoundingClientRect();
+  if (!box) return undefined;
+  if (orientation === "horizontal") {
+    const { left = 0, width = 0 } = box;
+    return width === 0 ? undefined : 1 - (position - left) / width;
   }
-  return box.height === 0 ? undefined : (position - box.top) / box.height
+  return box.height === 0 ? undefined : (position - box.top) / box.height;
 }
 
 /**
@@ -86,15 +84,15 @@ export function followPointer(
   position: number,
   level: { current: number },
   isReducedMotion: boolean = isReducedMotionPreferred(),
-  orientation: ThemeOrientation = 'vertical',
+  orientation: ThemeOrientation = "vertical",
 ): void {
-  const ratio = ratioAt(bar, position, orientation)
-  if (!bar || ratio === undefined) return
-  const banded = levelFromRatio(ratio)
-  const next = isReducedMotion ? Math.min(100, Math.max(0, banded)) : banded
-  level.current = next
-  bar.style.setProperty('--drag-level', String(next))
-  bar.style.setProperty('--drag-squeeze', String(squeezeForLevel(next)))
+  const ratio = ratioAt(bar, position, orientation);
+  if (!bar || ratio === undefined) return;
+  const banded = levelFromRatio(ratio);
+  const next = isReducedMotion ? Math.min(100, Math.max(0, banded)) : banded;
+  level.current = next;
+  bar.style.setProperty("--drag-level", String(next));
+  bar.style.setProperty("--drag-squeeze", String(squeezeForLevel(next)));
 }
 
 /**
@@ -103,13 +101,10 @@ export function followPointer(
  * @param level The last level written while dragging.
  * @returns The stop nearest to that level.
  */
-export function releaseDrag(
-  bar: DragBar | null,
-  level: number,
-): ThemePreference | undefined {
-  bar?.style.removeProperty('--drag-level')
-  bar?.style.removeProperty('--drag-squeeze')
-  return THEME_STOPS[stopFromLevel(level)]
+export function releaseDrag(bar: DragBar | null, level: number): ThemePreference | undefined {
+  bar?.style.removeProperty("--drag-level");
+  bar?.style.removeProperty("--drag-squeeze");
+  return THEME_STOPS[stopFromLevel(level)];
 }
 
 /**
@@ -122,8 +117,8 @@ export function releaseDrag(
 export function pickAtPointer(
   bar: DragBar | null,
   position: number,
-  orientation: ThemeOrientation = 'vertical',
+  orientation: ThemeOrientation = "vertical",
 ): ThemePreference | undefined {
-  const ratio = ratioAt(bar, position, orientation)
-  return ratio === undefined ? undefined : THEME_STOPS[stopFromRatio(ratio)]
+  const ratio = ratioAt(bar, position, orientation);
+  return ratio === undefined ? undefined : THEME_STOPS[stopFromRatio(ratio)];
 }
