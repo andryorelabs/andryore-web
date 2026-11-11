@@ -41,11 +41,11 @@ export default defineConfig({
       use: { ...devices["iPhone 14"], defaultBrowserType: "chromium" },
     },
   ],
-  webServer: EXTERNAL_BASE_URL
-    ? undefined
-    : {
-        command: `${process.env.PLAYWRIGHT_PREVIEW_COMMAND ?? "bun run preview"} --host 127.0.0.1 --port ${PORT} --ignore-lock`,
-        url: `http://127.0.0.1:${PORT}`,
-        reuseExistingServer: !process.env.CI,
-      },
+  ...(!EXTERNAL_BASE_URL && {
+    webServer: {
+      command: `${process.env.PLAYWRIGHT_PREVIEW_COMMAND ?? "bun run preview"} --host 127.0.0.1 --port ${PORT} --ignore-lock`,
+      url: `http://127.0.0.1:${PORT}`,
+      reuseExistingServer: !process.env.CI,
+    },
+  }),
 });

@@ -13,7 +13,7 @@ const LOCALE_SCROLL_ANCHORS: ReadonlySet<string> = new Set([
 export interface LocaleScrollEntry {
   to: string;
   y: number;
-  anchor?: { selector: string; offset: number };
+  anchor?: { selector: string; offset: number } | undefined;
 }
 
 export interface AnchorBox {
