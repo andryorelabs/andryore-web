@@ -1,0 +1,18 @@
+{
+  "repository": "andryorelabs/andryore-web",
+  "settings": {
+    "allowSquashMerge": true,
+    "allowMergeCommit": false,
+    "allowRebaseMerge": false,
+    "deleteBranchOnMerge": true,
+    "allowAutoMerge": true,
+    "allowUpdateBranch": true,
+    "squashMergeCommitTitle": "PR_TITLE",
+    "squashMergeCommitMessage": "PR_BODY",
+    "secretScanning": "enabled",
+    "secretScanningPushProtection": "enabled",
+    "privateVulnerabilityReporting": true,
+    "homepage": "https://andryore.dev"
+  },
+  "topics": ["astro", "personal-website", "portfolio", "typescript", "tailwindcss", "react", "i18n"]
+}

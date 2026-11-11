@@ -9,7 +9,7 @@ The `docs/` tree is **published** ground: finished reference material, written
 and maintained by hand. Don't restructure it or fold `GLOSSARY.md` into it.
 
 `GLOSSARY.md` and `docs/adr/` are the **live** ground that domain-modeling
-maintains as `/forge` runs features through this repo: its ubiquitous language
+maintains as `/emet:run` runs features through this repo: its ubiquitous language
 and the architectural decisions made along the way. Add a term or a decision
 only when it actually crystallizes in a session, never speculatively.
 

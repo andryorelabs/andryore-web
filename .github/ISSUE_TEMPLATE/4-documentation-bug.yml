@@ -1,4 +1,4 @@
-name: Documentation
+name: Documentation Bug
 description: Report missing, unclear, or incorrect documentation
 title: "docs: "
 labels: ["Type: Docs", "Status: Needs Info"]

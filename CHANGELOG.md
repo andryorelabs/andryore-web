@@ -10,7 +10,6 @@ and this project adheres to
 
 ### Added
 
-- Repository tooling: Prettier, commitlint, husky, lint-staged and editorconfig.
 - Community files: LICENSE (MIT code, brand and content reserved), Code of
   Conduct, governance, roadmap, changelog, security policy and code owners.
 - Public repository: the brand research, process and design docs stay out of it
