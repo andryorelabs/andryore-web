@@ -4,12 +4,17 @@
 
 Accepted. Extends [0007](0007-split-license.md). Amended by
 [0022](0022-secrets-in-dotenvx-encrypted-env-files.md): the Site has runtime
-credentials, kept in an encrypted env file.
+credentials, kept in an encrypted env file. Amended by
+[0026](0026-develop-promoted-to-main-by-merge-commit.md): `main` takes merge
+commits and has no linear history rule.
 
 Date: 2026-10-17
 
 Revised: 2026-10-19, the tags ruleset has an admin bypass and the settings
 section exists
+
+Revised: 2026-11-11, `main` takes merge commits only and squash stays on
+`develop` (0026)
 
 Revised: 2026-10-20, the Site does have runtime credentials (0022)
 
@@ -37,14 +42,17 @@ reference is AFE's ADR 0001, which follows the OpenSSF SCM best-practices guide.
 ### Already in place (read from the GitHub API on 2026-10-17)
 
 - **Rulesets, active.** `main` has no bypass actors and blocks deletion and
-  force-pushes, requires linear history, signed commits, a pull request with
-  squash as the only merge method and resolved threads, and the checks
-  `CI passed`, `Validate PR title` and `Check markdown links`. The `v*` tags
+  force-pushes, requires signed commits, a pull request with a merge commit as
+  the only merge method and resolved threads, and the checks `CI passed`,
+  `Validate PR title` and `Check markdown links`. `develop` has the same rules
+  with squash as the only merge method and a linear history
+  ([0026](0026-develop-promoted-to-main-by-merge-commit.md)). The `v*` tags
   ruleset blocks deleting, moving and updating tags, with a bypass for the
   repository admin role.
 - **0 required approvals**, because a solo maintainer cannot approve their own
   PR and a bypass actor would count against Scorecard's Branch-Protection check.
-- **Squash-only merges** with branches deleted on merge.
+- **Squash merges into `develop`, merge commits into `main`**, with branches
+  deleted on merge.
 - **Secret scanning and push protection** enabled.
 - **Private vulnerability reporting** enabled.
 - **Read-only default `GITHUB_TOKEN`**, and Actions cannot approve pull

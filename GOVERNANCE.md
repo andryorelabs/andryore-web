@@ -19,8 +19,9 @@ on the Site's content.
    request, or proposal) so the "why" is on the record before any code is
    written.
 2. **Pull request.** Implementation happens in a pull request against `develop`;
-   a promotion pull request then ships `develop` to `main` (see
-   [ADR 0015](docs/adr/0015-develop-as-integration-branch.md)). Every PR must
+   a promotion pull request then ships `develop` to `main` with a merge commit
+   (see [ADR 0015](docs/adr/0015-develop-as-integration-branch.md) and
+   [ADR 0026](docs/adr/0026-develop-promoted-to-main-by-merge-commit.md)). Every PR must
    pass CI before it can be merged. See [Merging](docs/development.md#merging)
    for the merge policy.
 3. **ADR for hard-to-reverse choices.** Decisions that are expensive to reverse

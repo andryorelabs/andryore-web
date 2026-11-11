@@ -276,6 +276,8 @@ export function fetchLiveRepositorySettings(
       deleteBranchOnMerge: scalar(field(repositoryData, "delete_branch_on_merge")),
       allowAutoMerge: scalar(field(repositoryData, "allow_auto_merge")),
       allowUpdateBranch: scalar(field(repositoryData, "allow_update_branch")),
+      mergeCommitTitle: scalar(field(repositoryData, "merge_commit_title")),
+      mergeCommitMessage: scalar(field(repositoryData, "merge_commit_message")),
       squashMergeCommitTitle: scalar(field(repositoryData, "squash_merge_commit_title")),
       squashMergeCommitMessage: scalar(field(repositoryData, "squash_merge_commit_message")),
       secretScanning: status(repositoryData, "secret_scanning"),

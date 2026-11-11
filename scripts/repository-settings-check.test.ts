@@ -21,6 +21,7 @@ describe("loadExpectedRepositorySettings", () => {
   test("reads the settings file and every ruleset", () => {
     expect(repository).toBe("andryorelabs/andryore-web");
     expect(expected.settings.squashMergeCommitTitle).toBe("PR_TITLE");
+    expect(expected.settings.mergeCommitTitle).toBe("PR_TITLE");
     expect(
       Object.keys(expected.rulesets).toSorted((left, right) => left.localeCompare(right)),
     ).toEqual(["develop", "main", "tags"]);
@@ -34,10 +35,10 @@ describe("compareRepositorySettings", () => {
 
   test("reports a changed setting", () => {
     const live = cloneSettings();
-    live.settings.allowMergeCommit = true;
+    live.settings.allowRebaseMerge = true;
     expect(compareRepositorySettings(expected, live)).toEqual([
       {
-        setting: "settings.allowMergeCommit",
+        setting: "settings.allowRebaseMerge",
         expected: "false",
         actual: "true",
       },
@@ -137,7 +138,9 @@ describe("fetchLiveRepositorySettings", () => {
       fakeGh({
         "repos/o/r": {
           allow_squash_merge: true,
-          allow_merge_commit: false,
+          allow_merge_commit: true,
+          merge_commit_title: "PR_TITLE",
+          merge_commit_message: "PR_BODY",
           homepage: "https://andryore.dev",
           topics: ["astro"],
           security_and_analysis: { secret_scanning: { status: "enabled" } },
@@ -148,6 +151,8 @@ describe("fetchLiveRepositorySettings", () => {
       }),
     );
     expect(live.settings.allowSquashMerge).toBe(true);
+    expect(live.settings.mergeCommitTitle).toBe("PR_TITLE");
+    expect(live.settings.mergeCommitMessage).toBe("PR_BODY");
     expect(live.settings.secretScanning).toBe("enabled");
     expect(live.settings.privateVulnerabilityReporting).toBe(true);
     expect(live.settings.secretScanningPushProtection).toBeUndefined();
@@ -211,7 +216,9 @@ describe("runRepositorySettingsCheck", () => {
   const matchingRoutes: Record<string, unknown> = {
     [`repos/${repository}`]: {
       allow_squash_merge: true,
-      allow_merge_commit: false,
+      allow_merge_commit: true,
+      merge_commit_title: "PR_TITLE",
+      merge_commit_message: "PR_BODY",
       allow_rebase_merge: false,
       delete_branch_on_merge: true,
       allow_auto_merge: true,
