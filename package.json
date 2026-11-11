@@ -1,6 +1,17 @@
 {
   "name": "andryore-web",
   "private": true,
+  "description": "The source of andryore.dev, the personal site of Andry Orellana.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Andry Orellana <hello@andryore.dev>",
+  "homepage": "https://andryore.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andryorelabs/andryore-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/andryorelabs/andryore-web/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "astro dev",
@@ -33,6 +44,7 @@
     "prepare": "bunx --bun husky",
     "grid:update": "bun scripts/update-github-grid.ts",
     "env:encrypt": "dotenvx encrypt",
+    "repo-settings:check": "bun scripts/repository-settings-check.ts",
     "audit:fidelity": "bun scripts/fidelity-audit.ts"
   },
   "devDependencies": {
