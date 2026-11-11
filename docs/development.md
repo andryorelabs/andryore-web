@@ -205,7 +205,8 @@ Hooks live in `.husky/`:
 - **`commit-msg`** runs `commitlint` with `@commitlint/config-conventional`. It
   enforces the Conventional Commits shape and type list, not the emoji.
 - **`pre-push`** rejects a push whose branch name does not match `<type>/<slug>`
-  (or `main`, `develop`, `renovate/*`). When the names pass, it runs
+  (or `main`, `develop`, `ao-<n>-<slug>`, `worktree-*`, `renovate/*`). When the
+  names pass, it runs
   `bun run typecheck` once and blocks the push on a type error. A push that only
   deletes branches or only pushes tags skips the typecheck. Put it in a hook
   rather than a line in AGENTS.md, because agents skip steps.
@@ -321,7 +322,8 @@ Other workflows:
   ([Releasing](#releasing)).
 - `lint-pr.yml` (PR title), `lint-docs.yml` (offline link and anchor check with
   lychee) and `lint-workflows.yml` (workflow linting).
-- `codeql.yml` (CodeQL analysis, skipped while the repository is private because
+- `codeql.yml` (CodeQL analysis of the `actions` and `javascript-typescript`
+  languages, skipped while the repository is private because
   code scanning is unavailable on GitHub Free) and `scorecard.yml` (OpenSSF
   Scorecard).
 - `labels.yml` (label sync) and `grid-snapshot.yml` (weekly refresh of
