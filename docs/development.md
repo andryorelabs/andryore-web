@@ -118,7 +118,7 @@ your own preview and pass `AUDIT_BASE_URL`.
 ## Coverage
 
 `bunfig.toml` turns coverage on for `bun test` and sets
-`coverageThreshold = { lines = 0.55, functions = 0.4 }`. A run under either
+a `coverageThreshold` for lines and functions. A run under either
 value fails, locally and in CI. Test files are skipped from the report
 (`coverageSkipTestFiles`).
 
@@ -455,9 +455,9 @@ a private repository with
 Once the repository is public, apply each file:
 
 ```sh
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/main.json
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/develop.json
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/tags.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/main.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/develop.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/tags.json
 ```
 
 The required check names (`CI passed`, `Validate PR title`,
@@ -470,10 +470,20 @@ job without updating `.github/rulesets` fails CI.
 
 ## Repository settings
 
-The rulesets above are committed as code, but most GitHub repository settings
-are not: secret scanning, push protection, private vulnerability reporting, the
-read-only default `GITHUB_TOKEN` and fork-PR approval are applied through the
-GitHub API or the settings UI.
-[ADR 0011](adr/0011-public-repo-security-posture.md) records which of them are
-in place and which are still open (only the CodeQL default setup). Settings are
-owner actions; an agent changes one only when the owner asks for it.
+This repository follows the andryorelabs
+[standard v1](https://github.com/andryorelabs/aokit/tree/main/docs/standards)
+([ADR 0025](adr/0025-adopt-cross-repo-standard-v1.md)). The rulesets above are
+committed as code. The remaining GitHub repository settings are applied from a
+committed settings list through the GitHub API, with commands that target
+`andryorelabs/andryore-web`:
+
+- secret scanning and push protection
+- private vulnerability reporting
+- a read-only default `GITHUB_TOKEN`
+- fork-PR approval for outside contributors
+
+`bun run repo-settings:check` compares the live settings with that list and
+reports drift. [ADR 0011](adr/0011-public-repo-security-posture.md) records the
+posture and which settings are still open (only the CodeQL default setup).
+Settings are owner actions; an agent changes one only when the owner asks for
+it.
