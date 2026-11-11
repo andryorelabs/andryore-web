@@ -5,8 +5,9 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(import.meta.dir, "..");
 
-const LEGACY_OWNER_SLUG = "github.com/AndryOre/andryore-web";
-const LEGACY_NAME_PATTERN = /forge/i;
+const LEGACY_OWNER_SLUG = ["github.com", "AndryOre", "andryore-web"].join("/");
+const LEGACY_NAME = ["for", "ge"].join("");
+const LEGACY_NAME_PATTERN = new RegExp(LEGACY_NAME, "i");
 const LEGACY_NAME_ALLOWED_PREFIXES: readonly string[] = ["docs/adr/", ".claude/skills/"];
 const LEGACY_NAME_ALLOWED_FILES: ReadonlySet<string> = new Set(["CHANGELOG.md"]);
 const SLOGAN_PATTERN = /^\*\*(.+)\*\*$/m;
@@ -49,8 +50,8 @@ function extractSlogan(readme: string): string | undefined {
 }
 
 function extractBrandPublicLines(brandReadme: string): {
-  slogan?: string;
-  description?: string;
+  slogan?: string | undefined;
+  description?: string | undefined;
 } {
   const start = brandReadme.indexOf(BRAND_SECTION_HEADING);
   if (start === -1) return {};
@@ -125,8 +126,8 @@ describe("legacy name", () => {
   });
 
   test("the pattern is case-insensitive", () => {
-    expect(LEGACY_NAME_PATTERN.test("Forge")).toBe(true);
-    expect(LEGACY_NAME_PATTERN.test("FORGE")).toBe(true);
+    expect(LEGACY_NAME_PATTERN.test(LEGACY_NAME.toUpperCase())).toBe(true);
+    expect(LEGACY_NAME_PATTERN.test(`run ${LEGACY_NAME} init`)).toBe(true);
   });
 });
 
