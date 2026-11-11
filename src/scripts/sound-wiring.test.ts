@@ -28,7 +28,7 @@ describe("sound wiring in Astro files", () => {
   });
 
   test("the stream tile plays live only after a gesture", () => {
-    expect(read("components/StreamTile.astro")).toContain("soundTriggers.playUnlocked('live')");
+    expect(read("components/StreamTile.astro")).toContain('soundTriggers.playUnlocked("live")');
   });
 
   test("no sound code adds inline styles", () => {

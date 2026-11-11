@@ -6,7 +6,7 @@ import { ICONS } from "../lib/icons";
 import findMe from "./find-me.json";
 
 const glow = (icon: string): RegExp =>
-  new RegExp(String.raw`\.find-me-link\[data-icon='${icon}'\] \{\s+--glow: ([^;]+);`);
+  new RegExp(String.raw`\.find-me-link\[data-icon="${icon}"\] \{\s+--glow: ([^;]+);`);
 
 describe("find me content", () => {
   for (const locale of LOCALES) {
@@ -42,7 +42,7 @@ describe("find me content", () => {
   test("every profile has a glow rule in the global stylesheet", () => {
     const stylesheet = readFileSync("src/styles/global.css", "utf8");
     for (const item of findMe.en.items) {
-      expect(stylesheet).toContain(`.find-me-link[data-icon='${item.icon}']`);
+      expect(stylesheet).toContain(`.find-me-link[data-icon="${item.icon}"]`);
     }
   });
 

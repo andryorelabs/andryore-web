@@ -3,7 +3,7 @@ import { existsSync, globSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const PAGES_ROOT = path.join(import.meta.dir, "pages");
-const LOCAL_ASTRO_IMPORT = /from\s+'(\.[^']+\.astro)'/g;
+const LOCAL_ASTRO_IMPORT = /from\s+"(\.[^"]+\.astro)"/g;
 const HEADING = /<h([1-6])[\s>]/g;
 
 function importedAstroFiles(file: string, seen = new Set<string>()): string[] {

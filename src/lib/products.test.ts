@@ -406,7 +406,7 @@ describe("classifyIcon", () => {
     for (const file of readdirSync(PRODUCTS_DIRECTORY)) {
       const raw = readFileSync(path.join(PRODUCTS_DIRECTORY, file), "utf8");
       const names = raw
-        .matchAll(/^\s*(?:- )?icon: '([^']+)'/gm)
+        .matchAll(/^\s*(?:- )?icon: "([^"]+)"/gm)
         .map((match) => match[1] ?? "")
         .toArray();
       expect(names.length).toBeGreaterThan(0);
@@ -423,7 +423,7 @@ describe("stackBadgeClass", () => {
       const source = readFileSync(path.join(PRODUCTS_DIRECTORY, file), "utf8");
       const stack = /^stack:\n((?: {2}- .+\n)+)/m.exec(source)?.[1] ?? "";
       for (const line of stack.trim().split("\n")) {
-        const label = line.replaceAll(/^ *- '?|'?$/g, "");
+        const label = line.replaceAll(/^ *- "?|"?$/g, "");
         expect(stackBadgeClass(label)).not.toBe("bg-muted text-foreground");
         expect(stackHref(label), label).toBeDefined();
       }
@@ -585,7 +585,7 @@ describe("stackMetaItems", () => {
       const labels = stack
         .trim()
         .split("\n")
-        .map((line) => line.replaceAll(/^ *- '?|'?$/g, ""));
+        .map((line) => line.replaceAll(/^ *- "?|"?$/g, ""));
       for (const item of stackMetaItems(labels)) {
         expect(item.iconId, `${file}: ${item.label}`).toBeDefined();
       }
