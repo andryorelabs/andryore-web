@@ -11,7 +11,6 @@
     "squashMergeCommitMessage": "PR_BODY",
     "secretScanning": "enabled",
     "secretScanningPushProtection": "enabled",
-    "dependabotSecurityUpdates": "enabled",
     "privateVulnerabilityReporting": true,
     "homepage": "https://andryore.dev"
   },

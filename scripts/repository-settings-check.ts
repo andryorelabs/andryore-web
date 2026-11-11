@@ -53,7 +53,7 @@ function show(value: JsonValue): string {
 }
 
 function isRecord(value: JsonValue): value is Record<string, JsonValue> {
-  return typeof value === "object" && !Array.isArray(value);
+  return typeof value === "object" && Boolean(value) && !Array.isArray(value);
 }
 
 function isEqual(left: JsonValue, right: JsonValue): boolean {
@@ -186,6 +186,11 @@ function runGh(arguments_: string[]): {
   stderr: string;
 } {
   const result = spawnSync("gh", arguments_, { encoding: "utf8" });
+  if (result.error !== undefined) {
+    throw new RepositorySettingsError(
+      `Could not run the gh CLI (${result.error.message}); install it from https://cli.github.com and try again.`,
+    );
+  }
   return {
     status: result.status ?? 1,
     stdout: result.stdout,
@@ -193,10 +198,22 @@ function runGh(arguments_: string[]): {
   };
 }
 
+function parseApiBody(endpoint: string, body: string): JsonValue {
+  try {
+    return JSON.parse(body) as JsonValue;
+  } catch (error: unknown) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new RepositorySettingsError(
+      `gh api ${endpoint} did not return JSON (${reason}); run it by hand to see the response.`,
+      { cause: error },
+    );
+  }
+}
+
 function readApi(gh: GhRunner, endpoint: string): JsonValue {
   const result = gh(["api", endpoint]);
   if (result.status !== 0) {
-    const message = result.stderr;
+    const message = result.stderr || "no error output";
     if (/gh auth login|not logged in|HTTP 401|GH_TOKEN/i.test(message)) {
       throw new RepositorySettingsError(
         `gh is not authenticated; run \`gh auth login\` and try again (${endpoint}).`,
@@ -209,7 +226,7 @@ function readApi(gh: GhRunner, endpoint: string): JsonValue {
     }
     throw new RepositorySettingsError(`gh api ${endpoint} failed: ${message.trim()}`);
   }
-  return JSON.parse(result.stdout) as JsonValue;
+  return parseApiBody(endpoint, result.stdout);
 }
 
 function field(value: JsonValue, key: string): JsonValue {
@@ -263,7 +280,6 @@ export function fetchLiveRepositorySettings(
       squashMergeCommitMessage: scalar(field(repositoryData, "squash_merge_commit_message")),
       secretScanning: status(repositoryData, "secret_scanning"),
       secretScanningPushProtection: status(repositoryData, "secret_scanning_push_protection"),
-      dependabotSecurityUpdates: status(repositoryData, "dependabot_security_updates"),
       privateVulnerabilityReporting: scalar(field(reporting, "enabled")),
       homepage: scalar(field(repositoryData, "homepage")),
     },

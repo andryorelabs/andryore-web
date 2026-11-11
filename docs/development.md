@@ -475,17 +475,31 @@ job without updating `.github/rulesets` fails CI.
 This repository follows the andryorelabs
 [standard v1](https://github.com/andryorelabs/aokit/tree/main/docs/standards)
 ([ADR 0025](adr/0025-adopt-cross-repo-standard-v1.md)). The rulesets above are
-committed as code. The remaining GitHub repository settings are applied from a
-committed settings list through the GitHub API, with commands that target
-`andryorelabs/andryore-web`:
+committed as code. The remaining GitHub repository settings are listed in
+`scripts/repo-settings.json`:
 
-- secret scanning and push protection
-- private vulnerability reporting
-- a read-only default `GITHUB_TOKEN`
-- fork-PR approval for outside contributors
+- merge modes: squash only, with the PR title and body as the commit message,
+  auto-merge, update-branch and delete-on-merge
+- security features that are on: secret scanning, push protection and private
+  vulnerability reporting
+- the homepage and the topics
 
-`bun run repo-settings:check` compares the live settings with that list and
-reports drift. [ADR 0011](adr/0011-public-repo-security-posture.md) records the
-posture and which settings are still open (only the CodeQL default setup).
+`bun run repo-settings:check` reads the live values with `gh api` and compares
+them with that list and with `.github/rulesets/*.json`. It prints each
+difference, exits non-zero when there is one, and never changes a setting. To
+see the live values by hand:
+
+```sh
+gh api repos/andryorelabs/andryore-web
+gh api repos/andryorelabs/andryore-web/private-vulnerability-reporting
+gh api repos/andryorelabs/andryore-web/rulesets
+```
+
+The check does not cover two settings from the posture: the read-only default
+`GITHUB_TOKEN` and fork-PR approval for outside contributors. Verify those in
+the repository's Actions settings. Dependabot security updates stay off, because
+Renovate is the single source of dependency updates.
+[ADR 0011](adr/0011-public-repo-security-posture.md) records the posture and
+which settings are still open (only the CodeQL default setup).
 Settings are owner actions; an agent changes one only when the owner asks for
 it.

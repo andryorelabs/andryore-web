@@ -1144,6 +1144,29 @@ describe(".husky/pre-push", () => {
     expect(result.bunCalls).toEqual([]);
   });
 
+  test.each(["ao-2999-some-slug", "worktree-agent-1", "renovate/lock-file-maintenance", "develop"])(
+    "accepts the branch name %s",
+    (branch) => {
+      const result = runPrePush(
+        [`refs/heads/${branch} ${SOME_SHA} refs/heads/${branch} ${ZERO_SHA}`],
+        0,
+      );
+      expect(result.status).toBe(0);
+      expect(result.bunCalls).toEqual(["run typecheck"]);
+    },
+  );
+
+  test.each(["ao-some-slug", "worktree", "renovate", "wip/x"])(
+    "rejects the branch name %s",
+    (branch) => {
+      const result = runPrePush(
+        [`refs/heads/${branch} ${SOME_SHA} refs/heads/${branch} ${ZERO_SHA}`],
+        0,
+      );
+      expect(result.status).toBe(1);
+    },
+  );
+
   test("skips the typecheck for a deletion-only push", () => {
     const result = runPrePush([`(delete) ${ZERO_SHA} refs/heads/feat/x ${SOME_SHA}`], 2);
     expect(result.status).toBe(0);
