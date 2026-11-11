@@ -5,13 +5,11 @@ Thanks for your interest in andryore.dev. Participation is covered by the
 
 ## Where to start
 
-Ask questions and float ideas in
-[GitHub Discussions](https://github.com/AndryOre/andryore-web/discussions). For
-a bug or a concrete proposal, open an issue first so the reason is on the
-record. Issues labelled
-[`good first issue`](https://github.com/AndryOre/andryore-web/labels/good%20first%20issue)
+For a question, a bug or a concrete proposal, open an issue first so the reason
+is on the record. Issues labelled
+[`good first issue`](https://github.com/andryorelabs/andryore-web/labels/good%20first%20issue)
 or
-[`help wanted`](https://github.com/AndryOre/andryore-web/labels/help%20wanted)
+[`help wanted`](https://github.com/andryorelabs/andryore-web/labels/help%20wanted)
 are the best entry points.
 
 [`ROADMAP.md`](ROADMAP.md) lists the [out-of-scope](ROADMAP.md#out-of-scope)
