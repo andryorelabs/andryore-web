@@ -6,6 +6,10 @@ Accepted
 
 Date: 2026-11-01
 
+Revised: 2026-11-11, Oxfmt runs on its defaults: the style keys (`printWidth`,
+`semi`, `singleQuote`, `trailingComma`, `tabWidth`, `arrowParens`, `endOfLine`,
+`proseWrap`) are removed from `.oxfmtrc.json`.
+
 Revised: 2026-11-02, removed the four `unicorn` formatting overrides that
 replaced `eslint-config-prettier` for `.astro` files, and moved
 `.prettierignore` into the Oxfmt `ignorePatterns`.

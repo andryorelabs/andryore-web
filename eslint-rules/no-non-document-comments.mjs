@@ -5,14 +5,14 @@
  * Prettier: `prettier-ignore`) rather than prose this rule should police.
  */
 const ALLOWED_DIRECTIVE_PATTERN =
-  /^(?:eslint(?:-[a-z-]+(?:\s|$)|\s+[@\w/-]+\s*:)|oxlint-(?:enable|disable(?:-next)?(?:-line)?)(?:\s|$)|globals?\s|@ts-|prettier-ignore(?:\s|$))/
+  /^(?:eslint(?:-[a-z-]+(?:\s|$)|\s+[@\w/-]+\s*:)|oxlint-(?:enable|disable(?:-next)?(?:-line)?)(?:\s|$)|globals?\s|@ts-|prettier-ignore(?:\s|$))/;
 
 /**
  * The exact prefix (including its two/three leading slashes) of a
  * TypeScript triple-slash reference directive, e.g.
  * `/// <reference types="vite/client" />`.
  */
-const TRIPLE_SLASH_REFERENCE_PREFIX = '/// <reference'
+const TRIPLE_SLASH_REFERENCE_PREFIX = "/// <reference";
 
 /**
  * Reports whether a comment's text starts with one of the directive
@@ -22,8 +22,8 @@ const TRIPLE_SLASH_REFERENCE_PREFIX = '/// <reference'
  * @returns Whether the comment is an allowed directive.
  */
 function startsWithAllowedDirective(commentText) {
-  const trimmed = commentText.trim()
-  return ALLOWED_DIRECTIVE_PATTERN.test(trimmed)
+  const trimmed = commentText.trim();
+  return ALLOWED_DIRECTIVE_PATTERN.test(trimmed);
 }
 
 /**
@@ -37,43 +37,42 @@ function startsWithAllowedDirective(commentText) {
  */
 const rule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description:
-        'Disallow // and non-JSDoc /* */ comments in favor of TSDoc or deletion.',
+      description: "Disallow // and non-JSDoc /* */ comments in favor of TSDoc or deletion.",
     },
     schema: [],
     messages: {
       noNonDocComment:
-        'Write this as a TSDoc comment (/** ... */) on the declaration it documents, or delete it.',
+        "Write this as a TSDoc comment (/** ... */) on the declaration it documents, or delete it.",
     },
   },
   create(context) {
-    const sourceCode = context.sourceCode ?? context.getSourceCode()
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
 
     return {
       Program() {
         for (const comment of sourceCode.getAllComments()) {
           if (startsWithAllowedDirective(comment.value)) {
-            continue
+            continue;
           }
 
-          if (comment.type === 'Line') {
-            const rawText = sourceCode.getText(comment)
+          if (comment.type === "Line") {
+            const rawText = sourceCode.getText(comment);
             if (rawText.startsWith(TRIPLE_SLASH_REFERENCE_PREFIX)) {
-              continue
+              continue;
             }
-            context.report({ node: comment, messageId: 'noNonDocComment' })
-            continue
+            context.report({ node: comment, messageId: "noNonDocComment" });
+            continue;
           }
 
-          if (comment.type === 'Block' && !comment.value.startsWith('*')) {
-            context.report({ node: comment, messageId: 'noNonDocComment' })
+          if (comment.type === "Block" && !comment.value.startsWith("*")) {
+            context.report({ node: comment, messageId: "noNonDocComment" });
           }
         }
       },
-    }
+    };
   },
-}
+};
 
-export default rule
+export default rule;

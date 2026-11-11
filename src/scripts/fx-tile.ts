@@ -1,17 +1,11 @@
-import {
-  getFxStorage,
-  isFxEnabled,
-  subscribeFx,
-  writeFx,
-  type FxStorage,
-} from '../lib/fx-store'
+import { getFxStorage, isFxEnabled, subscribeFx, writeFx, type FxStorage } from "../lib/fx-store";
 
 /**
 The parts of the switch element the script touches, so tests can fake it.
  */
 export interface FxSwitchElement {
-  setAttribute: (name: string, value: string) => void
-  addEventListener: (type: 'click', listener: () => void) => void
+  setAttribute: (name: string, value: string) => void;
+  addEventListener: (type: "click", listener: () => void) => void;
 }
 
 /**
@@ -26,28 +20,28 @@ export function mountFxSwitch(
   storage: FxStorage | undefined = getFxStorage(),
 ): void {
   const paint = (): void => {
-    element.setAttribute('aria-checked', String(isFxEnabled(storage)))
-  }
-  paint()
-  subscribeFx(paint)
-  element.addEventListener('click', () => {
-    writeFx(storage, !isFxEnabled(storage))
-  })
+    element.setAttribute("aria-checked", String(isFxEnabled(storage)));
+  };
+  paint();
+  subscribeFx(paint);
+  element.addEventListener("click", () => {
+    writeFx(storage, !isFxEnabled(storage));
+  });
 }
 
 /**
 The parts of the tile root the availability script touches.
  */
 export interface FxTileElement {
-  toggleAttribute: (name: string, isForced: boolean) => boolean
+  toggleAttribute: (name: string, isForced: boolean) => boolean;
 }
 
 /**
 The slice of the sound engine the FX tile reads.
  */
 export interface FxAvailabilitySource {
-  getAvailability: () => 'unknown' | 'available' | 'unavailable'
-  subscribeAvailability: (onChange: () => void) => () => void
+  getAvailability: () => "unknown" | "available" | "unavailable";
+  subscribeAvailability: (onChange: () => void) => () => void;
 }
 
 /**
@@ -56,16 +50,10 @@ export interface FxAvailabilitySource {
  * @param element The tile root.
  * @param source The sound engine, or a fake of its availability.
  */
-export function mountFxAvailability(
-  element: FxTileElement,
-  source: FxAvailabilitySource,
-): void {
+export function mountFxAvailability(element: FxTileElement, source: FxAvailabilitySource): void {
   const paint = (): void => {
-    element.toggleAttribute(
-      'data-sound-unavailable',
-      source.getAvailability() === 'unavailable',
-    )
-  }
-  paint()
-  source.subscribeAvailability(paint)
+    element.toggleAttribute("data-sound-unavailable", source.getAvailability() === "unavailable");
+  };
+  paint();
+  source.subscribeAvailability(paint);
 }

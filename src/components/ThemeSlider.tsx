@@ -6,35 +6,30 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type RefObject,
-} from 'react'
+} from "react";
 
-import { soundEngine, type SoundEngine } from '@/lib/sound-engine'
-import type { ThemePreference } from '@/lib/theme'
-import {
-  followPointer,
-  pickAtPointer,
-  releaseDrag,
-  type ThemeOrientation,
-} from '@/lib/theme-drag'
-import { stopAfterKey, THEME_STOPS } from '@/lib/theme-stops'
-import { chooseTheme } from '@/lib/theme-store'
-import { cn } from '@/lib/utilities'
+import { soundEngine, type SoundEngine } from "@/lib/sound-engine";
+import type { ThemePreference } from "@/lib/theme";
+import { followPointer, pickAtPointer, releaseDrag, type ThemeOrientation } from "@/lib/theme-drag";
+import { stopAfterKey, THEME_STOPS } from "@/lib/theme-stops";
+import { chooseTheme } from "@/lib/theme-store";
+import { cn } from "@/lib/utilities";
 
-import { useThemePreference, type ThemeToggleCopy } from './ThemeToggle'
+import { useThemePreference, type ThemeToggleCopy } from "./ThemeToggle";
 
-const unsubscribeNothing = (): void => undefined
-const subscribeToNothing = (): (() => void) => unsubscribeNothing
-const isHydratedOnClient = (): boolean => true
-const isHydratedOnServer = (): boolean => false
+const unsubscribeNothing = (): void => undefined;
+const subscribeToNothing = (): (() => void) => unsubscribeNothing;
+const isHydratedOnClient = (): boolean => true;
+const isHydratedOnServer = (): boolean => false;
 
 const RAY_PATH =
-  'M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4'
+  "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4";
 
 const STOP_PATHS: Readonly<Record<ThemePreference, readonly string[]>> = {
-  light: ['M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z', RAY_PATH],
-  auto: ['M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4', RAY_PATH],
-  dark: ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
-}
+  light: ["M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z", RAY_PATH],
+  auto: ["M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4", RAY_PATH],
+  dark: ["M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"],
+};
 
 /**
  * Lucide `sun`, `sun-moon` or `moon` for a stop.
@@ -57,7 +52,7 @@ function StopIcon({ stop }: { stop: ThemePreference }) {
         <path key={path} d={path} />
       ))}
     </svg>
-  )
+  );
 }
 
 /**
@@ -79,7 +74,7 @@ function BarSun() {
       <circle cx="12" cy="12" r="4" />
       <path className="theme-sun-rays" d={RAY_PATH} />
     </svg>
-  )
+  );
 }
 
 /**
@@ -89,10 +84,8 @@ function BarSun() {
  * @param flexDirection The computed `flex-direction` of the control.
  * @returns `vertical` for a row, `horizontal` otherwise.
  */
-export function orientationFromFlexDirection(
-  flexDirection: string,
-): ThemeOrientation {
-  return flexDirection.startsWith('row') ? 'vertical' : 'horizontal'
+export function orientationFromFlexDirection(flexDirection: string): ThemeOrientation {
+  return flexDirection.startsWith("row") ? "vertical" : "horizontal";
 }
 
 /**
@@ -101,26 +94,22 @@ export function orientationFromFlexDirection(
  * @param controlRef The element whose flex direction carries the orientation.
  * @returns The current orientation.
  */
-function useOrientation(
-  controlRef: RefObject<HTMLElement | null>,
-): ThemeOrientation {
-  const [orientation, setOrientation] = useState<ThemeOrientation>('horizontal')
+function useOrientation(controlRef: RefObject<HTMLElement | null>): ThemeOrientation {
+  const [orientation, setOrientation] = useState<ThemeOrientation>("horizontal");
   useEffect(() => {
-    const control = controlRef.current
-    if (!control) return
+    const control = controlRef.current;
+    if (!control) return;
     const read = (): void => {
-      setOrientation(
-        orientationFromFlexDirection(getComputedStyle(control).flexDirection),
-      )
-    }
-    read()
-    const observer = new ResizeObserver(read)
-    observer.observe(control)
+      setOrientation(orientationFromFlexDirection(getComputedStyle(control).flexDirection));
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(control);
     return () => {
-      observer.disconnect()
-    }
-  }, [controlRef])
-  return orientation
+      observer.disconnect();
+    };
+  }, [controlRef]);
+  return orientation;
 }
 
 /**
@@ -134,12 +123,12 @@ function useOrientation(
 export function chooseWithSound(
   stop: ThemePreference | undefined,
   current: ThemePreference,
-  engine: Pick<SoundEngine, 'play'> = soundEngine,
+  engine: Pick<SoundEngine, "play"> = soundEngine,
   apply: (stop: ThemePreference) => void = chooseTheme,
 ): void {
-  if (!stop) return
-  apply(stop)
-  if (stop !== current) engine.play('theme')
+  if (!stop) return;
+  apply(stop);
+  if (stop !== current) engine.play("theme");
 }
 
 /**
@@ -156,82 +145,61 @@ export function chooseWithSound(
  * @returns The control.
  */
 export default function ThemeSlider({ copy }: { copy: ThemeToggleCopy }) {
-  const preference = useThemePreference()
+  const preference = useThemePreference();
   const isHydrated = useSyncExternalStore(
     subscribeToNothing,
     isHydratedOnClient,
     isHydratedOnServer,
-  )
-  const barRef = useRef<HTMLDivElement>(null)
-  const controlRef = useRef<HTMLDivElement>(null)
-  const orientation = useOrientation(controlRef)
+  );
+  const barRef = useRef<HTMLDivElement>(null);
+  const controlRef = useRef<HTMLDivElement>(null);
+  const orientation = useOrientation(controlRef);
   const axisPosition = (event: PointerEvent<HTMLDivElement>): number =>
-    orientation === 'horizontal' ? event.clientX : event.clientY
-  const [dragging, setDragging] = useState(false)
-  const replayedPressRef = useRef(false)
-  const dragLevelRef = useRef(0)
-  const index = THEME_STOPS.indexOf(preference)
+    orientation === "horizontal" ? event.clientX : event.clientY;
+  const [dragging, setDragging] = useState(false);
+  const replayedPressRef = useRef(false);
+  const dragLevelRef = useRef(0);
+  const index = THEME_STOPS.indexOf(preference);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    const next = stopAfterKey(index, event.key)
-    if (next === undefined) return
-    event.preventDefault()
-    chooseWithSound(THEME_STOPS[next], preference)
-  }
+    const next = stopAfterKey(index, event.key);
+    if (next === undefined) return;
+    event.preventDefault();
+    chooseWithSound(THEME_STOPS[next], preference);
+  };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     if (event.nativeEvent.isTrusted) {
-      event.currentTarget.setPointerCapture(event.pointerId)
-      followPointer(
-        barRef.current,
-        axisPosition(event),
-        dragLevelRef,
-        undefined,
-        orientation,
-      )
-      setDragging(true)
+      event.currentTarget.setPointerCapture(event.pointerId);
+      followPointer(barRef.current, axisPosition(event), dragLevelRef, undefined, orientation);
+      setDragging(true);
     } else {
-      replayedPressRef.current = true
-      chooseWithSound(
-        pickAtPointer(barRef.current, axisPosition(event), orientation),
-        preference,
-      )
+      replayedPressRef.current = true;
+      chooseWithSound(pickAtPointer(barRef.current, axisPosition(event), orientation), preference);
     }
-  }
+  };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>): void => {
     if (dragging) {
-      followPointer(
-        barRef.current,
-        axisPosition(event),
-        dragLevelRef,
-        undefined,
-        orientation,
-      )
+      followPointer(barRef.current, axisPosition(event), dragLevelRef, undefined, orientation);
     } else if (replayedPressRef.current && event.buttons === 1) {
-      chooseWithSound(
-        pickAtPointer(barRef.current, axisPosition(event), orientation),
-        preference,
-      )
+      chooseWithSound(pickAtPointer(barRef.current, axisPosition(event), orientation), preference);
     }
-  }
+  };
 
   const endDrag = (): void => {
-    replayedPressRef.current = false
-    if (!dragging) return
-    setDragging(false)
-    chooseWithSound(
-      releaseDrag(barRef.current, dragLevelRef.current),
-      preference,
-    )
-  }
+    replayedPressRef.current = false;
+    if (!dragging) return;
+    setDragging(false);
+    chooseWithSound(releaseDrag(barRef.current, dragLevelRef.current), preference);
+  };
 
   const cancelDrag = (): void => {
-    replayedPressRef.current = false
-    if (!dragging) return
-    setDragging(false)
-    releaseDrag(barRef.current, dragLevelRef.current)
-  }
+    replayedPressRef.current = false;
+    if (!dragging) return;
+    setDragging(false);
+    releaseDrag(barRef.current, dragLevelRef.current);
+  };
 
   return (
     <div ref={controlRef} className="theme-control">
@@ -239,14 +207,14 @@ export default function ThemeSlider({ copy }: { copy: ThemeToggleCopy }) {
         role="group"
         aria-label={copy.label}
         data-theme-tabs
-        data-ready={isHydrated ? '' : undefined}
+        data-ready={isHydrated ? "" : undefined}
         className="theme-tabs relative bg-muted"
       >
         <span
           aria-hidden="true"
           data-theme-indicator
           className="theme-indicator absolute bg-foreground"
-          data-ready={isHydrated ? '' : undefined}
+          data-ready={isHydrated ? "" : undefined}
           data-stop={preference}
         />
         {THEME_STOPS.map((stop) => (
@@ -257,11 +225,11 @@ export default function ThemeSlider({ copy }: { copy: ThemeToggleCopy }) {
             data-sound="theme"
             aria-pressed={stop === preference}
             onClick={() => {
-              chooseTheme(stop)
+              chooseTheme(stop);
             }}
             className={cn(
-              'theme-tab relative z-10 flex items-center justify-center text-center font-mono font-bold',
-              stop === preference ? 'text-background' : 'text-muted-foreground',
+              "theme-tab relative z-10 flex items-center justify-center text-center font-mono font-bold",
+              stop === preference ? "text-background" : "text-muted-foreground",
             )}
           >
             <span className="theme-tab-icon shrink-0">
@@ -282,7 +250,7 @@ export default function ThemeSlider({ copy }: { copy: ThemeToggleCopy }) {
         aria-valuenow={index}
         aria-valuetext={copy[preference]}
         data-theme-slider
-        data-ready={isHydrated ? '' : undefined}
+        data-ready={isHydrated ? "" : undefined}
         data-dragging={dragging}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
@@ -292,12 +260,9 @@ export default function ThemeSlider({ copy }: { copy: ThemeToggleCopy }) {
         className="theme-bar relative overflow-hidden bg-muted"
         data-stop={preference}
       >
-        <span
-          aria-hidden="true"
-          className="theme-fill absolute inset-0 bg-foreground"
-        />
+        <span aria-hidden="true" className="theme-fill absolute inset-0 bg-foreground" />
         <BarSun />
       </div>
     </div>
-  )
+  );
 }

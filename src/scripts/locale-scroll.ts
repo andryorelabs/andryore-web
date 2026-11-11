@@ -1,42 +1,42 @@
-export const LOCALE_SCROLL_KEY = 'locale-scroll'
+export const LOCALE_SCROLL_KEY = "locale-scroll";
 
 /**
 Selectors of the page sections a language switch can anchor to.
  */
 const LOCALE_SCROLL_ANCHORS: ReadonlySet<string> = new Set([
-  '#products',
+  "#products",
   '[data-slot="stack-scene"]',
   '[data-slot="live-strip"]',
-  '#find-me',
-])
+  "#find-me",
+]);
 
 export interface LocaleScrollEntry {
-  to: string
-  y: number
-  anchor?: { selector: string; offset: number }
+  to: string;
+  y: number;
+  anchor?: { selector: string; offset: number };
 }
 
 export interface AnchorBox {
-  selector: string
-  top: number
-  bottom: number
+  selector: string;
+  top: number;
+  bottom: number;
 }
 
 interface ScrollStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
-  removeItem(key: string): void
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
 }
 
 interface ScrollDocument {
   querySelector(selector: string): {
-    getBoundingClientRect(): { top: number; bottom: number }
-  } | null
+    getBoundingClientRect(): { top: number; bottom: number };
+  } | null;
 }
 
 interface ScrollWindow {
-  scrollY: number
-  scrollTo(options: { top: number; behavior: 'instant' }): void
+  scrollY: number;
+  scrollTo(options: { top: number; behavior: "instant" }): void;
 }
 
 /**
@@ -46,15 +46,11 @@ interface ScrollWindow {
  * @param boxes Viewport rectangles of the anchor sections.
  * @returns The anchor selector and offset, or undefined when none is visible.
  */
-export function pickAnchor(
-  boxes: readonly AnchorBox[],
-): LocaleScrollEntry['anchor'] {
+export function pickAnchor(boxes: readonly AnchorBox[]): LocaleScrollEntry["anchor"] {
   const visible = boxes
     .filter((box) => box.bottom > 0)
-    .toSorted((first, second) => first.top - second.top)[0]
-  return visible
-    ? { selector: visible.selector, offset: -visible.top }
-    : undefined
+    .toSorted((first, second) => first.top - second.top)[0];
+  return visible ? { selector: visible.selector, offset: -visible.top } : undefined;
 }
 
 /**
@@ -62,25 +58,22 @@ export function pickAnchor(
  * @param raw The raw session storage value.
  * @returns The entry, or undefined when it is missing or invalid.
  */
-export function parseLocaleScroll(
-  raw: string | null | undefined,
-): LocaleScrollEntry | undefined {
-  if (!raw) return undefined
+export function parseLocaleScroll(raw: string | null | undefined): LocaleScrollEntry | undefined {
+  if (!raw) return undefined;
   try {
-    const value: unknown = JSON.parse(raw)
-    if (typeof value !== 'object' || value === null) return undefined
-    const { to, y, anchor } = value as Record<string, unknown>
-    if (typeof to !== 'string' || typeof y !== 'number' || !Number.isFinite(y))
-      return undefined
+    const value: unknown = JSON.parse(raw);
+    if (typeof value !== "object" || value === null) return undefined;
+    const { to, y, anchor } = value as Record<string, unknown>;
+    if (typeof to !== "string" || typeof y !== "number" || !Number.isFinite(y)) return undefined;
     const parsedAnchor =
-      typeof anchor === 'object' && anchor !== null
+      typeof anchor === "object" && anchor !== null
         ? (anchor as Record<string, unknown>)
-        : undefined
+        : undefined;
     if (
       parsedAnchor &&
-      typeof parsedAnchor.selector === 'string' &&
+      typeof parsedAnchor.selector === "string" &&
       LOCALE_SCROLL_ANCHORS.has(parsedAnchor.selector) &&
-      typeof parsedAnchor.offset === 'number' &&
+      typeof parsedAnchor.offset === "number" &&
       Number.isFinite(parsedAnchor.offset)
     ) {
       return {
@@ -90,11 +83,11 @@ export function parseLocaleScroll(
           selector: parsedAnchor.selector,
           offset: parsedAnchor.offset,
         },
-      }
+      };
     }
-    return { to, y }
+    return { to, y };
   } catch {
-    return undefined
+    return undefined;
   }
 }
 
@@ -111,20 +104,20 @@ export function saveLocaleScroll(
   scrollDocument: ScrollDocument,
   to: string,
 ): void {
-  const boxes: AnchorBox[] = []
+  const boxes: AnchorBox[] = [];
   for (const selector of LOCALE_SCROLL_ANCHORS) {
-    const rect = scrollDocument.querySelector(selector)?.getBoundingClientRect()
-    if (rect) boxes.push({ selector, top: rect.top, bottom: rect.bottom })
+    const rect = scrollDocument.querySelector(selector)?.getBoundingClientRect();
+    if (rect) boxes.push({ selector, top: rect.top, bottom: rect.bottom });
   }
   const entry: LocaleScrollEntry = {
     to,
     y: win.scrollY,
     anchor: pickAnchor(boxes),
-  }
+  };
   try {
-    storage.setItem(LOCALE_SCROLL_KEY, JSON.stringify(entry))
+    storage.setItem(LOCALE_SCROLL_KEY, JSON.stringify(entry));
   } catch {
-    return
+    return;
   }
 }
 
@@ -143,23 +136,19 @@ export function didRestoreLocaleScroll(
   scrollDocument: ScrollDocument,
   pathname: string,
 ): boolean {
-  let raw: string | undefined
+  let raw: string | undefined;
   try {
-    raw = storage.getItem(LOCALE_SCROLL_KEY) ?? undefined
-    storage.removeItem(LOCALE_SCROLL_KEY)
+    raw = storage.getItem(LOCALE_SCROLL_KEY) ?? undefined;
+    storage.removeItem(LOCALE_SCROLL_KEY);
   } catch {
-    return false
+    return false;
   }
-  const entry = parseLocaleScroll(raw)
-  if (entry?.to !== pathname) return false
+  const entry = parseLocaleScroll(raw);
+  if (entry?.to !== pathname) return false;
   const rect = entry.anchor
-    ? scrollDocument
-        .querySelector(entry.anchor.selector)
-        ?.getBoundingClientRect()
-    : undefined
-  const top = rect
-    ? rect.top + win.scrollY + (entry.anchor?.offset ?? 0)
-    : entry.y
-  win.scrollTo({ top: Math.max(0, top), behavior: 'instant' })
-  return true
+    ? scrollDocument.querySelector(entry.anchor.selector)?.getBoundingClientRect()
+    : undefined;
+  const top = rect ? rect.top + win.scrollY + (entry.anchor?.offset ?? 0) : entry.y;
+  win.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+  return true;
 }

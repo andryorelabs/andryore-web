@@ -2,26 +2,26 @@
 One text mismatch: a canvas string the rendered Site does not contain.
  */
 export interface TextDeviation {
-  readonly scene: string
-  readonly text: string
+  readonly scene: string;
+  readonly text: string;
 }
 
 /**
 One measured property compared with its expected value.
  */
 export interface MeasurementResult {
-  readonly id: string
-  readonly scene: string
-  readonly expected: number
-  readonly actual: number | undefined
+  readonly id: string;
+  readonly scene: string;
+  readonly expected: number;
+  readonly actual: number | undefined;
 }
 
 /**
 A named block of the report with the deviations it found.
  */
 export interface ReportSection {
-  readonly title: string
-  readonly lines: readonly string[]
+  readonly title: string;
+  readonly lines: readonly string[];
 }
 
 /**
@@ -34,9 +34,9 @@ export function normalizeText(value: string): string {
   return value
     .replaceAll(/[‘’]/g, "'")
     .replaceAll(/[“”]/g, '"')
-    .replaceAll('\u{A0}', ' ')
-    .replaceAll(/\s+/g, ' ')
-    .trim()
+    .replaceAll("\u{A0}", " ")
+    .replaceAll(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -54,23 +54,23 @@ export function findMissingTexts(
   renderedTexts: readonly string[],
   ignored: readonly RegExp[],
 ): TextDeviation[] {
-  const normalized = renderedTexts.map((value) => normalizeText(value))
-  const spaced = normalized.join(' ').toLowerCase()
-  const tight = normalized.join('').toLowerCase()
-  const missing = new Map<string, TextDeviation>()
+  const normalized = renderedTexts.map((value) => normalizeText(value));
+  const spaced = normalized.join(" ").toLowerCase();
+  const tight = normalized.join("").toLowerCase();
+  const missing = new Map<string, TextDeviation>();
   for (const raw of canvasTexts) {
-    const text = normalizeText(raw)
-    const lowered = text.toLowerCase()
+    const text = normalizeText(raw);
+    const lowered = text.toLowerCase();
     if (
-      text === '' ||
+      text === "" ||
       spaced.includes(lowered) ||
       tight.includes(lowered) ||
       ignored.some((pattern) => pattern.test(text))
     )
-      continue
-    missing.set(text, { scene, text })
+      continue;
+    missing.set(text, { scene, text });
   }
-  return missing.values().toArray()
+  return missing.values().toArray();
 }
 
 /**
@@ -85,7 +85,7 @@ export function isWithinTolerance(
   expected: number,
   tolerance: number,
 ): boolean {
-  return actual !== undefined && Math.abs(actual - expected) <= tolerance
+  return actual !== undefined && Math.abs(actual - expected) <= tolerance;
 }
 
 /**
@@ -94,8 +94,8 @@ export function isWithinTolerance(
  * @returns The number of pixels, or undefined when it is not a pixel length.
  */
 export function parsePixels(value: string): number | undefined {
-  const match = /^(-?\d+(?:\.\d+)?)px$/.exec(value.trim())
-  return match?.[1] === undefined ? undefined : Number(match[1])
+  const match = /^(-?\d+(?:\.\d+)?)px$/.exec(value.trim());
+  return match?.[1] === undefined ? undefined : Number(match[1]);
 }
 
 /**
@@ -108,9 +108,7 @@ export function failedMeasurements(
   results: readonly MeasurementResult[],
   tolerance: number,
 ): MeasurementResult[] {
-  return results.filter(
-    (result) => !isWithinTolerance(result.actual, result.expected, tolerance),
-  )
+  return results.filter((result) => !isWithinTolerance(result.actual, result.expected, tolerance));
 }
 
 /**
@@ -119,7 +117,7 @@ export function failedMeasurements(
  * @returns The total number of deviations.
  */
 export function countDeviations(sections: readonly ReportSection[]): number {
-  return sections.reduce((total, section) => total + section.lines.length, 0)
+  return sections.reduce((total, section) => total + section.lines.length, 0);
 }
 
 /**
@@ -130,13 +128,11 @@ export function countDeviations(sections: readonly ReportSection[]): number {
 export function formatReport(sections: readonly ReportSection[]): string {
   const blocks = sections.map((section) => {
     const body =
-      section.lines.length === 0
-        ? '- none'
-        : section.lines.map((line) => `- ${line}`).join('\n')
-    return `## ${section.title} (${String(section.lines.length)})\n\n${body}`
-  })
-  const total = countDeviations(sections)
-  return `# Fidelity audit\n\n${blocks.join('\n\n')}\n\nTotal deviations: ${String(total)}\n`
+      section.lines.length === 0 ? "- none" : section.lines.map((line) => `- ${line}`).join("\n");
+    return `## ${section.title} (${String(section.lines.length)})\n\n${body}`;
+  });
+  const total = countDeviations(sections);
+  return `# Fidelity audit\n\n${blocks.join("\n\n")}\n\nTotal deviations: ${String(total)}\n`;
 }
 
 /**
@@ -149,10 +145,7 @@ export function resolveCanvasPath(
   argv: readonly string[],
   environment: Readonly<Record<string, string | undefined>>,
 ): string | undefined {
-  return (
-    argv.find((argument) => !argument.startsWith('-')) ??
-    environment.FIDELITY_CANVAS
-  )
+  return argv.find((argument) => !argument.startsWith("-")) ?? environment.FIDELITY_CANVAS;
 }
 
 /**
@@ -168,24 +161,24 @@ export function resolveCanvasPath(
  */
 export function describeOverflow(
   state: {
-    readonly route: string
-    readonly language: string
-    readonly theme: string
-    readonly width: number
-    readonly scrolled: boolean
+    readonly route: string;
+    readonly language: string;
+    readonly theme: string;
+    readonly width: number;
+    readonly scrolled: boolean;
   },
   finding: string,
 ): string {
-  const scroll = state.scrolled ? 'scrolled' : 'top'
-  return `${state.route} ${state.language} ${state.theme} @${String(state.width)} ${scroll}: ${finding}`
+  const scroll = state.scrolled ? "scrolled" : "top";
+  return `${state.route} ${state.language} ${state.theme} @${String(state.width)} ${scroll}: ${finding}`;
 }
 
 /**
 A deviation the audit does not report because the owner accepted it.
  */
 export interface DocumentedException {
-  readonly id: string
-  readonly reason: string
+  readonly id: string;
+  readonly reason: string;
 }
 
 /**
@@ -193,52 +186,50 @@ Every accepted deviation from the canvas, mirrored in docs/development.md.
  */
 export const DOCUMENTED_EXCEPTIONS: readonly DocumentedException[] = [
   {
-    id: 'about-uses-home-link',
+    id: "about-uses-home-link",
+    reason: "The Home link on About and Uses is Site navigation the canvas lacks.",
+  },
+  {
+    id: "snug-store-button",
+    reason: "The Snug header has a Chrome Web Store button the canvas lacks.",
+  },
+  {
+    id: "header-blurred-surface",
     reason:
-      'The Home link on About and Uses is Site navigation the canvas lacks.',
+      "The header floats as a blurred pill after scroll, as canvas v29 shows; the canvas stays plain at the top.",
   },
   {
-    id: 'snug-store-button',
-    reason: 'The Snug header has a Chrome Web Store button the canvas lacks.',
+    id: "hero-art-border-shadow",
+    reason: "The hero art border and shadow follow the Site tokens, not the canvas.",
   },
   {
-    id: 'header-blurred-surface',
+    id: "epidemic-sound-files",
+    reason: "The licensed sound files are absent from local and CI builds.",
+  },
+  {
+    id: "astro-badge-dark-text",
+    reason: "The Astro badge keeps dark text in both themes.",
+  },
+  {
+    id: "json-flow-no-website-tile",
+    reason: "JSON Flow has no website tile.",
+  },
+  {
+    id: "404-tiles-behind-content-390",
+    reason: "The 404 tiles sit behind the content at 390 px.",
+  },
+  {
+    id: "dock-compact-buttons-phones",
     reason:
-      'The header floats as a blurred pill after scroll, as canvas v29 shows; the canvas stays plain at the top.',
+      "Below 400 px the dock buttons shrink to 36 px (34 px under 360 px) so the dock fits phones.",
   },
   {
-    id: 'hero-art-border-shadow',
-    reason:
-      'The hero art border and shadow follow the Site tokens, not the canvas.',
+    id: "404-reduced-motion-positions",
+    reason: "With reduced motion the 404 tiles keep their positions.",
   },
-  {
-    id: 'epidemic-sound-files',
-    reason: 'The licensed sound files are absent from local and CI builds.',
-  },
-  {
-    id: 'astro-badge-dark-text',
-    reason: 'The Astro badge keeps dark text in both themes.',
-  },
-  {
-    id: 'json-flow-no-website-tile',
-    reason: 'JSON Flow has no website tile.',
-  },
-  {
-    id: '404-tiles-behind-content-390',
-    reason: 'The 404 tiles sit behind the content at 390 px.',
-  },
-  {
-    id: 'dock-compact-buttons-phones',
-    reason:
-      'Below 400 px the dock buttons shrink to 36 px (34 px under 360 px) so the dock fits phones.',
-  },
-  {
-    id: '404-reduced-motion-positions',
-    reason: 'With reduced motion the 404 tiles keep their positions.',
-  },
-]
+];
 
-const COMPACT_DOCK_BUTTON_TOLERANCE = 2
+const COMPACT_DOCK_BUTTON_TOLERANCE = 2;
 
 /**
  * Tells whether a failed measurement is a documented exception. The compact
@@ -248,16 +239,13 @@ const COMPACT_DOCK_BUTTON_TOLERANCE = 2
  * @param actual The measured value, or undefined when nothing matched.
  * @returns True when the owner accepted the deviation.
  */
-export function isDocumentedMeasurement(
-  measurementId: string,
-  actual?: number,
-): boolean {
-  const match = /^dock button width @(\d+)$/.exec(measurementId)
-  if (match === null || actual === undefined) return false
-  const width = Number(match[1])
-  if (width >= 400) return false
-  const compact = width < 360 ? 34 : 36
-  return Math.abs(actual - compact) <= COMPACT_DOCK_BUTTON_TOLERANCE
+export function isDocumentedMeasurement(measurementId: string, actual?: number): boolean {
+  const match = /^dock button width @(\d+)$/.exec(measurementId);
+  if (match === null || actual === undefined) return false;
+  const width = Number(match[1]);
+  if (width >= 400) return false;
+  const compact = width < 360 ? 34 : 36;
+  return Math.abs(actual - compact) <= COMPACT_DOCK_BUTTON_TOLERANCE;
 }
 
 /**
@@ -268,8 +256,5 @@ export function isDocumentedMeasurement(
  * @returns True when the message is a missing sound asset.
  */
 export function isMissingSoundAsset(text: string, url: string): boolean {
-  return (
-    text.includes('status of 404') &&
-    new URL(url).pathname.startsWith('/sounds/')
-  )
+  return text.includes("status of 404") && new URL(url).pathname.startsWith("/sounds/");
 }

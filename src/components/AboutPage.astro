@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets'
+import { Image } from "astro:assets";
 import {
   Activity,
   Briefcase,
@@ -9,31 +9,31 @@ import {
   Layers,
   Server,
   Users,
-} from 'lucide-react'
+} from "lucide-react";
 
-import memoji from '../../docs/brand/avatar/memoji.webp'
-import about from '../content/about.json'
-import chrome from '../content/chrome.json'
-import home from '../content/home.json'
-import uses from '../content/uses.json'
-import { localePath, type Locale } from '../i18n/locales'
-import BaseLayout from '../layouts/BaseLayout.astro'
-import { buildNumberStats } from '../lib/about'
-import { loadGridSnapshot } from '../lib/github-grid-build'
-import type { IconId } from '../lib/icons'
-import { revealClass } from '../lib/motion'
-import CvSplitButton from './CvSplitButton'
-import { buttonClassName } from './ui/button'
-import UsesBadge from './UsesBadge.astro'
+import memoji from "../../docs/brand/avatar/memoji.webp";
+import about from "../content/about.json";
+import chrome from "../content/chrome.json";
+import home from "../content/home.json";
+import uses from "../content/uses.json";
+import { localePath, type Locale } from "../i18n/locales";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { buildNumberStats } from "../lib/about";
+import { loadGridSnapshot } from "../lib/github-grid-build";
+import type { IconId } from "../lib/icons";
+import { revealClass } from "../lib/motion";
+import CvSplitButton from "./CvSplitButton";
+import { buttonClassName } from "./ui/button";
+import UsesBadge from "./UsesBadge.astro";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = about[locale]
-const installs = home[locale].products.contribution
-const snapshot = await loadGridSnapshot()
+const { locale } = Astro.props;
+const copy = about[locale];
+const installs = home[locale].products.contribution;
+const snapshot = await loadGridSnapshot();
 const stats = buildNumberStats(
   copy,
   {
@@ -41,43 +41,33 @@ const stats = buildNumberStats(
     contributions: snapshot?.total,
   },
   locale,
-)
+);
 const officialSites = new Map(
-  [...uses[locale].tools, ...uses[locale].tech].map((item) => [
-    item.icon,
-    item.url,
-  ]),
-)
+  [...uses[locale].tools, ...uses[locale].tech].map((item) => [item.icon, item.url]),
+);
 const whatIcons = {
   layers: Layers,
-  'key-round': KeyRound,
+  "key-round": KeyRound,
   server: Server,
-} as const
+} as const;
 const statIcons = {
   independent: CalendarDays,
   snug: Users,
   installs: Download,
   contributions: Activity,
-} as const
-const [firstPhrase = ''] = copy.typingPhrases
+} as const;
+const [firstPhrase = ""] = copy.typingPhrases;
 
-const surfaceClass = 'about-surface bg-card border-border border'
+const surfaceClass = "about-surface bg-card border-border border";
 const iconBoxClass =
-  'grid size-10 place-items-center rounded-xl bg-[color-mix(in_oklab,var(--primary)_14%,var(--card-2))] text-primary'
-const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
+  "grid size-10 place-items-center rounded-xl bg-[color-mix(in_oklab,var(--primary)_14%,var(--card-2))] text-primary";
+const headingClass = "m-0 text-[22px] font-bold tracking-[-0.02em]";
 ---
 
-<BaseLayout
-  title={copy.pageTitle}
-  description={copy.pageDescription}
-  locale={locale}
->
-  <div
-    class="flex flex-col gap-10 max-[700px]:gap-7 min-[760px]:-mx-5"
-    data-about-column
-  >
+<BaseLayout title={copy.pageTitle} description={copy.pageDescription} locale={locale}>
+  <div class="flex flex-col gap-10 max-[700px]:gap-7 min-[760px]:-mx-5" data-about-column>
     <a
-      href={localePath(locale, '/')}
+      href={localePath(locale, "/")}
       class="inline-flex min-h-11 w-fit items-center gap-2 font-mono text-xs tracking-wide text-muted-foreground no-underline hover:text-foreground"
       data-page-back
     >
@@ -87,10 +77,10 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
     <section
       aria-labelledby="about-heading"
       class:list={[
-        'reveal',
+        "reveal",
         revealClass(0),
         surfaceClass,
-        'grid gap-7 rounded-[20px] p-[22px] min-[701px]:grid-cols-[auto_1fr] min-[701px]:items-center min-[701px]:p-8',
+        "grid gap-7 rounded-[20px] p-[22px] min-[701px]:grid-cols-[auto_1fr] min-[701px]:items-center min-[701px]:p-8",
       ]}
     >
       <Image
@@ -120,17 +110,15 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
             <span class="caret caret-em"></span>
           </span>
         </h1>
-        <p class="m-0 max-w-[56ch] text-[17px] text-muted-foreground">
-          {copy.subline}
-        </p>
+        <p class="m-0 max-w-[56ch] text-[17px] text-muted-foreground">{copy.subline}</p>
         <div class="flex flex-wrap gap-2.5">
           <CvSplitButton client:load locale={locale} copy={copy} />
           <a
-            href={localePath(locale, '/') + '#find-me'}
+            href={localePath(locale, "/") + "#find-me"}
             class={buttonClassName(
-              'neutral',
-              'cta',
-              'h-auto min-h-11 max-w-full py-2 text-left whitespace-normal',
+              "neutral",
+              "cta",
+              "h-auto min-h-11 max-w-full py-2 text-left whitespace-normal",
             )}
           >
             <Briefcase aria-hidden="true" className="size-4.5!" />
@@ -142,20 +130,17 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
 
     <section
       aria-labelledby="what-i-do-heading"
-      class:list={['reveal', revealClass(1), 'grid gap-3.5']}
+      class:list={["reveal", revealClass(1), "grid gap-3.5"]}
     >
       <h2 id="what-i-do-heading" class={headingClass}>
         {copy.whatIDo.heading}
       </h2>
       <ul class="m-0 grid list-none gap-3 p-0 min-[701px]:grid-cols-3">
         {copy.whatIDo.items.map((item) => {
-          const Icon = whatIcons[item.icon as keyof typeof whatIcons]
+          const Icon = whatIcons[item.icon as keyof typeof whatIcons];
           return (
             <li
-              class:list={[
-                surfaceClass,
-                'grid content-start gap-2.5 rounded-[18px] p-[18px]',
-              ]}
+              class:list={[surfaceClass, "grid content-start gap-2.5 rounded-[18px] p-[18px]"]}
               data-what-i-do={item.key}
             >
               <span class={iconBoxClass} aria-hidden="true">
@@ -164,32 +149,26 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
               <h3 class="m-0 text-[15px] font-bold">{item.title}</h3>
               <p class="m-0 text-sm text-muted-foreground">{item.body}</p>
             </li>
-          )
+          );
         })}
       </ul>
     </section>
 
     <section
       aria-labelledby="numbers-heading"
-      class:list={['reveal', revealClass(2), 'grid gap-3.5']}
+      class:list={["reveal", revealClass(2), "grid gap-3.5"]}
     >
       <h2 id="numbers-heading" class={headingClass}>
         {copy.numbersHeading}
       </h2>
-      <dl
-        class="m-0 grid grid-cols-2 gap-3 min-[701px]:grid-cols-4"
-        data-about-numbers
-      >
+      <dl class="m-0 grid grid-cols-2 gap-3 min-[701px]:grid-cols-4" data-about-numbers>
         {stats.map((stat) => {
-          const Icon = statIcons[stat.key]
+          const Icon = statIcons[stat.key];
           return (
             <div
-              class:list={[
-                surfaceClass,
-                'grid min-w-0 gap-1 rounded-[18px] p-4',
-              ]}
+              class:list={[surfaceClass, "grid min-w-0 gap-1 rounded-[18px] p-4"]}
               data-stat={stat.key}
-              data-about-live={stat.key === 'contributions' ? '' : undefined}
+              data-about-live={stat.key === "contributions" ? "" : undefined}
               data-locale={locale}
             >
               <span class="mb-1 text-muted-foreground" aria-hidden="true">
@@ -202,24 +181,21 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
                 {stat.count === undefined ? (
                   stat.display
                 ) : (
-                  <span
-                    data-count-total={stat.count}
-                    data-count-locale={locale}
-                  >
+                  <span data-count-total={stat.count} data-count-locale={locale}>
                     {stat.display}
                   </span>
                 )}
                 {stat.suffix}
               </dd>
             </div>
-          )
+          );
         })}
       </dl>
     </section>
 
     <section
       aria-labelledby="timeline-heading"
-      class:list={['reveal', revealClass(3), 'grid gap-3.5']}
+      class:list={["reveal", revealClass(3), "grid gap-3.5"]}
     >
       <h2 id="timeline-heading" class={headingClass}>
         {copy.timelineHeading}
@@ -240,10 +216,7 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
       </ol>
     </section>
 
-    <section
-      class:list={['reveal', revealClass(4), 'grid gap-3.5']}
-      data-about-closing
-    >
+    <section class:list={["reveal", revealClass(4), "grid gap-3.5"]} data-about-closing>
       <div class="grid max-w-[65ch] gap-4">
         {copy.bio.map((paragraph) => (
           <p class="m-0">{paragraph}</p>
@@ -251,7 +224,7 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
       </div>
     </section>
 
-    <section class:list={['reveal', revealClass(5), 'grid gap-3.5']}>
+    <section class:list={["reveal", revealClass(5), "grid gap-3.5"]}>
       <ul class="m-0 flex list-none flex-wrap gap-2.5 p-0">
         {copy.stack.map((item) => (
           <li>
@@ -267,7 +240,7 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
         ))}
       </ul>
       <a
-        href={localePath(locale, '/uses/')}
+        href={localePath(locale, "/uses/")}
         class="inline-flex min-h-11 w-fit items-center font-mono text-xs text-muted-foreground underline underline-offset-[3px] hover:text-foreground"
       >
         {copy.stackLink}
@@ -278,71 +251,58 @@ const headingClass = 'm-0 text-[22px] font-bold tracking-[-0.02em]'
 </BaseLayout>
 
 <script>
-  import { isMotionReduced } from '../lib/motion'
-  import { startCountUp } from '../scripts/count-up'
-  import { didMountGithubTile } from '../scripts/github-tile'
-  import { startPhraseTyping } from '../scripts/typing-headline'
+  import { isMotionReduced } from "../lib/motion";
+  import { startCountUp } from "../scripts/count-up";
+  import { didMountGithubTile } from "../scripts/github-tile";
+  import { startPhraseTyping } from "../scripts/typing-headline";
 
-  const reducedMotion = isMotionReduced(globalThis)
+  const reducedMotion = isMotionReduced(globalThis);
 
-  for (const root of document.querySelectorAll<HTMLElement>('[data-typing]')) {
-    const target = root.querySelector<HTMLElement>('[data-typing-text]')
-    const phrases: unknown = JSON.parse(root.dataset.typingPhrases ?? '[]')
-    if (
-      target &&
-      Array.isArray(phrases) &&
-      phrases.every((phrase) => typeof phrase === 'string')
-    ) {
+  for (const root of document.querySelectorAll<HTMLElement>("[data-typing]")) {
+    const target = root.querySelector<HTMLElement>("[data-typing-text]");
+    const phrases: unknown = JSON.parse(root.dataset.typingPhrases ?? "[]");
+    if (target && Array.isArray(phrases) && phrases.every((phrase) => typeof phrase === "string")) {
       startPhraseTyping(target, phrases, {
         reducedMotion,
         random: () => Math.random(),
         schedule: (callback, delay) => setTimeout(callback, delay),
         cancel: (handle) => {
-          clearTimeout(handle)
+          clearTimeout(handle);
         },
-      })
+      });
     }
   }
 
   const countUp = (target: HTMLElement): void => {
-    const total = Number(target.dataset.countTotal)
-    if (!Number.isFinite(total)) return
+    const total = Number(target.dataset.countTotal);
+    if (!Number.isFinite(total)) return;
     startCountUp(target, total, {
       reducedMotion,
-      locale: target.dataset.countLocale ?? 'en',
+      locale: target.dataset.countLocale ?? "en",
       requestFrame: (callback) => requestAnimationFrame(callback),
-    })
-  }
+    });
+  };
 
   for (const target of document.querySelectorAll<HTMLElement>(
-    '[data-about-numbers] [data-count-total]:not([data-about-live] *)',
+    "[data-about-numbers] [data-count-total]:not([data-about-live] *)",
   )) {
-    countUp(target)
+    countUp(target);
   }
 
-  for (const root of document.querySelectorAll<HTMLElement>(
-    '[data-about-live]',
-  )) {
-    const targets = [
-      ...root.querySelectorAll<HTMLElement>('[data-count-total]'),
-    ]
+  for (const root of document.querySelectorAll<HTMLElement>("[data-about-live]")) {
+    const targets = [...root.querySelectorAll<HTMLElement>("[data-count-total]")];
     const countedTotals = targets.map((target) => {
-      countUp(target)
-      return target.dataset.countTotal
-    })
+      countUp(target);
+      return target.dataset.countTotal;
+    });
     void didMountGithubTile(root).then(() => {
       for (const [index, target] of targets.entries()) {
-        const total = Number(target.dataset.countTotal)
-        if (
-          target.dataset.countTotal === countedTotals[index] ||
-          !Number.isFinite(total)
-        )
-          continue
-        target.textContent = new Intl.NumberFormat(
-          target.dataset.countLocale ?? 'en',
-          { useGrouping: 'always' },
-        ).format(total)
+        const total = Number(target.dataset.countTotal);
+        if (target.dataset.countTotal === countedTotals[index] || !Number.isFinite(total)) continue;
+        target.textContent = new Intl.NumberFormat(target.dataset.countLocale ?? "en", {
+          useGrouping: "always",
+        }).format(total);
       }
-    })
+    });
   }
 </script>

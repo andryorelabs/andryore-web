@@ -1,16 +1,16 @@
 ---
-import chrome from '../content/chrome.json'
-import { homePath, LOCALES, type Locale } from '../i18n/locales'
+import chrome from "../content/chrome.json";
+import { homePath, LOCALES, type Locale } from "../i18n/locales";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = chrome[locale].dock.language
+const { locale } = Astro.props;
+const copy = chrome[locale].dock.language;
 
 const labelClass =
-  'text-muted-foreground font-mono text-[0.6875rem] font-medium tracking-[0.08em] uppercase'
+  "text-muted-foreground font-mono text-[0.6875rem] font-medium tracking-[0.08em] uppercase";
 ---
 
 <article
@@ -51,10 +51,10 @@ const labelClass =
         data-locale-switch={target}
         lang={target}
         aria-label={`${copy.codes[target]} ${copy[target]}`}
-        aria-current={target === locale ? 'true' : undefined}
+        aria-current={target === locale ? "true" : undefined}
         class:list={[
-          'language-tab relative z-10 grid min-h-11 place-items-center rounded-pill text-[13px] font-bold no-underline',
-          target === locale ? 'text-background' : 'text-muted-foreground',
+          "language-tab relative z-10 grid min-h-11 place-items-center rounded-pill text-[13px] font-bold no-underline",
+          target === locale ? "text-background" : "text-muted-foreground",
         ]}
       >
         {copy.codes[target]}

@@ -1,7 +1,7 @@
-import chrome from '../src/content/chrome.json' with { type: 'json' }
-import home from '../src/content/home.json' with { type: 'json' }
+import chrome from "../src/content/chrome.json" with { type: "json" };
+import home from "../src/content/home.json" with { type: "json" };
 
-export type Language = 'en' | 'es'
+export type Language = "en" | "es";
 
 /**
  * Reads the Site chrome copy of a language, so specs locate elements by the
@@ -10,7 +10,7 @@ export type Language = 'en' | 'es'
  * @returns The chrome copy.
  */
 export function chromeMessages(language: Language) {
-  return chrome[language]
+  return chrome[language];
 }
 
 /**
@@ -19,7 +19,7 @@ export function chromeMessages(language: Language) {
  * @returns The stream tile copy.
  */
 export function streamMessages(language: Language) {
-  return home[language].stream
+  return home[language].stream;
 }
 
 /**
@@ -28,5 +28,5 @@ export function streamMessages(language: Language) {
  * @returns `es` under `/es/`, `en` otherwise.
  */
 export function languageOf(route: string): Language {
-  return route.startsWith('/es/') ? 'es' : 'en'
+  return route.startsWith("/es/") ? "es" : "en";
 }

@@ -1,19 +1,19 @@
 ---
-import monocle from '../assets/afe/face-with-monocle.png'
-import notFound from '../content/not-found.json'
-import { homePath, localePath, type Locale } from '../i18n/locales'
-import BaseLayout from '../layouts/BaseLayout.astro'
-import { NOT_FOUND_TILES } from '../lib/stack-scene'
-import stackSceneStylesheet from '../styles/stack-scene.css?url'
-import StackTile from './StackTile.astro'
+import monocle from "../assets/afe/face-with-monocle.png";
+import notFound from "../content/not-found.json";
+import { homePath, localePath, type Locale } from "../i18n/locales";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { NOT_FOUND_TILES } from "../lib/stack-scene";
+import stackSceneStylesheet from "../styles/stack-scene.css?url";
+import StackTile from "./StackTile.astro";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = notFound[locale]
-const [firstDigit = '4', , lastDigit = '4'] = [...copy.code]
+const { locale } = Astro.props;
+const copy = notFound[locale];
+const [firstDigit = "4", , lastDigit = "4"] = [...copy.code];
 ---
 
 <BaseLayout
@@ -30,7 +30,7 @@ const [firstDigit = '4', , lastDigit = '4'] = [...copy.code]
         <StackTile
           id={tile.id}
           size={tile.size}
-          class:list={['nf-tile', tile.placement]}
+          class:list={["nf-tile", tile.placement]}
           data-nf-delay={tile.delay}
         />
       ))}
@@ -38,13 +38,7 @@ const [firstDigit = '4', , lastDigit = '4'] = [...copy.code]
     <div class="nf-code" aria-hidden="true">
       <span>{firstDigit}</span>
       <span class="nf-monocle" data-sound="pop">
-        <img
-          src={monocle.src}
-          alt=""
-          width="100"
-          height="6400"
-          decoding="async"
-        />
+        <img src={monocle.src} alt="" width="100" height="6400" decoding="async" />
       </span>
       <span>{lastDigit}</span>
     </div>
@@ -54,10 +48,7 @@ const [firstDigit = '4', , lastDigit = '4'] = [...copy.code]
       <a href={homePath(locale)} class="nf-button nf-button-primary">
         {copy.home}
       </a>
-      <a
-        href={localePath(locale, '/#products')}
-        class="nf-button nf-button-secondary"
-      >
+      <a href={localePath(locale, "/#products")} class="nf-button nf-button-secondary">
         {copy.products}
       </a>
     </div>

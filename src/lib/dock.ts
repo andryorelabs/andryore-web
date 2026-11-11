@@ -1,27 +1,27 @@
-import { localePath, type Locale } from '../i18n/locales'
+import { localePath, type Locale } from "../i18n/locales";
 
 /**
 The pages the dock links to, in display order.
  */
 export const DOCK_PAGES = [
-  { key: 'home', path: '/', section: '' },
-  { key: 'about', path: '/about/', section: 'about' },
-  { key: 'products', path: '/#products', section: 'products' },
-  { key: 'uses', path: '/uses/', section: 'uses' },
-  { key: 'findMe', path: '/#find-me', section: 'find-me' },
-] as const
+  { key: "home", path: "/", section: "" },
+  { key: "about", path: "/about/", section: "about" },
+  { key: "products", path: "/#products", section: "products" },
+  { key: "uses", path: "/uses/", section: "uses" },
+  { key: "findMe", path: "/#find-me", section: "find-me" },
+] as const;
 
-export type DockPageKey = (typeof DOCK_PAGES)[number]['key']
+export type DockPageKey = (typeof DOCK_PAGES)[number]["key"];
 
 /**
 Largest scale a dock item reaches under the pointer.
  */
-export const MAGNIFICATION_MAX_SCALE = 1.15
+export const MAGNIFICATION_MAX_SCALE = 1.15;
 
 /**
 Distance from the pointer, in pixels, past which an item is not scaled.
  */
-export const MAGNIFICATION_RADIUS_PX = 72
+export const MAGNIFICATION_RADIUS_PX = 72;
 
 /**
  * Which dock page a locale-neutral path belongs to.
@@ -29,16 +29,16 @@ export const MAGNIFICATION_RADIUS_PX = 72
  * @returns The page key, or undefined for pages the dock does not list.
  */
 export function activePageKey(path: string): DockPageKey | undefined {
-  const section = path.split('/').find(Boolean) ?? ''
-  return DOCK_PAGES.find((page) => page.section === section)?.key
+  const section = path.split("/").find(Boolean) ?? "";
+  return DOCK_PAGES.find((page) => page.section === section)?.key;
 }
 
 /**
 Ids of the home page sections the dock follows, in page order.
  */
 export const HOME_SECTION_IDS: readonly string[] = DOCK_PAGES.filter((page) =>
-  page.path.startsWith('/#'),
-).map((page) => page.section)
+  page.path.startsWith("/#"),
+).map((page) => page.section);
 
 /**
  * Which dock page the home scroll position belongs to.
@@ -46,15 +46,11 @@ export const HOME_SECTION_IDS: readonly string[] = DOCK_PAGES.filter((page) =>
  * @returns The page of the last visible section in page order, or `home` when
  *   none is in view.
  */
-export function activeSectionKey(
-  visibleSections: readonly string[],
-): DockPageKey {
+export function activeSectionKey(visibleSections: readonly string[]): DockPageKey {
   const visible = DOCK_PAGES.filter(
-    (page) =>
-      HOME_SECTION_IDS.includes(page.section) &&
-      visibleSections.includes(page.section),
-  )
-  return visible.at(-1)?.key ?? 'home'
+    (page) => HOME_SECTION_IDS.includes(page.section) && visibleSections.includes(page.section),
+  );
+  return visible.at(-1)?.key ?? "home";
 }
 
 /**
@@ -63,7 +59,7 @@ export function activeSectionKey(
  * @returns The page of that section, or `home` for any other hash.
  */
 export function hashSectionKey(hash: string): DockPageKey {
-  return activeSectionKey([hash.replace(/^#/, '')])
+  return activeSectionKey([hash.replace(/^#/, "")]);
 }
 
 /**
@@ -73,7 +69,7 @@ export function hashSectionKey(hash: string): DockPageKey {
  * @returns The path with the language prefix applied.
  */
 export function pageHref(locale: Locale, path: string): string {
-  return localePath(locale, path)
+  return localePath(locale, path);
 }
 
 /**
@@ -83,6 +79,6 @@ export function pageHref(locale: Locale, path: string): string {
  * @returns A scale between 1 and the maximum.
  */
 export function magnificationScale(distance: number): number {
-  const ratio = Math.min(Math.abs(distance) / MAGNIFICATION_RADIUS_PX, 1)
-  return 1 + (MAGNIFICATION_MAX_SCALE - 1) * (1 - ratio)
+  const ratio = Math.min(Math.abs(distance) / MAGNIFICATION_RADIUS_PX, 1);
+  return 1 + (MAGNIFICATION_MAX_SCALE - 1) * (1 - ratio);
 }

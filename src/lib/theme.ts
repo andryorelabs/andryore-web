@@ -1,25 +1,25 @@
 /**
  * The three choices of the theme control.
  */
-export const THEME_PREFERENCES = ['auto', 'light', 'dark'] as const
+export const THEME_PREFERENCES = ["auto", "light", "dark"] as const;
 
-export type ThemePreference = (typeof THEME_PREFERENCES)[number]
-export type ResolvedTheme = 'light' | 'dark'
+export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+export type ResolvedTheme = "light" | "dark";
 
 /**
  * The localStorage key shared with the inline pre-paint script.
  */
-export const THEME_STORAGE_KEY = 'theme'
+export const THEME_STORAGE_KEY = "theme";
 
-export const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)'
+export const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
 /**
  * The slice of `Storage` the theme code needs.
  */
 export interface ThemeStorage {
-  getItem: (key: string) => string | null
-  setItem: (key: string, value: string) => void
-  removeItem: (key: string) => void
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
 }
 
 /**
@@ -32,9 +32,9 @@ export function getThemeStorage(
   win: Readonly<{ localStorage?: ThemeStorage }> = globalThis,
 ): ThemeStorage | undefined {
   try {
-    return win.localStorage
+    return win.localStorage;
   } catch {
-    return undefined
+    return undefined;
   }
 }
 
@@ -44,7 +44,7 @@ export function getThemeStorage(
  * @returns The preference, or `auto` for anything unrecognised.
  */
 export function parseThemePreference(raw: unknown): ThemePreference {
-  return THEME_PREFERENCES.find((preference) => preference === raw) ?? 'auto'
+  return THEME_PREFERENCES.find((preference) => preference === raw) ?? "auto";
 }
 
 /**
@@ -53,12 +53,9 @@ export function parseThemePreference(raw: unknown): ThemePreference {
  * @param isSystemDark Whether the system asks for a dark scheme.
  * @returns `light` or `dark`.
  */
-export function resolveTheme(
-  preference: ThemePreference,
-  isSystemDark: boolean,
-): ResolvedTheme {
-  if (preference === 'auto') return isSystemDark ? 'dark' : 'light'
-  return preference
+export function resolveTheme(preference: ThemePreference, isSystemDark: boolean): ResolvedTheme {
+  if (preference === "auto") return isSystemDark ? "dark" : "light";
+  return preference;
 }
 
 /**
@@ -67,13 +64,11 @@ export function resolveTheme(
  * @param storage The storage to read, if any.
  * @returns The stored preference, or `auto`.
  */
-export function readThemePreference(
-  storage: ThemeStorage | undefined,
-): ThemePreference {
+export function readThemePreference(storage: ThemeStorage | undefined): ThemePreference {
   try {
-    return parseThemePreference(storage?.getItem(THEME_STORAGE_KEY))
+    return parseThemePreference(storage?.getItem(THEME_STORAGE_KEY));
   } catch {
-    return 'auto'
+    return "auto";
   }
 }
 
@@ -88,26 +83,26 @@ export function didWriteThemePreference(
   storage: ThemeStorage | undefined,
   preference: ThemePreference,
 ): boolean {
-  if (!storage) return false
+  if (!storage) return false;
   try {
-    if (preference === 'auto') storage.removeItem(THEME_STORAGE_KEY)
-    else storage.setItem(THEME_STORAGE_KEY, preference)
-    return true
+    if (preference === "auto") storage.removeItem(THEME_STORAGE_KEY);
+    else storage.setItem(THEME_STORAGE_KEY, preference);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
 interface ThemeColorMeta {
-  media: string
-  dataset: Readonly<Record<string, string | undefined>>
+  media: string;
+  dataset: Readonly<Record<string, string | undefined>>;
 }
 
 interface ThemeDocument {
   documentElement: {
-    classList: { toggle: (name: string, shouldForce: boolean) => unknown }
-  }
-  querySelectorAll: (selector: string) => Iterable<ThemeColorMeta>
+    classList: { toggle: (name: string, shouldForce: boolean) => unknown };
+  };
+  querySelectorAll: (selector: string) => Iterable<ThemeColorMeta>;
 }
 
 /**
@@ -118,14 +113,9 @@ interface ThemeDocument {
  * @param themeDocument The document to update.
  * @param theme The theme to paint.
  */
-export function applyResolvedTheme(
-  themeDocument: ThemeDocument,
-  theme: ResolvedTheme,
-): void {
-  themeDocument.documentElement.classList.toggle('dark', theme === 'dark')
-  for (const meta of themeDocument.querySelectorAll(
-    'meta[name="theme-color"][data-theme-color]',
-  )) {
-    meta.media = meta.dataset.themeColor === theme ? 'all' : 'not all'
+export function applyResolvedTheme(themeDocument: ThemeDocument, theme: ResolvedTheme): void {
+  themeDocument.documentElement.classList.toggle("dark", theme === "dark");
+  for (const meta of themeDocument.querySelectorAll('meta[name="theme-color"][data-theme-color]')) {
+    meta.media = meta.dataset.themeColor === theme ? "all" : "not all";
   }
 }

@@ -1,17 +1,17 @@
 ---
-import { getCollection } from 'astro:content'
+import { getCollection } from "astro:content";
 
-import ProductPage from '../../components/ProductPage.astro'
-import type { ProductEntry } from '../../lib/products'
+import ProductPage from "../../components/ProductPage.astro";
+import type { ProductEntry } from "../../lib/products";
 
 export async function getStaticPaths() {
-  const entries: ProductEntry[] = await getCollection('products')
+  const entries: ProductEntry[] = await getCollection("products");
   return entries
-    .filter((entry) => entry.data.lang === 'en')
-    .map((entry) => ({ params: { key: entry.data.key } }))
+    .filter((entry) => entry.data.lang === "en")
+    .map((entry) => ({ params: { key: entry.data.key } }));
 }
 
-const { key } = Astro.params
+const { key } = Astro.params;
 ---
 
 <ProductPage locale="en" productKey={key} />

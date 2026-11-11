@@ -1,11 +1,11 @@
-import { usableCredential } from './credential'
-import { GITHUB_LOGIN } from './github-contributions'
-import { resolveGridSnapshot, type GridSnapshot } from './github-grid'
+import { usableCredential } from "./credential";
+import { GITHUB_LOGIN } from "./github-contributions";
+import { resolveGridSnapshot, type GridSnapshot } from "./github-grid";
 
-const committedSnapshots = import.meta.glob<GridSnapshot>(
-  '../content/github-grid.json',
-  { eager: true, import: 'default' },
-)
+const committedSnapshots = import.meta.glob<GridSnapshot>("../content/github-grid.json", {
+  eager: true,
+  import: "default",
+});
 
 /**
  * Snapshot for the home GitHub tile, resolved at build time. The token comes
@@ -21,5 +21,5 @@ export function loadGridSnapshot(): Promise<GridSnapshot | undefined> {
     now: new Date(),
     fetchImpl: (url, init) => fetch(url, init),
     committed: Object.values(committedSnapshots)[0] ?? undefined,
-  })
+  });
 }

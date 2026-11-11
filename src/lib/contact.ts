@@ -1,27 +1,27 @@
 /**
 Contact email shown on the About page and in the footer.
  */
-export const CONTACT_EMAIL = 'hello@andryore.dev'
+export const CONTACT_EMAIL = "hello@andryore.dev";
 
 /**
 Public paths of the committed CV PDFs, one per language.
  */
 export const CV_PATHS = {
-  en: '/cv/andry-orellana-cv-en.pdf',
-  es: '/cv/andry-orellana-cv-es.pdf',
-} as const
+  en: "/cv/andry-orellana-cv-en.pdf",
+  es: "/cv/andry-orellana-cv-es.pdf",
+} as const;
 
 /**
 Outcome of a copy attempt.
  */
-export type CopyOutcome = 'copied' | 'selected'
+export type CopyOutcome = "copied" | "selected";
 
 /**
 The browser capabilities a copy attempt uses, injected for testing.
  */
 export interface CopyDependencies {
-  writeText?: (text: string) => Promise<void>
-  selectText: () => void
+  writeText?: (text: string) => Promise<void>;
+  selectText: () => void;
 }
 
 /**
@@ -37,13 +37,13 @@ export async function copyWithFallback(
 ): Promise<CopyOutcome> {
   if (dependencies.writeText) {
     try {
-      await dependencies.writeText(text)
-      return 'copied'
+      await dependencies.writeText(text);
+      return "copied";
     } catch {
-      dependencies.selectText()
-      return 'selected'
+      dependencies.selectText();
+      return "selected";
     }
   }
-  dependencies.selectText()
-  return 'selected'
+  dependencies.selectText();
+  return "selected";
 }

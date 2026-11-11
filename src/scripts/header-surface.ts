@@ -1,7 +1,7 @@
-import { observeVisibility, type VisibilityObserverFactory } from './in-view'
+import { observeVisibility, type VisibilityObserverFactory } from "./in-view";
 
 interface HeaderTarget {
-  toggleAttribute(name: string, isForced?: boolean): boolean
+  toggleAttribute(name: string, isForced?: boolean): boolean;
 }
 
 /**
@@ -20,8 +20,8 @@ export function watchHeaderSurface(
   observeVisibility(
     [sentinel],
     (_target, visible) => {
-      header.toggleAttribute('data-scrolled', !visible)
+      header.toggleAttribute("data-scrolled", !visible);
     },
     { createObserver },
-  )
+  );
 }

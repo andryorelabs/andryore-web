@@ -25,12 +25,8 @@
   --duration-fast: 160ms;
   --duration-base: 320ms;
   --duration-slow: 560ms;
-  --font-sans:
-    'Space Grotesk Variable', 'Space Grotesk', ui-sans-serif, system-ui,
-    sans-serif;
-  --font-mono:
-    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular,
-    monospace;
+  --font-sans: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 .dark {
