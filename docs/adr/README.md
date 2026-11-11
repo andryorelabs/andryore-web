@@ -26,11 +26,11 @@ ADR 0016 does not exist: its decision was merged into
 | 0008   | [Private docs stay local](0008-private-docs-stay-local.md)                                               | Accepted | -                               |
 | 0009   | [No third-party requests from the Site](0009-no-third-party-requests.md)                                 | Accepted | 0010, 0014 (partly), 0017, 0020 |
 | 0010   | [Hash-based CSP and security headers](0010-hash-based-csp-and-security-headers.md)                       | Accepted | 0012                            |
-| 0011   | [Public repo security posture](0011-public-repo-security-posture.md)                                     | Accepted | 0022                            |
+| 0011   | [Public repo security posture](0011-public-repo-security-posture.md)                                     | Accepted | 0022, 0026                      |
 | 0012   | [CSP delivered as an nginx header](0012-csp-delivered-as-an-nginx-header.md)                             | Accepted | -                               |
 | 0013   | [AI crawler policy](0013-ai-crawler-policy.md)                                                           | Accepted | -                               |
 | 0014   | [Umami Cloud cookieless analytics](0014-umami-cloud-cookieless-analytics.md)                             | Accepted | -                               |
-| 0015   | [develop as the integration branch](0015-develop-as-integration-branch.md)                               | Accepted | -                               |
+| 0015   | [develop as the integration branch](0015-develop-as-integration-branch.md)                               | Accepted | 0026                            |
 | 0017   | [GitHub contributions served by the runtime endpoint](0017-github-contributions-via-runtime-endpoint.md) | Accepted | 0022                            |
 | 0018   | [The Site has no Log](0018-the-site-has-no-log.md)                                                       | Accepted | -                               |
 | 0019   | [Optional interface sound](0019-optional-interface-sound.md)                                             | Accepted | 0021, 0022                      |
@@ -40,3 +40,4 @@ ADR 0016 does not exist: its decision was merged into
 | 0023   | [Oxc toolchain and TypeScript 7.1](0023-oxc-toolchain-and-typescript-7-1.md)                             | Accepted | -                               |
 | 0024   | [CI runner standard and sharded Site quality](0024-ci-runner-standard-and-sharded-site-quality.md)       | Accepted | -                               |
 | 0025   | [Adopt the cross-repo standard v1](0025-adopt-cross-repo-standard-v1.md)                                 | Accepted | -                               |
+| 0026   | [develop promoted to main by merge commit](0026-develop-promoted-to-main-by-merge-commit.md)             | Accepted | -                               |
