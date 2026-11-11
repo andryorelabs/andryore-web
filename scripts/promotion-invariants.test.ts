@@ -155,3 +155,24 @@ describe("commitlint job", () => {
     expect(conditions).toEqual([PROMOTION_SKIP_CONDITION]);
   });
 });
+
+describe("CI passed job", () => {
+  const aggregate = readWorkflow("ci.yml").jobs?.["ci-passed"];
+
+  test("always runs and waits for commitlint", () => {
+    expect(aggregate?.name).toBe("CI passed");
+    expect(aggregate?.if).toBe("always()");
+    expect(asArray(aggregate?.needs)).toContain("commitlint");
+  });
+
+  test("fails only on a failed or cancelled job, so a skipped commitlint passes", () => {
+    const failedExpressions = (aggregate?.steps ?? [])
+      .map((step) => step.env?.FAILED)
+      .filter((expression) => typeof expression === "string")
+      .map((expression) => expression.replaceAll(/\s+/g, " "));
+
+    expect(failedExpressions).toEqual([
+      "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}",
+    ]);
+  });
+});
