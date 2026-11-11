@@ -73,7 +73,7 @@ export default function CopyEmailButton({
   const handleClick = async (): Promise<void> => {
     const clipboard = globalThis.navigator.clipboard as Clipboard | undefined;
     const result = await copyWithFallback(email, {
-      writeText: clipboard ? (text) => clipboard.writeText(text) : undefined,
+      ...(clipboard && { writeText: (text: string) => clipboard.writeText(text) }),
       selectText: () => {
         selectElementText(targetId);
       },

@@ -7,7 +7,7 @@ import { ICONS, type IconId } from "./icons";
 export interface UsesBadge {
   name: string;
   icon: IconId;
-  url?: string;
+  url?: string | undefined;
 }
 
 /**
