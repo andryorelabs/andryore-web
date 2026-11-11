@@ -1,0 +1,4 @@
+* text=auto eol=lf
+
+bun.lock linguist-generated
+e2e/__snapshots__/** linguist-generated
