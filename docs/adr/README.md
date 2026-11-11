@@ -9,7 +9,7 @@ an allowed status, and that this index lists every ADR.
 
 To add one, copy the next number, write the file, and add a row below, filling
 the last column when it amends or supersedes another. The rules for editing ADRs
-are in [`AGENTS.md`](../../AGENTS.md#architecture-decision-records).
+are in [`AGENTS.md`](../../AGENTS.md#adrs).
 
 ADR 0016 does not exist: its decision was merged into
 [0015](0015-develop-as-integration-branch.md), and the number is not reused.
@@ -39,3 +39,4 @@ ADR 0016 does not exist: its decision was merged into
 | 0022   | [Secrets live in dotenvx-encrypted env files](0022-secrets-in-dotenvx-encrypted-env-files.md)            | Accepted | -                               |
 | 0023   | [Oxc toolchain and TypeScript 7.1](0023-oxc-toolchain-and-typescript-7-1.md)                             | Accepted | -                               |
 | 0024   | [CI runner standard and sharded Site quality](0024-ci-runner-standard-and-sharded-site-quality.md)       | Accepted | -                               |
+| 0025   | [Adopt the cross-repo standard v1](0025-adopt-cross-repo-standard-v1.md)                                 | Accepted | -                               |

@@ -13,6 +13,9 @@ section exists
 
 Revised: 2026-10-20, the Site does have runtime credentials (0022)
 
+Revised: 2026-11-11, secret scanning and push protection are applied from the
+committed settings list, and `bun run repo-settings:check` reports drift
+
 ## Context
 
 The repository went public with a fresh single-commit history. It is maintained
