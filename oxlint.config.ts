@@ -1,4 +1,4 @@
-import { defineConfig } from 'oxlint'
+import { defineConfig } from "oxlint";
 
 import {
   OXLINT_BASE_RULES,
@@ -7,7 +7,7 @@ import {
   OXLINT_NATIVE_PLUGINS,
   OXLINT_OVERRIDES,
   OXLINT_SETTINGS,
-} from './eslint-rules/oxlint-rules.mjs'
+} from "./eslint-rules/oxlint-rules.mjs";
 
 /**
  * The repo's Oxlint config: every rule `eslint.config.mjs` applies to a
@@ -22,17 +22,17 @@ export default defineConfig({
   jsPlugins: OXLINT_JS_PLUGINS,
   env: { builtin: true },
   categories: {
-    correctness: 'off',
-    nursery: 'off',
-    pedantic: 'off',
-    perf: 'off',
-    restriction: 'off',
-    style: 'off',
-    suspicious: 'off',
+    correctness: "off",
+    nursery: "off",
+    pedantic: "off",
+    perf: "off",
+    restriction: "off",
+    style: "off",
+    suspicious: "off",
   },
-  options: { reportUnusedDisableDirectives: 'error' },
+  options: { reportUnusedDisableDirectives: "error" },
   settings: OXLINT_SETTINGS,
   rules: OXLINT_BASE_RULES,
   overrides: OXLINT_OVERRIDES,
   ignorePatterns: OXLINT_IGNORE_PATTERNS,
-})
+});

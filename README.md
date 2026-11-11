@@ -114,14 +114,11 @@ See [LICENSE](LICENSE) and [ADR 0007](docs/adr/0007-split-license.md).
 
 The source code is licensed under [MIT](LICENSE).
 
-[badge-ci]:
-  https://github.com/AndryOre/andryore-web/actions/workflows/ci.yml/badge.svg
-[badge-lighthouse]:
-  https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml/badge.svg
+[badge-ci]: https://github.com/AndryOre/andryore-web/actions/workflows/ci.yml/badge.svg
+[badge-lighthouse]: https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml/badge.svg
 [badge-license]: https://img.shields.io/github/license/AndryOre/andryore-web
 [badge-website]: https://img.shields.io/website?url=https%3A%2F%2Fandryore.dev
 [link-ci]: https://github.com/AndryOre/andryore-web/actions/workflows/ci.yml
-[link-lighthouse]:
-  https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml
+[link-lighthouse]: https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml
 [link-license]: LICENSE
 [link-website]: https://andryore.dev

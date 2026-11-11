@@ -1,18 +1,18 @@
-import { useEffect, useSyncExternalStore, type ReactElement } from 'react'
+import { useEffect, useSyncExternalStore, type ReactElement } from "react";
 
-import { DARK_SCHEME_QUERY, type ThemePreference } from '@/lib/theme'
+import { DARK_SCHEME_QUERY, type ThemePreference } from "@/lib/theme";
 import {
   getServerThemeSnapshot,
   getThemeSnapshot,
   paintTheme,
   subscribeToTheme,
-} from '@/lib/theme-store'
+} from "@/lib/theme-store";
 
 export interface ThemeToggleCopy {
-  label: string
-  auto: string
-  light: string
-  dark: string
+  label: string;
+  auto: string;
+  light: string;
+  dark: string;
 }
 
 const ICON_PATHS: Record<ThemePreference, ReactElement> = {
@@ -29,7 +29,7 @@ const ICON_PATHS: Record<ThemePreference, ReactElement> = {
     </>
   ),
   dark: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />,
-}
+};
 
 /**
  * Decorative icon of a theme preference.
@@ -50,7 +50,7 @@ export function ThemeIcon({ preference }: { preference: ThemePreference }) {
     >
       {ICON_PATHS[preference]}
     </svg>
-  )
+  );
 }
 
 /**
@@ -63,18 +63,18 @@ export function useThemePreference(): ThemePreference {
     subscribeToTheme,
     getThemeSnapshot,
     getServerThemeSnapshot,
-  )
+  );
 
   useEffect(() => {
-    const query = matchMedia(DARK_SCHEME_QUERY)
+    const query = matchMedia(DARK_SCHEME_QUERY);
     const repaint = (): void => {
-      paintTheme(getThemeSnapshot())
-    }
-    query.addEventListener('change', repaint)
+      paintTheme(getThemeSnapshot());
+    };
+    query.addEventListener("change", repaint);
     return () => {
-      query.removeEventListener('change', repaint)
-    }
-  }, [])
+      query.removeEventListener("change", repaint);
+    };
+  }, []);
 
-  return preference
+  return preference;
 }

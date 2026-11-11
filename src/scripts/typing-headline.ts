@@ -1,52 +1,52 @@
 /**
 Delay between two deleted characters, in milliseconds.
  */
-export const DELETE_DELAY_MS = 28
+export const DELETE_DELAY_MS = 28;
 
 /**
 What the typing loop needs from the browser, injected for tests.
  */
 interface TypingOptions<Handle> {
-  reducedMotion: boolean
-  schedule: (callback: () => void, delay: number) => Handle
-  cancel: (handle: Handle) => void
+  reducedMotion: boolean;
+  schedule: (callback: () => void, delay: number) => Handle;
+  cancel: (handle: Handle) => void;
 }
 
 interface TextTarget {
-  textContent: string | null
+  textContent: string | null;
 }
 
 function stopNothing(): void {
-  return
+  return;
 }
 
 /**
 Shortest delay between two typed letters of a rotating phrase, in milliseconds.
  */
-export const PHRASE_TYPE_MIN_MS = 55
+export const PHRASE_TYPE_MIN_MS = 55;
 
 /**
 Longest delay between two typed letters of a rotating phrase, in milliseconds.
  */
-export const PHRASE_TYPE_MAX_MS = 105
+export const PHRASE_TYPE_MAX_MS = 105;
 
 /**
 How long a finished rotating phrase stays on screen, in milliseconds.
  */
-export const PHRASE_HOLD_MS = 1700
+export const PHRASE_HOLD_MS = 1700;
 
 /**
 How long the empty line waits before the next phrase, in milliseconds.
  */
-export const PHRASE_PAUSE_MS = 380
+export const PHRASE_PAUSE_MS = 380;
 
 /**
 Where the rotating loop is: phrase, visible characters and direction.
  */
 export interface PhraseState {
-  index: number
-  length: number
-  mode: 'typing' | 'deleting'
+  index: number;
+  length: number;
+  mode: "typing" | "deleting";
 }
 
 /**
@@ -62,43 +62,43 @@ export function nextPhraseStep(
   phrases: readonly string[],
   random: () => number,
 ): { state: PhraseState; delay: number } {
-  const total = phrases[state.index]?.length ?? 0
-  if (state.mode === 'typing') {
-    const length = Math.min(total, state.length + 1)
+  const total = phrases[state.index]?.length ?? 0;
+  if (state.mode === "typing") {
+    const length = Math.min(total, state.length + 1);
     if (length >= total) {
       return {
-        state: { index: state.index, length, mode: 'deleting' },
+        state: { index: state.index, length, mode: "deleting" },
         delay: PHRASE_HOLD_MS,
-      }
+      };
     }
-    const span = PHRASE_TYPE_MAX_MS - PHRASE_TYPE_MIN_MS
+    const span = PHRASE_TYPE_MAX_MS - PHRASE_TYPE_MIN_MS;
     return {
-      state: { index: state.index, length, mode: 'typing' },
+      state: { index: state.index, length, mode: "typing" },
       delay: PHRASE_TYPE_MIN_MS + Math.floor(random() * span),
-    }
+    };
   }
-  const length = Math.max(0, state.length - 1)
+  const length = Math.max(0, state.length - 1);
   if (length <= 0) {
     return {
       state: {
         index: (state.index + 1) % phrases.length,
         length: 0,
-        mode: 'typing',
+        mode: "typing",
       },
       delay: PHRASE_PAUSE_MS,
-    }
+    };
   }
   return {
-    state: { index: state.index, length, mode: 'deleting' },
+    state: { index: state.index, length, mode: "deleting" },
     delay: DELETE_DELAY_MS,
-  }
+  };
 }
 
 /**
 What the rotating loop needs from the browser, injected for tests.
  */
 export interface PhraseTypingOptions<Handle> extends TypingOptions<Handle> {
-  random: () => number
+  random: () => number;
 }
 
 /**
@@ -114,23 +114,23 @@ export function startPhraseTyping<Handle>(
   phrases: readonly string[],
   options: PhraseTypingOptions<Handle>,
 ): () => void {
-  const first = phrases[0]
-  if (first === undefined) return stopNothing
+  const first = phrases[0];
+  if (first === undefined) return stopNothing;
   if (options.reducedMotion || phrases.length === 0) {
-    target.textContent = first
-    return stopNothing
+    target.textContent = first;
+    return stopNothing;
   }
-  let state: PhraseState = { index: 0, length: 0, mode: 'typing' }
-  let handle: Handle | undefined
+  let state: PhraseState = { index: 0, length: 0, mode: "typing" };
+  let handle: Handle | undefined;
   const tick = (): void => {
-    const step = nextPhraseStep(state, phrases, options.random)
-    state = step.state
-    target.textContent = (phrases[state.index] ?? '').slice(0, state.length)
-    handle = options.schedule(tick, step.delay)
-  }
-  target.textContent = ''
-  handle = options.schedule(tick, PHRASE_TYPE_MIN_MS)
+    const step = nextPhraseStep(state, phrases, options.random);
+    state = step.state;
+    target.textContent = (phrases[state.index] ?? "").slice(0, state.length);
+    handle = options.schedule(tick, step.delay);
+  };
+  target.textContent = "";
+  handle = options.schedule(tick, PHRASE_TYPE_MIN_MS);
   return () => {
-    if (handle !== undefined) options.cancel(handle)
-  }
+    if (handle !== undefined) options.cancel(handle);
+  };
 }

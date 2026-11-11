@@ -1,19 +1,17 @@
 ---
-import stackScene from '../content/stack-scene.json'
-import { localePath, type Locale } from '../i18n/locales'
-import { END_CARD_TILES, STACK_TILES, stackToolCount } from '../lib/stack-scene'
-import stackSceneStylesheet from '../styles/stack-scene.css?url'
-import StackTile from './StackTile.astro'
+import stackScene from "../content/stack-scene.json";
+import { localePath, type Locale } from "../i18n/locales";
+import { END_CARD_TILES, STACK_TILES, stackToolCount } from "../lib/stack-scene";
+import stackSceneStylesheet from "../styles/stack-scene.css?url";
+import StackTile from "./StackTile.astro";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = stackScene[locale]
-const count = copy.count.replace('{count}', () =>
-  String(stackToolCount(locale)),
-)
+const { locale } = Astro.props;
+const copy = stackScene[locale];
+const count = copy.count.replace("{count}", () => String(stackToolCount(locale)));
 ---
 
 <section
@@ -27,11 +25,7 @@ const count = copy.count.replace('{count}', () =>
         <StackTile
           id={tile.id}
           size={tile.size}
-          class:list={[
-            'stack-tile-scatter',
-            tile.placement,
-            !tile.mobile && 'stack-tile-extra',
-          ]}
+          class:list={["stack-tile-scatter", tile.placement, !tile.mobile && "stack-tile-extra"]}
         />
       ))}
     </div>
@@ -47,18 +41,14 @@ const count = copy.count.replace('{count}', () =>
     <div class="stack-cta">
       <div class="stack-end-tiles" aria-hidden="true">
         {END_CARD_TILES.map((tile) => (
-          <StackTile
-            id={tile.id}
-            size={56}
-            class:list={['stack-tile-end', tile.tilt]}
-          />
+          <StackTile id={tile.id} size={56} class:list={["stack-tile-end", tile.tilt]} />
         ))}
       </div>
       <div class="stack-cta-copy">
         <p class="stack-cta-title">{copy.ctaTitle}</p>
         <p class="stack-cta-count">{count}</p>
       </div>
-      <a href={localePath(locale, '/uses/')} class="stack-cta-link">
+      <a href={localePath(locale, "/uses/")} class="stack-cta-link">
         {copy.action}
       </a>
     </div>
@@ -66,16 +56,13 @@ const count = copy.count.replace('{count}', () =>
 </section>
 
 <script>
-  import {
-    DEFERRED_STYLESHEET_SELECTOR,
-    loadStylesheet,
-  } from '../scripts/defer-stylesheet'
-  import { mountStackSoundInBrowser } from '../scripts/stack-sound'
+  import { DEFERRED_STYLESHEET_SELECTOR, loadStylesheet } from "../scripts/defer-stylesheet";
+  import { mountStackSoundInBrowser } from "../scripts/stack-sound";
 
-  const href = document.querySelector<HTMLElement>(DEFERRED_STYLESHEET_SELECTOR)
-    ?.dataset.deferStylesheet
-  if (href) loadStylesheet(document.createElement('link'), href, document.head)
+  const href = document.querySelector<HTMLElement>(DEFERRED_STYLESHEET_SELECTOR)?.dataset
+    .deferStylesheet;
+  if (href) loadStylesheet(document.createElement("link"), href, document.head);
 
-  const scene = document.querySelector<HTMLElement>('.stack-scene')
-  if (scene) mountStackSoundInBrowser(scene)
+  const scene = document.querySelector<HTMLElement>(".stack-scene");
+  if (scene) mountStackSoundInBrowser(scene);
 </script>

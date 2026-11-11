@@ -17,14 +17,7 @@
     "importsFrom": "Imports from",
     "exportFormats": "Export",
     "importFormats": "Import",
-    "skinTones": [
-      "Default",
-      "Light",
-      "Medium light",
-      "Medium",
-      "Medium dark",
-      "Dark"
-    ],
+    "skinTones": ["Default", "Light", "Medium light", "Medium", "Medium dark", "Dark"],
     "websiteHeading": "Website",
     "galleryHeading": "The real interface",
     "whyHeading": "Why I built it",
@@ -51,14 +44,7 @@
     "importsFrom": "Importa desde",
     "exportFormats": "Exportar",
     "importFormats": "Importar",
-    "skinTones": [
-      "Predeterminado",
-      "Claro",
-      "Medio claro",
-      "Medio",
-      "Medio oscuro",
-      "Oscuro"
-    ],
+    "skinTones": ["Predeterminado", "Claro", "Medio claro", "Medio", "Medio oscuro", "Oscuro"],
     "websiteHeading": "Sitio web",
     "galleryHeading": "La interfaz real",
     "whyHeading": "Por qué lo construí",

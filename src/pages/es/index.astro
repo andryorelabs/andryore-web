@@ -1,22 +1,20 @@
 ---
-import ClockTile from '../../components/ClockTile.astro'
-import GithubGridTile from '../../components/GithubGridTile.astro'
-import HomeBento from '../../components/HomeBento.astro'
-import StreamTile from '../../components/StreamTile.astro'
-import home from '../../content/home.json'
-import BaseLayout from '../../layouts/BaseLayout.astro'
-import { loadGridSnapshot } from '../../lib/github-grid-build'
+import ClockTile from "../../components/ClockTile.astro";
+import GithubGridTile from "../../components/GithubGridTile.astro";
+import HomeBento from "../../components/HomeBento.astro";
+import StreamTile from "../../components/StreamTile.astro";
+import home from "../../content/home.json";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadGridSnapshot } from "../../lib/github-grid-build";
 
-const { title, description } = home.es.meta
-const snapshot = await loadGridSnapshot()
+const { title, description } = home.es.meta;
+const snapshot = await loadGridSnapshot();
 ---
 
 <BaseLayout title={title} description={description} locale="es" wide>
   <HomeBento locale="es">
     <StreamTile slot="stream" locale="es" />
     <ClockTile slot="clock" locale="es" />
-    {snapshot && (
-      <GithubGridTile slot="github" locale="es" snapshot={snapshot} />
-    )}
+    {snapshot && <GithubGridTile slot="github" locale="es" snapshot={snapshot} />}
   </HomeBento>
 </BaseLayout>

@@ -8,8 +8,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress:
-    ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
 
 permissions:
   contents: read
@@ -17,8 +16,7 @@ permissions:
 jobs:
   quality:
     name: Quality (format, lint, typecheck, knip)
-    runs-on:
-      ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
@@ -42,8 +40,7 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .eslintcache
-          key:
-            ${{ runner.os }}-eslintcache-${{ hashFiles('bun.lock',
+          key: ${{ runner.os }}-eslintcache-${{ hashFiles('bun.lock',
             'eslint.config.mjs', 'eslint-rules/**') }}
           restore-keys: ${{ runner.os }}-eslintcache-
 
@@ -52,8 +49,7 @@ jobs:
 
   test:
     name: Test
-    runs-on:
-      ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
@@ -104,8 +100,7 @@ jobs:
 
   commitlint:
     name: Commitlint
-    runs-on:
-      ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: github.event_name == 'pull_request'
@@ -137,8 +132,7 @@ jobs:
 
   ci-passed:
     name: CI passed
-    runs-on:
-      ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     needs: [quality, test, build, commitlint]
@@ -146,8 +140,7 @@ jobs:
     steps:
       - name: Check job results
         env:
-          FAILED:
-            ${{ contains(needs.*.result, 'failure') || contains(needs.*.result,
+          FAILED: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result,
             'cancelled') }}
         run: |
           if [[ "${FAILED}" == "true" ]]; then

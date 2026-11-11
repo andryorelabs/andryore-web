@@ -1,20 +1,20 @@
 ---
-import { externalLinkAttributes } from '../lib/external-link'
-import { badgeStyle, type UsesBadge } from '../lib/uses'
-import BrandIcon from './BrandIcon.astro'
+import { externalLinkAttributes } from "../lib/external-link";
+import { badgeStyle, type UsesBadge } from "../lib/uses";
+import BrandIcon from "./BrandIcon.astro";
 
 interface Props {
-  badge: UsesBadge
-  newTabNote: string
+  badge: UsesBadge;
+  newTabNote: string;
 }
 
-const { badge, newTabNote } = Astro.props
-const style = badgeStyle(badge.icon)
+const { badge, newTabNote } = Astro.props;
+const style = badgeStyle(badge.icon);
 const tone = [
-  'inline-flex h-[34px] items-center gap-2 rounded-[6px] pr-3 pl-2.5 font-mono text-xs font-bold tracking-[0.06em] whitespace-nowrap uppercase no-underline',
+  "inline-flex h-[34px] items-center gap-2 rounded-[6px] pr-3 pl-2.5 font-mono text-xs font-bold tracking-[0.06em] whitespace-nowrap uppercase no-underline",
   style.bg,
   style.text,
-]
+];
 ---
 
 {badge.url ? (
@@ -23,10 +23,10 @@ const tone = [
     {...externalLinkAttributes(badge.url)}
     class:list={[
       tone,
-      'group transition-transform duration-150 hover:-translate-y-0.5 focus-visible:-translate-y-0.5',
+      "group transition-transform duration-150 hover:-translate-y-0.5 focus-visible:-translate-y-0.5",
     ]}
   >
-    <BrandIcon id={badge.icon} class:list={['size-4 flex-none', style.logo]} />
+    <BrandIcon id={badge.icon} class:list={["size-4 flex-none", style.logo]} />
     <span>{badge.name}</span>
     <span
       aria-hidden="true"
@@ -38,7 +38,7 @@ const tone = [
   </a>
 ) : (
   <span class:list={tone}>
-    <BrandIcon id={badge.icon} class:list={['size-4 flex-none', style.logo]} />
+    <BrandIcon id={badge.icon} class:list={["size-4 flex-none", style.logo]} />
     <span>{badge.name}</span>
   </span>
 )}

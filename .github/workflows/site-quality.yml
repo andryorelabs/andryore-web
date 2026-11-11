@@ -20,7 +20,7 @@ on:
       - scripts/flaky-summary.ts
       - .github/workflows/site-quality.yml
   schedule:
-    - cron: '17 3 * * *'
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -113,8 +113,7 @@ jobs:
           for _ in $(seq 1 30); do curl -fs -o /dev/null http://127.0.0.1:8080/ && break; sleep 1; done
 
       - name: Run hydration and axe against the image
-        run:
-          bun run test:e2e --project=chromium e2e/hydration.spec.ts
+        run: bun run test:e2e --project=chromium e2e/hydration.spec.ts
           e2e/accessibility.spec.ts
         env:
           E2E_BASE_URL: http://127.0.0.1:8080
@@ -164,8 +163,7 @@ jobs:
           path: dist
 
       - name: Run e2e
-        run:
-          bun run test:e2e --project=chromium --project='mobile-*'
+        run: bun run test:e2e --project=chromium --project='mobile-*'
           --shard="$SHARD"
         env:
           SHARD: ${{ matrix.shard }}/4
@@ -187,8 +185,7 @@ jobs:
   visual:
     name: Visual snapshots
     needs: build
-    if:
-      github.event_name != 'pull_request' ||
+    if: github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -222,8 +219,7 @@ jobs:
   browsers:
     name: Layout in WebKit and Firefox
     needs: build
-    if:
-      github.event_name != 'pull_request' ||
+    if: github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30

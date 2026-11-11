@@ -1,10 +1,10 @@
-import { LOCALES, type Locale } from './locales'
+import { LOCALES, type Locale } from "./locales";
 
-const STORAGE_KEY = 'andryore:locale'
+const STORAGE_KEY = "andryore:locale";
 
 export interface PreferenceStorage {
-  getItem: (key: string) => string | null
-  setItem: (key: string, value: string) => void
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
 }
 
 /**
@@ -14,14 +14,11 @@ export interface PreferenceStorage {
  * @param storage A `localStorage`-like store.
  * @param locale The language the reader switched to.
  */
-export function rememberLocale(
-  storage: PreferenceStorage,
-  locale: Locale,
-): void {
+export function rememberLocale(storage: PreferenceStorage, locale: Locale): void {
   try {
-    storage.setItem(STORAGE_KEY, locale)
+    storage.setItem(STORAGE_KEY, locale);
   } catch {
-    return
+    return;
   }
 }
 
@@ -31,13 +28,11 @@ export function rememberLocale(
  * @returns The stored language, or `undefined` when absent, unknown or
  *   unreadable.
  */
-export function readLocalePreference(
-  storage: PreferenceStorage,
-): Locale | undefined {
+export function readLocalePreference(storage: PreferenceStorage): Locale | undefined {
   try {
-    const value = storage.getItem(STORAGE_KEY)
-    return LOCALES.find((locale) => locale === value)
+    const value = storage.getItem(STORAGE_KEY);
+    return LOCALES.find((locale) => locale === value);
   } catch {
-    return undefined
+    return undefined;
   }
 }
