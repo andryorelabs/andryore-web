@@ -28,6 +28,6 @@ currently known.
 ## Report a barrier
 
 Open an issue with the
-[bug report template](https://github.com/AndryOre/andryore-web/issues/new/choose),
+[bug report template](https://github.com/andryorelabs/andryore-web/issues/new/choose),
 naming the page, the browser and any assistive technology you use. For other
 questions, see [`.github/SUPPORT.md`](.github/SUPPORT.md).

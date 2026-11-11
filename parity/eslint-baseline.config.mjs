@@ -201,7 +201,6 @@ export default defineConfig([
     "**/coverage/**",
     ".claude/**",
     ".agents/**",
-    ".forge/**",
     "parity/fixtures/**",
     ...(process.env.PARITY_CORPUS === "1" ? [] : ["parity/.corpus/**"]),
   ]),

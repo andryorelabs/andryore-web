@@ -1,15 +1,23 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    // Standalone server started by the stream scripts; nothing imports it.
     "src/server/stream-status-server.ts",
+    // Loaded by the visual test script, never imported.
     "playwright.visual.config.ts",
+    // Loaded by the lint parity runner, never imported.
     "parity/eslint-baseline.config.mjs",
   ],
+  // Run through node_modules/typescript7/bin/tsc by path, so no import names it.
   "ignoreDependencies": ["typescript7"],
+  // Every source file kind the repository ships.
   "project": ["**/*.{ts,tsx,mjs,astro,css}"],
   "ignore": [
+    // Vendored skill files, not part of the Site.
     ".claude/skills/**",
+    // Fixtures that the parity runner reads as text.
     "parity/fixtures/**",
+    // Brandbook stylesheet loaded by the exported brandbook HTML.
     "docs/brand/brandbook/fonts.css",
   ],
 }

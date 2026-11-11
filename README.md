@@ -1,3 +1,5 @@
+# andryore-web
+
 <div align="center">
 
 <picture>
@@ -13,16 +15,12 @@
 
 **The source of andryore.dev, the personal site of Andry Orellana.**
 
+[![CI](https://github.com/andryorelabs/andryore-web/actions/workflows/ci.yml/badge.svg)](https://github.com/andryorelabs/andryore-web/actions/workflows/ci.yml)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fandryore.dev)](https://andryore.dev)
+[![License](https://img.shields.io/github/license/andryorelabs/andryore-web)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/andryorelabs/andryore-web/badge)](https://scorecard.dev/viewer/?uri=github.com/andryorelabs/andryore-web)
+
 [Website](https://andryore.dev) · [Documentation](docs/README.md)
-
-[![CI][badge-ci]][link-ci] [![Lighthouse][badge-lighthouse]][link-lighthouse]
-[![License][badge-license]][link-license]
-[![Website][badge-website]][link-website]
-
-Built with [Astro](https://astro.build) 7 ·
-[TypeScript](https://www.typescriptlang.org) 6 (7.1 for type checks) ·
-[Tailwind CSS](https://tailwindcss.com) 4 · [React](https://react.dev) 19 ·
-[Bun](https://bun.sh) 1.4
 
 </div>
 
@@ -39,6 +37,11 @@ product and contribution, plus the tools and setup he uses day to day:
   interactive graphs. A contribution: Andry built its marketing site and parts
   of the webview.
 - **Uses**: the tools, tech and setup behind what he builds and streams.
+
+Built with [Astro](https://astro.build) 7 ·
+[TypeScript](https://www.typescriptlang.org) 6 (7.1 for type checks) ·
+[Tailwind CSS](https://tailwindcss.com) 4 · [React](https://react.dev) 19 ·
+[Bun](https://bun.sh) 1.4
 
 ## Quick start
 
@@ -104,21 +107,12 @@ Open an issue first, then send a pull request against `develop`. The
 [contributing guide](CONTRIBUTING.md) covers the rest, and everyone follows the
 [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Forking this repo
+## License
+
+The source code is licensed under [MIT](LICENSE).
 
 You may learn from the code and reuse it under the MIT license. Do not republish
 the design, the brand or the content as your own; they are not covered by it.
 See [LICENSE](LICENSE) and [ADR 0007](docs/adr/0007-split-license.md).
 
-## License
-
-The source code is licensed under [MIT](LICENSE).
-
-[badge-ci]: https://github.com/AndryOre/andryore-web/actions/workflows/ci.yml/badge.svg
-[badge-lighthouse]: https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml/badge.svg
-[badge-license]: https://img.shields.io/github/license/AndryOre/andryore-web
-[badge-website]: https://img.shields.io/website?url=https%3A%2F%2Fandryore.dev
-[link-ci]: https://github.com/AndryOre/andryore-web/actions/workflows/ci.yml
-[link-lighthouse]: https://github.com/AndryOre/andryore-web/actions/workflows/lighthouse.yml
-[link-license]: LICENSE
-[link-website]: https://andryore.dev
+Built by [AndryOre](https://andryore.dev)

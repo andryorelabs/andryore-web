@@ -1,7 +1,6 @@
 .git
 .github
 .claude
-.forge
 .emet
 .astro
 node_modules

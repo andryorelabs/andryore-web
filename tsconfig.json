@@ -34,5 +34,5 @@
     "playwright.visual.config.ts",
     ".github/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", ".claude", ".forge"]
+  "exclude": ["node_modules", "dist", ".claude"]
 }

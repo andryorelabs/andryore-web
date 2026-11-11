@@ -6,7 +6,7 @@ Please report security vulnerabilities **privately** using GitHub's built-in
 Private Vulnerability Reporting:
 
 **→
-[Open a security advisory](https://github.com/AndryOre/andryore-web/security/advisories/new)**
+[Open a security advisory](https://github.com/andryorelabs/andryore-web/security/advisories/new)**
 
 Do **not** open a public issue for security reports. That exposes the
 vulnerability before a fix is available.

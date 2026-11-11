@@ -118,7 +118,7 @@ your own preview and pass `AUDIT_BASE_URL`.
 ## Coverage
 
 `bunfig.toml` turns coverage on for `bun test` and sets
-`coverageThreshold = { lines = 0.55, functions = 0.4 }`. A run under either
+a `coverageThreshold` for lines and functions. A run under either
 value fails, locally and in CI. Test files are skipped from the report
 (`coverageSkipTestFiles`).
 
@@ -205,7 +205,8 @@ Hooks live in `.husky/`:
 - **`commit-msg`** runs `commitlint` with `@commitlint/config-conventional`. It
   enforces the Conventional Commits shape and type list, not the emoji.
 - **`pre-push`** rejects a push whose branch name does not match `<type>/<slug>`
-  (or `main`, `develop`, `renovate/*`). When the names pass, it runs
+  (or `main`, `develop`, `ao-<n>-<slug>`, `worktree-*`, `renovate/*`). When the
+  names pass, it runs
   `bun run typecheck` once and blocks the push on a type error. A push that only
   deletes branches or only pushes tags skips the typecheck. Put it in a hook
   rather than a line in AGENTS.md, because agents skip steps.
@@ -321,7 +322,8 @@ Other workflows:
   ([Releasing](#releasing)).
 - `lint-pr.yml` (PR title), `lint-docs.yml` (offline link and anchor check with
   lychee) and `lint-workflows.yml` (workflow linting).
-- `codeql.yml` (CodeQL analysis, skipped while the repository is private because
+- `codeql.yml` (CodeQL analysis of the `actions` and `javascript-typescript`
+  languages, skipped while the repository is private because
   code scanning is unavailable on GitHub Free) and `scorecard.yml` (OpenSSF
   Scorecard).
 - `labels.yml` (label sync) and `grid-snapshot.yml` (weekly refresh of
@@ -455,9 +457,9 @@ a private repository with
 Once the repository is public, apply each file:
 
 ```sh
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/main.json
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/develop.json
-gh api -X POST repos/AndryOre/andryore-web/rulesets --input .github/rulesets/tags.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/main.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/develop.json
+gh api -X POST repos/andryorelabs/andryore-web/rulesets --input .github/rulesets/tags.json
 ```
 
 The required check names (`CI passed`, `Validate PR title`,
@@ -470,10 +472,34 @@ job without updating `.github/rulesets` fails CI.
 
 ## Repository settings
 
-The rulesets above are committed as code, but most GitHub repository settings
-are not: secret scanning, push protection, private vulnerability reporting, the
-read-only default `GITHUB_TOKEN` and fork-PR approval are applied through the
-GitHub API or the settings UI.
-[ADR 0011](adr/0011-public-repo-security-posture.md) records which of them are
-in place and which are still open (only the CodeQL default setup). Settings are
-owner actions; an agent changes one only when the owner asks for it.
+This repository follows the andryorelabs
+[standard v1](https://github.com/andryorelabs/aokit/tree/main/docs/standards)
+([ADR 0025](adr/0025-adopt-cross-repo-standard-v1.md)). The rulesets above are
+committed as code. The remaining GitHub repository settings are listed in
+`scripts/repo-settings.json`:
+
+- merge modes: squash only, with the PR title and body as the commit message,
+  auto-merge, update-branch and delete-on-merge
+- security features that are on: secret scanning, push protection and private
+  vulnerability reporting
+- the homepage and the topics
+
+`bun run repo-settings:check` reads the live values with `gh api` and compares
+them with that list and with `.github/rulesets/*.json`. It prints each
+difference, exits non-zero when there is one, and never changes a setting. To
+see the live values by hand:
+
+```sh
+gh api repos/andryorelabs/andryore-web
+gh api repos/andryorelabs/andryore-web/private-vulnerability-reporting
+gh api repos/andryorelabs/andryore-web/rulesets
+```
+
+The check does not cover two settings from the posture: the read-only default
+`GITHUB_TOKEN` and fork-PR approval for outside contributors. Verify those in
+the repository's Actions settings. Dependabot security updates stay off, because
+Renovate is the single source of dependency updates.
+[ADR 0011](adr/0011-public-repo-security-posture.md) records the posture and
+which settings are still open (only the CodeQL default setup).
+Settings are owner actions; an agent changes one only when the owner asks for
+it.

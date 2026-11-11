@@ -231,7 +231,6 @@ describe("the Oxlint config", () => {
   test("leaves .astro files to ESLint and keeps its global ignores", () => {
     expect(OXLINT_IGNORE_PATTERNS).toContain("**/*.astro");
     expect(OXLINT_IGNORE_PATTERNS).toContain("parity/fixtures/**");
-    expect(OXLINT_IGNORE_PATTERNS).toContain(".forge/**");
   });
 });
 
