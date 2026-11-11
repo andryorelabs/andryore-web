@@ -1,4 +1,4 @@
-import { SEARCH_CRAWLERS, TRAINING_CRAWLERS } from './crawlers'
+import { SEARCH_CRAWLERS, TRAINING_CRAWLERS } from "./crawlers";
 
 /**
  * Builds `robots.txt` from the crawler policy in ADR 0013.
@@ -6,16 +6,14 @@ import { SEARCH_CRAWLERS, TRAINING_CRAWLERS } from './crawlers'
  * @returns The file body, newline terminated.
  */
 export function buildRobotsTxt(sitemapUrl: string): string {
-  const allowed = SEARCH_CRAWLERS.map(
-    (agent) => `User-agent: ${agent}\nAllow: /`,
-  )
-  const trained = TRAINING_CRAWLERS.map((agent) => `User-agent: ${agent}`)
+  const allowed = SEARCH_CRAWLERS.map((agent) => `User-agent: ${agent}\nAllow: /`);
+  const trained = TRAINING_CRAWLERS.map((agent) => `User-agent: ${agent}`);
   return [
     ...allowed,
-    `${trained.join('\n')}\nDisallow: /`,
-    'User-agent: *\nAllow: /',
+    `${trained.join("\n")}\nDisallow: /`,
+    "User-agent: *\nAllow: /",
     `Sitemap: ${sitemapUrl}`,
   ]
-    .join('\n\n')
-    .concat('\n')
+    .join("\n\n")
+    .concat("\n");
 }

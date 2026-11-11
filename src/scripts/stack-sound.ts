@@ -1,54 +1,50 @@
-import { getFxStorage, isFxEnabled } from '../lib/fx-store'
-import type { PlayOptions, SoundEvent } from '../lib/sound-engine'
-import {
-  createStackSoundMapper,
-  sceneProgress,
-  type StackSoundCue,
-} from '../lib/stack-sound'
-import { soundTriggers } from './sound-triggers'
+import { getFxStorage, isFxEnabled } from "../lib/fx-store";
+import type { PlayOptions, SoundEvent } from "../lib/sound-engine";
+import { createStackSoundMapper, sceneProgress, type StackSoundCue } from "../lib/stack-sound";
+import { soundTriggers } from "./sound-triggers";
 
 /**
 The tile count at and below the 40rem breakpoint.
  */
-const COMPACT_TILE_COUNT = 12
+const COMPACT_TILE_COUNT = 12;
 
 /**
 The tile count above the 40rem breakpoint.
  */
-const FULL_TILE_COUNT = 24
+const FULL_TILE_COUNT = 24;
 
 /**
 The view the script reads: where the scene is and how tall the screen is.
  */
 export interface StackSoundScene {
-  getBoundingClientRect: () => { top: number; height: number }
+  getBoundingClientRect: () => { top: number; height: number };
 }
 
 /**
 A running observer the script can stop.
  */
 interface StackSoundObserver {
-  observe: (target: StackSoundScene) => void
-  disconnect: () => void
+  observe: (target: StackSoundScene) => void;
+  disconnect: () => void;
 }
 
 /**
 The browser pieces the script needs, replaceable in tests.
  */
 export interface StackSoundDependencies {
-  isSoundOn: () => boolean
-  isUnlocked: () => boolean
-  isHidden: () => boolean
-  isMotionReduced: () => boolean
-  supportsScrollTimeline: () => boolean
-  isCompact: () => boolean
-  viewportHeight: () => number
-  now: () => number
-  play: (event: SoundEvent, options?: PlayOptions) => void
-  requestFrame: (callback: () => void) => void
-  addScrollListener: (listener: () => void) => void
-  removeScrollListener: (listener: () => void) => void
-  createObserver: (onChange: (isNear: boolean) => void) => StackSoundObserver
+  isSoundOn: () => boolean;
+  isUnlocked: () => boolean;
+  isHidden: () => boolean;
+  isMotionReduced: () => boolean;
+  supportsScrollTimeline: () => boolean;
+  isCompact: () => boolean;
+  viewportHeight: () => number;
+  now: () => number;
+  play: (event: SoundEvent, options?: PlayOptions) => void;
+  requestFrame: (callback: () => void) => void;
+  addScrollListener: (listener: () => void) => void;
+  removeScrollListener: (listener: () => void) => void;
+  createObserver: (onChange: (isNear: boolean) => void) => StackSoundObserver;
 }
 
 /**
@@ -65,73 +61,67 @@ export function mountStackSound(
   scene: StackSoundScene,
   dependencies: StackSoundDependencies,
 ): () => void {
-  const mapper = createStackSoundMapper()
-  let isFramePending = false
-  let isAttached = false
+  const mapper = createStackSoundMapper();
+  let isFramePending = false;
+  let isAttached = false;
 
   const canPlay = (): boolean =>
     dependencies.supportsScrollTimeline() &&
     !dependencies.isMotionReduced() &&
     !dependencies.isHidden() &&
     dependencies.isSoundOn() &&
-    dependencies.isUnlocked()
+    dependencies.isUnlocked();
 
   const readCue = (): StackSoundCue => {
-    const progress = sceneProgress(
-      scene.getBoundingClientRect(),
-      dependencies.viewportHeight(),
-    )
-    const tileCount = dependencies.isCompact()
-      ? COMPACT_TILE_COUNT
-      : FULL_TILE_COUNT
-    return mapper.update(progress, tileCount, dependencies.now())
-  }
+    const progress = sceneProgress(scene.getBoundingClientRect(), dependencies.viewportHeight());
+    const tileCount = dependencies.isCompact() ? COMPACT_TILE_COUNT : FULL_TILE_COUNT;
+    return mapper.update(progress, tileCount, dependencies.now());
+  };
 
   const playCue = (cue: StackSoundCue): void => {
-    if (!canPlay()) return
+    if (!canPlay()) return;
     if (cue.settle) {
-      dependencies.play('stackSettle')
-      return
+      dependencies.play("stackSettle");
+      return;
     }
-    if (cue.tickRate !== undefined)
-      dependencies.play('stackTick', { rate: cue.tickRate })
-  }
+    if (cue.tickRate !== undefined) dependencies.play("stackTick", { rate: cue.tickRate });
+  };
 
   const measure = (): void => {
-    isFramePending = false
-    playCue(readCue())
-  }
+    isFramePending = false;
+    playCue(readCue());
+  };
 
   const onScroll = (): void => {
-    if (isFramePending) return
-    isFramePending = true
-    dependencies.requestFrame(measure)
-  }
+    if (isFramePending) return;
+    isFramePending = true;
+    dependencies.requestFrame(measure);
+  };
 
   const attach = (): void => {
-    if (isAttached) return
-    isAttached = true
-    measure()
-    dependencies.addScrollListener(onScroll)
-  }
+    if (isAttached) return;
+    isAttached = true;
+    measure();
+    dependencies.addScrollListener(onScroll);
+  };
 
   const detach = (): void => {
-    if (!isAttached) return
-    isAttached = false
-    dependencies.removeScrollListener(onScroll)
-  }
+    if (!isAttached) return;
+    isAttached = false;
+    dependencies.removeScrollListener(onScroll);
+  };
 
-  if (!dependencies.supportsScrollTimeline()) return detach
+  if (!dependencies.supportsScrollTimeline()) return detach;
 
   const observer = dependencies.createObserver((isNear) => {
-    if (isNear) attach()
-    else detach()
-  })
-  observer.observe(scene)
+    if (isNear) attach();
+    else detach();
+  });
+  observer.observe(scene);
   return () => {
-    observer.disconnect()
-    detach()
-  }
+    observer.disconnect();
+    detach();
+  };
 }
 
 /**
@@ -144,40 +134,39 @@ export function mountStackSoundInBrowser(scene: HTMLElement): () => void {
     isSoundOn: () => isFxEnabled(getFxStorage()),
     isUnlocked: soundTriggers.isUnlocked,
     isHidden: () => document.hidden,
-    isMotionReduced: () =>
-      globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    supportsScrollTimeline: () => CSS.supports('animation-timeline: view()'),
-    isCompact: () => globalThis.matchMedia('(max-width: 40rem)').matches,
+    isMotionReduced: () => globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    supportsScrollTimeline: () => CSS.supports("animation-timeline: view()"),
+    isCompact: () => globalThis.matchMedia("(max-width: 40rem)").matches,
     viewportHeight: () => globalThis.innerHeight,
     now: () => performance.now(),
     play: (event, options) => {
-      soundTriggers.playUnlocked(event, options)
+      soundTriggers.playUnlocked(event, options);
     },
     requestFrame: (callback) => {
-      globalThis.requestAnimationFrame(callback)
+      globalThis.requestAnimationFrame(callback);
     },
     addScrollListener: (listener) => {
-      globalThis.addEventListener('scroll', listener, { passive: true })
+      globalThis.addEventListener("scroll", listener, { passive: true });
     },
     removeScrollListener: (listener) => {
-      globalThis.removeEventListener('scroll', listener)
+      globalThis.removeEventListener("scroll", listener);
     },
     createObserver: (onChange) => {
       const observer = new IntersectionObserver(
         (entries) => {
-          const latest = entries.at(-1)
-          if (latest) onChange(latest.isIntersecting)
+          const latest = entries.at(-1);
+          if (latest) onChange(latest.isIntersecting);
         },
-        { rootMargin: '100% 0px' },
-      )
+        { rootMargin: "100% 0px" },
+      );
       return {
         observe: () => {
-          observer.observe(scene)
+          observer.observe(scene);
         },
         disconnect: () => {
-          observer.disconnect()
+          observer.disconnect();
         },
-      }
+      };
     },
-  })
+  });
 }

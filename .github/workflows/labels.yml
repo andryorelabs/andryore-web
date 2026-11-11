@@ -12,14 +12,17 @@ on:
       - .github/workflows/labels.yml
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
   sync:
     name: Sync labels
-    runs-on:
-      ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' ||
       vars.BLACKSMITH_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:

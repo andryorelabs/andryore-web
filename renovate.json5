@@ -1,118 +1,115 @@
 {
-  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: [
-    'config:best-practices',
-    ':semanticCommits',
-    ':semanticCommitTypeAll(chore)',
-  ],
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:best-practices", ":semanticCommits", ":semanticCommitTypeAll(chore)"],
 
-  timezone: 'UTC',
-  schedule: ['before 12pm on monday'],
+  timezone: "UTC",
+  schedule: ["before 12pm on monday"],
 
   prConcurrentLimit: 3,
   prHourlyLimit: 2,
   branchConcurrentLimit: 5,
 
-  rebaseWhen: 'conflicted',
-  rangeStrategy: 'bump',
+  rebaseWhen: "conflicted",
+  rangeStrategy: "bump",
 
-  minimumReleaseAge: '3 days',
+  minimumReleaseAge: "3 days",
 
-  labels: ['dependencies'],
+  dependencyDashboard: true,
+  labels: ["dependencies"],
 
   osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     enabled: true,
-    labels: ['Priority: Critical', 'Type: Security'],
-    assignees: ['AndryOre'],
+    labels: ["Priority: Critical", "Type: Security"],
+    assignees: ["AndryOre"],
   },
 
   lockFileMaintenance: {
     enabled: true,
-    schedule: ['before 12pm on monday'],
+    schedule: ["before 12pm on monday"],
     automerge: true,
   },
 
   customManagers: [
     {
-      customType: 'regex',
-      managerFilePatterns: ['/^scripts/lighthouse-budget\\.ts$/'],
+      customType: "regex",
+      managerFilePatterns: ["/^scripts/lighthouse-budget\\.ts$/"],
       matchStrings: ["LIGHTHOUSE_VERSION = '(?<currentValue>[^']+)'"],
-      depNameTemplate: 'lighthouse',
-      datasourceTemplate: 'npm',
+      depNameTemplate: "lighthouse",
+      datasourceTemplate: "npm",
     },
   ],
 
   packageRules: [
     {
-      matchDepTypes: ['devDependencies'],
-      semanticCommitScope: 'deps-dev',
+      matchDepTypes: ["devDependencies"],
+      semanticCommitScope: "deps-dev",
     },
     {
-      matchDepTypes: ['dependencies'],
-      semanticCommitScope: 'deps',
+      matchDepTypes: ["dependencies"],
+      semanticCommitScope: "deps",
     },
 
     {
-      groupName: 'astro',
-      matchPackageNames: ['astro', '@astrojs/**'],
+      groupName: "astro",
+      matchPackageNames: ["astro", "@astrojs/**"],
     },
     {
-      groupName: 'eslint',
+      groupName: "eslint",
       matchPackageNames: [
-        'eslint',
-        '@eslint/**',
-        'typescript-eslint',
-        'eslint-plugin-*',
-        'eslint-config-*',
+        "eslint",
+        "@eslint/**",
+        "typescript-eslint",
+        "eslint-plugin-*",
+        "eslint-config-*",
       ],
     },
     {
-      groupName: 'type definitions',
-      matchPackageNames: ['@types/**'],
+      groupName: "type definitions",
+      matchPackageNames: ["@types/**"],
     },
     {
-      groupName: 'github-actions',
-      matchManagers: ['github-actions'],
-    },
-
-    {
-      matchDepTypes: ['devDependencies'],
-      matchUpdateTypes: ['patch', 'minor'],
-      automerge: true,
-      automergeType: 'pr',
-      minimumReleaseAge: '7 days',
-    },
-    {
-      matchManagers: ['github-actions'],
-      matchUpdateTypes: ['patch', 'minor', 'digest', 'pin', 'pinDigest'],
-      automerge: true,
-      automergeType: 'pr',
-      minimumReleaseAge: '7 days',
+      groupName: "github-actions",
+      matchManagers: ["github-actions"],
     },
 
     {
-      groupName: 'oxc',
+      matchDepTypes: ["devDependencies"],
+      matchUpdateTypes: ["patch", "minor"],
+      automerge: true,
+      automergeType: "pr",
+      minimumReleaseAge: "7 days",
+    },
+    {
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["patch", "minor", "digest", "pin", "pinDigest"],
+      automerge: true,
+      automergeType: "pr",
+      minimumReleaseAge: "7 days",
+    },
+
+    {
+      groupName: "oxc",
       matchPackageNames: [
-        'oxlint',
-        'oxlint-tsgolint',
-        'oxlint-plugin-eslint',
-        'oxfmt',
-        '@oxc-project/**',
-        '@oxlint/**',
-        'oxc-*',
+        "oxlint",
+        "oxlint-tsgolint",
+        "oxlint-plugin-eslint",
+        "oxfmt",
+        "@oxc-project/**",
+        "@oxlint/**",
+        "oxc-*",
       ],
-      rangeStrategy: 'pin',
+      rangeStrategy: "pin",
       automerge: false,
     },
     {
-      matchDepNames: ['typescript7', '@astrojs/ts-content-mapper'],
-      rangeStrategy: 'pin',
+      matchDepNames: ["typescript7", "@astrojs/ts-content-mapper"],
+      rangeStrategy: "pin",
       automerge: false,
     },
     {
-      matchDepNames: ['typescript'],
-      allowedVersions: '<7',
+      matchDepNames: ["typescript"],
+      allowedVersions: "<7",
     },
   ],
 }

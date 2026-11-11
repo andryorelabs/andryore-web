@@ -1,12 +1,12 @@
-import { absoluteUrl, otherLocale, type Locale } from '../i18n/locales'
+import { absoluteUrl, otherLocale, type Locale } from "../i18n/locales";
 
 export interface MetaTag {
-  property: string
-  content: string
+  property: string;
+  content: string;
 }
 
-const OG_WIDTH = 1200
-const OG_HEIGHT = 630
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
 
 /**
  * Title of a page, always carrying the site name exactly once.
@@ -15,7 +15,7 @@ const OG_HEIGHT = 630
  * @returns The page title, unchanged when it already names the site.
  */
 export function documentTitle(title: string, siteName: string): string {
-  return title.includes(siteName) ? title : `${title} | ${siteName}`
+  return title.includes(siteName) ? title : `${title} | ${siteName}`;
 }
 
 /**
@@ -25,7 +25,7 @@ export function documentTitle(title: string, siteName: string): string {
  * @returns The public path of the PNG.
  */
 export function ogImagePath(locale: Locale): string {
-  return `/og/og-${locale}.png`
+  return `/og/og-${locale}.png`;
 }
 
 /**
@@ -38,20 +38,20 @@ export function ogImagePath(locale: Locale): string {
  * @returns The `property`/`content` pairs to render in `<head>`.
  */
 export function pageOpenGraphTags(page: {
-  locale: Locale
-  title: string
-  description: string
-  url: string
+  locale: Locale;
+  title: string;
+  description: string;
+  url: string;
 }): MetaTag[] {
   return [
-    { property: 'og:type', content: 'website' },
-    { property: 'og:site_name', content: 'AndryOre' },
-    { property: 'og:title', content: page.title },
-    { property: 'og:description', content: page.description },
-    { property: 'og:url', content: page.url },
-    { property: 'og:locale', content: page.locale },
-    { property: 'og:locale:alternate', content: otherLocale(page.locale) },
-  ]
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "AndryOre" },
+    { property: "og:title", content: page.title },
+    { property: "og:description", content: page.description },
+    { property: "og:url", content: page.url },
+    { property: "og:locale", content: page.locale },
+    { property: "og:locale:alternate", content: otherLocale(page.locale) },
+  ];
 }
 
 /**
@@ -63,11 +63,11 @@ export function pageOpenGraphTags(page: {
  */
 export function imageMetaTags(locale: Locale, alt: string): MetaTag[] {
   return [
-    { property: 'og:image', content: absoluteUrl(ogImagePath(locale)) },
-    { property: 'og:image:width', content: String(OG_WIDTH) },
-    { property: 'og:image:height', content: String(OG_HEIGHT) },
-    { property: 'og:image:alt', content: alt },
-    { property: 'twitter:card', content: 'summary_large_image' },
-    { property: 'twitter:image', content: absoluteUrl(ogImagePath(locale)) },
-  ]
+    { property: "og:image", content: absoluteUrl(ogImagePath(locale)) },
+    { property: "og:image:width", content: String(OG_WIDTH) },
+    { property: "og:image:height", content: String(OG_HEIGHT) },
+    { property: "og:image:alt", content: alt },
+    { property: "twitter:card", content: "summary_large_image" },
+    { property: "twitter:image", content: absoluteUrl(ogImagePath(locale)) },
+  ];
 }

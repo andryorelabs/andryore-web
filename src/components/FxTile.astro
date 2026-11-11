@@ -1,25 +1,25 @@
 ---
-import chrome from '../content/chrome.json'
-import type { Locale } from '../i18n/locales'
+import chrome from "../content/chrome.json";
+import type { Locale } from "../i18n/locales";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = chrome[locale].fx
+const { locale } = Astro.props;
+const copy = chrome[locale].fx;
 
 const iconProps = {
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  'stroke-width': 2,
-  'stroke-linecap': 'round',
-  'stroke-linejoin': 'round',
-  'aria-hidden': 'true',
-} as const
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  "stroke-width": 2,
+  "stroke-linecap": "round",
+  "stroke-linejoin": "round",
+  "aria-hidden": "true",
+} as const;
 const SPEAKER =
-  'M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z'
+  "M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z";
 ---
 
 <button
@@ -52,10 +52,7 @@ const SPEAKER =
       {copy.label}
     </span>
   </span>
-  <span
-    id="fx-hint"
-    class="text-[13px] leading-[1.35] font-medium text-muted-foreground"
-  >
+  <span id="fx-hint" class="text-[13px] leading-[1.35] font-medium text-muted-foreground">
     {copy.hint}
   </span>
   <span class="flex items-center justify-between gap-2.5">
@@ -72,13 +69,11 @@ const SPEAKER =
 </button>
 
 <script>
-  import { soundEngine } from '../lib/sound-engine'
-  import { mountFxAvailability, mountFxSwitch } from '../scripts/fx-tile'
+  import { soundEngine } from "../lib/sound-engine";
+  import { mountFxAvailability, mountFxSwitch } from "../scripts/fx-tile";
 
-  for (const element of document.querySelectorAll<HTMLElement>(
-    '[data-fx-switch]',
-  )) {
-    mountFxSwitch(element)
-    mountFxAvailability(element, soundEngine)
+  for (const element of document.querySelectorAll<HTMLElement>("[data-fx-switch]")) {
+    mountFxSwitch(element);
+    mountFxAvailability(element, soundEngine);
   }
 </script>

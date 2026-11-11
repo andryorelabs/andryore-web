@@ -1,11 +1,11 @@
 /**
 Marks an element that carries the URL of a stylesheet to load later.
  */
-export const DEFERRED_STYLESHEET_SELECTOR = '[data-defer-stylesheet]'
+export const DEFERRED_STYLESHEET_SELECTOR = "[data-defer-stylesheet]";
 
 export interface StylesheetLink {
-  rel: string
-  href: string
+  rel: string;
+  href: string;
 }
 
 /**
@@ -21,7 +21,7 @@ export function loadStylesheet<Link extends StylesheetLink>(
   href: string,
   parent: { append(link: NoInfer<Link>): void },
 ): void {
-  link.rel = 'stylesheet'
-  link.href = href
-  parent.append(link)
+  link.rel = "stylesheet";
+  link.href = href;
+  parent.append(link);
 }

@@ -1,4 +1,4 @@
-const ENCRYPTED_PREFIX = 'encrypted:'
+const ENCRYPTED_PREFIX = "encrypted:";
 
 /**
  * Reads a credential from the environment, ignoring dotenvx ciphertext. Bun
@@ -8,9 +8,7 @@ const ENCRYPTED_PREFIX = 'encrypted:'
  * @param value The raw environment value.
  * @returns The trimmed credential, or undefined when it is missing or encrypted.
  */
-export function usableCredential(
-  value: string | undefined,
-): string | undefined {
-  const trimmed = value?.trim()
-  return !trimmed || trimmed.startsWith(ENCRYPTED_PREFIX) ? undefined : trimmed
+export function usableCredential(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return !trimmed || trimmed.startsWith(ENCRYPTED_PREFIX) ? undefined : trimmed;
 }

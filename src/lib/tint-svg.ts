@@ -1,5 +1,5 @@
-const SOLID_PAINT = /\b(fill|stroke)="(?!none"|currentColor")[^"]*"/g
-const TYPESCRIPT_TILE = /<path d="M20 0h216[^"]*"[^>]*\/>/
+const SOLID_PAINT = /\b(fill|stroke)="(?!none"|currentColor")[^"]*"/g;
+const TYPESCRIPT_TILE = /<path d="M20 0h216[^"]*"[^>]*\/>/;
 
 /**
  * Turns a brand logo into a bare glyph that follows the text colour: every
@@ -11,7 +11,7 @@ const TYPESCRIPT_TILE = /<path d="M20 0h216[^"]*"[^>]*\/>/
  */
 export function tintSvg(svg: string, size: number): string {
   return svg
-    .replace(TYPESCRIPT_TILE, '')
+    .replace(TYPESCRIPT_TILE, "")
     .replaceAll(SOLID_PAINT, '$1="currentColor"')
     .replace(/<svg\b/, (root) =>
       [
@@ -20,6 +20,6 @@ export function tintSvg(svg: string, size: number): string {
         `height="${String(size)}"`,
         'aria-hidden="true"',
         'focusable="false"',
-      ].join(' '),
-    )
+      ].join(" "),
+    );
 }

@@ -1,41 +1,35 @@
-import type { ClientDirective } from 'astro'
+import type { ClientDirective } from "astro";
 
 /**
 Events that count as the first interaction with an island.
  */
-export const INTERACTION_EVENTS = [
-  'pointerover',
-  'pointerdown',
-  'focusin',
-  'touchstart',
-] as const
+export const INTERACTION_EVENTS = ["pointerover", "pointerdown", "focusin", "touchstart"] as const;
 
 /**
 The fields of a `pointerdown` needed to replay it after hydration.
  */
 export interface PointerDownRecord {
-  target: EventTarget | null
-  init: PointerEventInit
+  target: EventTarget | null;
+  init: PointerEventInit;
 }
 
-type Hydrate = () => Promise<void>
+type Hydrate = () => Promise<void>;
 
 const isClickable = (
   target: EventTarget | null | undefined,
 ): target is EventTarget & { click: () => void; isConnected: boolean } =>
   target !== null &&
   target !== undefined &&
-  'click' in target &&
-  typeof target.click === 'function' &&
-  'isConnected' in target
+  "click" in target &&
+  typeof target.click === "function" &&
+  "isConnected" in target;
 
 const isDispatcher = (
   target: EventTarget | null,
-): target is EventTarget & { isConnected: boolean } =>
-  target !== null && 'isConnected' in target
+): target is EventTarget & { isConnected: boolean } => target !== null && "isConnected" in target;
 
 const recordPointerDown = (event: Event): PointerDownRecord => {
-  const pointer = event as PointerEvent
+  const pointer = event as PointerEvent;
   return {
     target: event.target,
     init: {
@@ -49,8 +43,8 @@ const recordPointerDown = (event: Event): PointerDownRecord => {
       button: pointer.button,
       buttons: pointer.buttons,
     },
-  }
-}
+  };
+};
 
 /**
  * Dispatches a recorded `pointerdown` again, so a press that landed before
@@ -59,9 +53,9 @@ const recordPointerDown = (event: Event): PointerDownRecord => {
  * @param record The press recorded before hydration finished.
  */
 export function replayPointerDown(record: PointerDownRecord): void {
-  const { target, init } = record
+  const { target, init } = record;
   if (isDispatcher(target) && target.isConnected) {
-    target.dispatchEvent(new PointerEvent('pointerdown', init))
+    target.dispatchEvent(new PointerEvent("pointerdown", init));
   }
 }
 
@@ -78,61 +72,54 @@ export async function hydrateOnInteraction(
 ): Promise<void> {
   const earlyClick: { target: EventTarget | undefined } = {
     target: undefined,
-  }
+  };
   const recordClick = (event: Event): void => {
-    earlyClick.target = event.target ?? undefined
-  }
+    earlyClick.target = event.target ?? undefined;
+  };
   const earlyPress: { record: PointerDownRecord | undefined } = {
     record: undefined,
-  }
+  };
   const recordPress = (event: Event): void => {
-    earlyPress.record ??= recordPointerDown(event)
-  }
+    earlyPress.record ??= recordPointerDown(event);
+  };
 
   await new Promise<void>((resolve) => {
     const start = (): void => {
       for (const eventName of INTERACTION_EVENTS) {
-        root.removeEventListener(eventName, start)
+        root.removeEventListener(eventName, start);
       }
-      resolve()
-    }
+      resolve();
+    };
     for (const eventName of INTERACTION_EVENTS) {
-      root.addEventListener(eventName, start, { passive: true, once: true })
+      root.addEventListener(eventName, start, { passive: true, once: true });
     }
-    root.addEventListener('click', recordClick, { capture: true })
-    root.addEventListener('pointerdown', recordPress, { capture: true })
-  })
+    root.addEventListener("click", recordClick, { capture: true });
+    root.addEventListener("pointerdown", recordPress, { capture: true });
+  });
 
-  const hydrate = await load()
-  await hydrate()
-  root.removeEventListener('click', recordClick, { capture: true })
-  root.removeEventListener('pointerdown', recordPress, { capture: true })
+  const hydrate = await load();
+  await hydrate();
+  root.removeEventListener("click", recordClick, { capture: true });
+  root.removeEventListener("pointerdown", recordPress, { capture: true });
 
-  if (earlyPress.record) replayPointerDown(earlyPress.record)
+  if (earlyPress.record) replayPointerDown(earlyPress.record);
 
-  const { target } = earlyClick
+  const { target } = earlyClick;
   if (isClickable(target) && target.isConnected) {
-    target.click()
+    target.click();
   }
 }
 
-async function hydrateAndReport(
-  element: EventTarget,
-  load: () => Promise<Hydrate>,
-): Promise<void> {
+async function hydrateAndReport(element: EventTarget, load: () => Promise<Hydrate>): Promise<void> {
   try {
-    await hydrateOnInteraction(element, load)
+    await hydrateOnInteraction(element, load);
   } catch (error) {
-    console.error('client:interaction failed to hydrate', error)
+    console.error("client:interaction failed to hydrate", error);
   }
 }
 
-const hydrateOnInteractionDirective: ClientDirective = (
-  load,
-  _options,
-  element,
-) => {
-  void hydrateAndReport(element, load)
-}
+const hydrateOnInteractionDirective: ClientDirective = (load, _options, element) => {
+  void hydrateAndReport(element, load);
+};
 
-export default hydrateOnInteractionDirective
+export default hydrateOnInteractionDirective;

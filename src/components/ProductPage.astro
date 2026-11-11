@@ -1,15 +1,15 @@
 ---
-import { Image, Picture } from 'astro:assets'
-import { getCollection, render } from 'astro:content'
+import { Image, Picture } from "astro:assets";
+import { getCollection, render } from "astro:content";
 
-import chrome from '../content/chrome.json'
-import productUi from '../content/product-ui.json'
-import type { Locale } from '../i18n/locales'
-import { localePath } from '../i18n/locales'
-import BaseLayout from '../layouts/BaseLayout.astro'
-import { ANALYTICS_EVENTS, analyticsAttributes } from '../lib/analytics'
-import { externalLinkAttributes } from '../lib/external-link'
-import { revealClass } from '../lib/motion'
+import chrome from "../content/chrome.json";
+import productUi from "../content/product-ui.json";
+import type { Locale } from "../i18n/locales";
+import { localePath } from "../i18n/locales";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { ANALYTICS_EVENTS, analyticsAttributes } from "../lib/analytics";
+import { externalLinkAttributes } from "../lib/external-link";
+import { revealClass } from "../lib/motion";
 import {
   classifyIcon,
   countableStat,
@@ -21,82 +21,74 @@ import {
   statLabel,
   type HeaderLinkId,
   type ProductEntry,
-} from '../lib/products'
-import { spriteClass } from '../lib/sprites'
-import ProductIcon from './ProductIcon.astro'
+} from "../lib/products";
+import { spriteClass } from "../lib/sprites";
+import ProductIcon from "./ProductIcon.astro";
 
 interface Props {
-  locale: Locale
-  productKey: string
+  locale: Locale;
+  productKey: string;
 }
 
-const { locale, productKey } = Astro.props
-const ui = productUi[locale]
-const copy = chrome[locale]
+const { locale, productKey } = Astro.props;
+const ui = productUi[locale];
+const copy = chrome[locale];
 
-const entries: ProductEntry[] = await getCollection('products')
+const entries: ProductEntry[] = await getCollection("products");
 const entry = entries.find(
-  (candidate) =>
-    candidate.data.lang === locale && candidate.data.key === productKey,
-)
+  (candidate) => candidate.data.lang === locale && candidate.data.key === productKey,
+);
 if (!entry) {
-  throw new Error(`No "${locale}" product entry for "${productKey}".`)
+  throw new Error(`No "${locale}" product entry for "${productKey}".`);
 }
-const { data } = entry
-const { Content } = await render(entry)
-const isContribution = data.kind === 'contribution'
+const { data } = entry;
+const { Content } = await render(entry);
+const isContribution = data.kind === "contribution";
 
 const linkIcons: Record<HeaderLinkId, string> = {
-  website: 'globe',
-  source: 'code-xml',
-  npm: 'package',
-  marketplace: 'puzzle',
-  chromeWebStore: 'chrome-outline',
-}
-const links = headerLinks(data)
+  website: "globe",
+  source: "code-xml",
+  npm: "package",
+  marketplace: "puzzle",
+  chromeWebStore: "chrome-outline",
+};
+const links = headerLinks(data);
 
-const SPRITE_SIZE = 56
-const pillSprites = data.skinTones ? data.sprites.slice(0, 2) : []
+const SPRITE_SIZE = 56;
+const pillSprites = data.skinTones ? data.sprites.slice(0, 2) : [];
 
-const surfaceShadow = 'shadow-[inset_0_1px_0_var(--hl),var(--shadow)]'
-const sectionClass = 'flex flex-col gap-3'
+const surfaceShadow = "shadow-[inset_0_1px_0_var(--hl),var(--shadow)]";
+const sectionClass = "flex flex-col gap-3";
 const headingClass =
-  'text-muted-foreground m-0 font-mono text-xs font-normal tracking-widest uppercase'
+  "text-muted-foreground m-0 font-mono text-xs font-normal tracking-widest uppercase";
 const labelClass =
-  'text-muted-foreground m-0 inline-flex items-center gap-2.5 font-mono text-[11px] font-medium tracking-[0.08em] uppercase'
+  "text-muted-foreground m-0 inline-flex items-center gap-2.5 font-mono text-[11px] font-medium tracking-[0.08em] uppercase";
 const chipClass =
-  'border-border bg-card-2 inline-flex min-h-9 items-center gap-2 rounded-[10px] border px-3 font-mono text-xs font-semibold no-underline'
-const iconTileClass =
-  'inline-flex size-10 shrink-0 items-center justify-center rounded-xl'
+  "border-border bg-card-2 inline-flex min-h-9 items-center gap-2 rounded-[10px] border px-3 font-mono text-xs font-semibold no-underline";
+const iconTileClass = "inline-flex size-10 shrink-0 items-center justify-center rounded-xl";
 const buttonClass =
-  'inline-flex h-11 items-center gap-2.5 rounded-pill border px-[18px] text-[15px] font-medium no-underline'
-const iconSize = (name: string): number =>
-  classifyIcon(name)?.kind === 'brand' ? 18 : 16
-const platformItems = data.platforms
-const importItems = data.importsFrom
+  "inline-flex h-11 items-center gap-2.5 rounded-pill border px-[18px] text-[15px] font-medium no-underline";
+const iconSize = (name: string): number => (classifyIcon(name)?.kind === "brand" ? 18 : 16);
+const platformItems = data.platforms;
+const importItems = data.importsFrom;
 const formatGroups = [
-  { heading: ui.exportFormats, icon: 'upload', items: data.exportFormats },
-  { heading: ui.importFormats, icon: 'download', items: data.importFormats },
-].filter((group) => group.items.length > 0)
+  { heading: ui.exportFormats, icon: "upload", items: data.exportFormats },
+  { heading: ui.importFormats, icon: "download", items: data.importFormats },
+].filter((group) => group.items.length > 0);
 const hasFormatsCard =
   platformItems.length > 0 ||
   importItems.length > 0 ||
   formatGroups.length > 0 ||
   data.skinTones ||
-  data.platformNote !== undefined
-const shouldShowFrame = isContribution && data.website !== undefined
-const shouldShowWebsiteTile = !isContribution && data.website !== undefined
-const backHref = localePath(locale, '/#products')
+  data.platformNote !== undefined;
+const shouldShowFrame = isContribution && data.website !== undefined;
+const shouldShowWebsiteTile = !isContribution && data.website !== undefined;
+const backHref = localePath(locale, "/#products");
 ---
 
-<BaseLayout
-  title={`${data.name} · AndryOre`}
-  locale={locale}
-  description={data.description}
-  wide
->
+<BaseLayout title={`${data.name} · AndryOre`} locale={locale} description={data.description} wide>
   <article class="mx-auto flex w-full max-w-[712px] flex-col gap-10">
-    <header class:list={['reveal', revealClass(0), 'flex flex-col gap-4']}>
+    <header class:list={["reveal", revealClass(0), "flex flex-col gap-4"]}>
       <a
         href={backHref}
         class="inline-flex min-h-11 w-fit items-center gap-2 font-mono text-xs tracking-wide text-muted-foreground no-underline hover:text-foreground"
@@ -113,10 +105,7 @@ const backHref = localePath(locale, '/#products')
           class="inline-flex shrink-0 items-center gap-2 rounded-pill border border-border bg-card-2 px-3 py-1 font-mono text-[11px] tracking-[0.06em] whitespace-nowrap text-foreground uppercase"
           data-product-state={data.state}
         >
-          <span
-            class="size-[7px] rounded-full bg-success"
-            aria-hidden="true"
-          ></span>
+          <span class="size-[7px] rounded-full bg-success" aria-hidden="true"></span>
           {ui.state[data.state]}
         </span>
       </div>
@@ -135,9 +124,9 @@ const backHref = localePath(locale, '/#products')
               })}
               class:list={[
                 buttonClass,
-                link.id === 'website'
-                  ? 'border-foreground bg-foreground text-background hover:opacity-90'
-                  : 'border-border bg-card-2 hover:bg-muted',
+                link.id === "website"
+                  ? "border-foreground bg-foreground text-background hover:opacity-90"
+                  : "border-border bg-card-2 hover:bg-muted",
               ]}
             >
               <ProductIcon name={linkIcons[link.id]} />
@@ -151,9 +140,9 @@ const backHref = localePath(locale, '/#products')
 
     <section
       class:list={[
-        'reveal',
+        "reveal",
         revealClass(1),
-        'relative overflow-hidden rounded-[20px] border border-border bg-card p-0',
+        "relative overflow-hidden rounded-[20px] border border-border bg-card p-0",
         surfaceShadow,
       ]}
       aria-label={ui.heroLabel}
@@ -178,7 +167,7 @@ const backHref = localePath(locale, '/#products')
       <Picture
         src={data.image.src}
         alt=""
-        formats={['avif', 'webp']}
+        formats={["avif", "webp"]}
         widths={[480, 960, 1440]}
         sizes="(min-width: 1024px) 960px, 100vw"
         class="block min-h-[300px] w-full object-cover object-top max-[639px]:h-auto max-[639px]:min-h-0"
@@ -190,7 +179,7 @@ const backHref = localePath(locale, '/#products')
           data-product-sprites
         >
           {pillSprites.map((sprite) => {
-            const run = spriteClass(sprite.frames)
+            const run = spriteClass(sprite.frames);
             return (
               <span class="block size-10 overflow-hidden">
                 <Image
@@ -198,47 +187,37 @@ const backHref = localePath(locale, '/#products')
                   alt=""
                   width={SPRITE_SIZE * 2}
                   height={SPRITE_SIZE * 2 * sprite.frames}
-                  class:list={['sprite-strip block h-auto w-full', run]}
-                  data-sprite={run ? '' : undefined}
+                  class:list={["sprite-strip block h-auto w-full", run]}
+                  data-sprite={run ? "" : undefined}
                 />
               </span>
-            )
+            );
           })}
         </div>
       )}
     </section>
 
     {data.stats.length > 0 && (
-      <section
-        class:list={['reveal', revealClass(2), sectionClass]}
-        aria-label={ui.statsHeading}
-      >
+      <section class:list={["reveal", revealClass(2), sectionClass]} aria-label={ui.statsHeading}>
         <ul class="m-0 grid list-none grid-cols-2 gap-3 p-0 min-[900px]:grid-cols-4">
           {data.stats.map((stat) => {
-            const countable = countableStat(stat.value)
+            const countable = countableStat(stat.value);
             const shown = countable
               ? stat.value.slice(0, stat.value.length - countable.suffix.length)
-              : stat.value
+              : stat.value;
             return (
               <li
                 class:list={[
-                  'flex min-w-0 flex-col gap-1 rounded-[18px] border border-border bg-card p-4',
+                  "flex min-w-0 flex-col gap-1 rounded-[18px] border border-border bg-card p-4",
                   surfaceShadow,
                 ]}
                 data-product-stat
               >
-                <ProductIcon
-                  name={stat.icon}
-                  size={18}
-                  class="mb-1 text-muted-foreground"
-                />
+                <ProductIcon name={stat.icon} size={18} class="mb-1 text-muted-foreground" />
                 <span class="text-[28px] leading-[1.1] font-bold tracking-[-0.03em] [overflow-wrap:anywhere] tabular-nums">
                   {countable ? (
                     <>
-                      <span
-                        data-count-total={countable.total}
-                        data-count-locale={locale}
-                      >
+                      <span data-count-total={countable.total} data-count-locale={locale}>
                         {shown}
                       </span>
                       {countable.suffix}
@@ -251,7 +230,7 @@ const backHref = localePath(locale, '/#products')
                   {statLabel(stat.label, stat.date)}
                 </span>
               </li>
-            )
+            );
           })}
         </ul>
       </section>
@@ -260,9 +239,9 @@ const backHref = localePath(locale, '/#products')
     {hasFormatsCard && (
       <section
         class:list={[
-          'reveal',
+          "reveal",
           revealClass(3),
-          'flex flex-col gap-[18px] rounded-[20px] border border-border bg-card p-6',
+          "flex flex-col gap-[18px] rounded-[20px] border border-border bg-card p-6",
           surfaceShadow,
         ]}
         data-product-formats
@@ -274,11 +253,7 @@ const backHref = localePath(locale, '/#products')
               {platformItems.map((item) => (
                 <li>
                   {item.href ? (
-                    <a
-                      href={item.href}
-                      {...externalLinkAttributes(item.href)}
-                      class={chipClass}
-                    >
+                    <a href={item.href} {...externalLinkAttributes(item.href)} class={chipClass}>
                       <ProductIcon
                         name={item.icon}
                         size={iconSize(item.icon)}
@@ -286,11 +261,7 @@ const backHref = localePath(locale, '/#products')
                       />
                       {item.label}
                       <span class="sr-only">. {copy.opensInNewTab}</span>
-                      <ProductIcon
-                        name="external-link"
-                        size={12}
-                        class="ml-0.5 opacity-60"
-                      />
+                      <ProductIcon name="external-link" size={12} class="ml-0.5 opacity-60" />
                     </a>
                   ) : (
                     <span class={chipClass}>
@@ -308,9 +279,7 @@ const backHref = localePath(locale, '/#products')
           </div>
         )}
         {data.platformNote && (
-          <p class="m-0 font-mono text-xs text-muted-foreground">
-            {data.platformNote}
-          </p>
+          <p class="m-0 font-mono text-xs text-muted-foreground">{data.platformNote}</p>
         )}
         {importItems.length > 0 && (
           <div class="flex flex-col gap-2.5">
@@ -358,10 +327,7 @@ const backHref = localePath(locale, '/#products')
             {SKIN_TONE_CLASSES.map((toneClass, index) => (
               <li>
                 <span
-                  class:list={[
-                    toneClass,
-                    'block size-[30px] rounded-full border border-border',
-                  ]}
+                  class:list={[toneClass, "block size-[30px] rounded-full border border-border"]}
                   role="img"
                   aria-label={ui.skinTones[index]}
                 />
@@ -373,19 +339,19 @@ const backHref = localePath(locale, '/#products')
     )}
 
     {data.cards.length > 0 && (
-      <section class:list={['reveal', revealClass(4), sectionClass]}>
+      <section class:list={["reveal", revealClass(4), sectionClass]}>
         <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 min-[800px]:grid-cols-3">
           {data.cards.map((card) => (
             <li
               class:list={[
-                'flex flex-col gap-2.5 rounded-[18px] border border-border bg-card p-[18px]',
+                "flex flex-col gap-2.5 rounded-[18px] border border-border bg-card p-[18px]",
                 surfaceShadow,
               ]}
             >
               <span
                 class:list={[
                   iconTileClass,
-                  'bg-[color-mix(in_oklab,var(--primary)_14%,var(--card-2))] text-primary',
+                  "bg-[color-mix(in_oklab,var(--primary)_14%,var(--card-2))] text-primary",
                 ]}
               >
                 <ProductIcon name={card.icon} size={22} />
@@ -403,37 +369,33 @@ const backHref = localePath(locale, '/#products')
             <span
               class:list={[
                 iconTileClass,
-                'bg-[color-mix(in_oklab,var(--success)_18%,var(--card-2))] text-success',
+                "bg-[color-mix(in_oklab,var(--success)_18%,var(--card-2))] text-success",
               ]}
             >
               <ProductIcon name={data.callout.icon} size={22} />
             </span>
             <div class="flex min-w-0 flex-col gap-1">
               {data.callout.title && (
-                <h3 class="m-0 text-[15px] font-semibold">
-                  {data.callout.title}
-                </h3>
+                <h3 class="m-0 text-[15px] font-semibold">{data.callout.title}</h3>
               )}
-              <p class="m-0 text-sm text-muted-foreground">
-                {data.callout.body}
-              </p>
+              <p class="m-0 text-sm text-muted-foreground">{data.callout.body}</p>
             </div>
           </div>
         )}
       </section>
     )}
 
-    <section class:list={['reveal', revealClass(5), sectionClass]}>
+    <section class:list={["reveal", revealClass(5), sectionClass]}>
       <h2 class={headingClass}>{ui.builtWithHeading}</h2>
       <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
         {data.stack.map((item) => {
-          const iconId = stackIconId(item)
-          const href = stackHref(item)
-          const isDarkGlyph = !stackBadgeClass(item).includes('text-white')
+          const iconId = stackIconId(item);
+          const href = stackHref(item);
+          const isDarkGlyph = !stackBadgeClass(item).includes("text-white");
           const badgeClass = [
-            'group inline-flex h-[34px] items-center gap-2 rounded-md pr-3 pl-2.5 font-mono text-xs font-bold tracking-[0.06em] uppercase no-underline',
+            "group inline-flex h-[34px] items-center gap-2 rounded-md pr-3 pl-2.5 font-mono text-xs font-bold tracking-[0.06em] uppercase no-underline",
             stackBadgeClass(item),
-          ]
+          ];
           const content = (
             <>
               {iconId && (
@@ -441,9 +403,7 @@ const backHref = localePath(locale, '/#products')
                   name={iconId}
                   size={16}
                   class:list={[
-                    isDarkGlyph
-                      ? '[&_img]:brightness-0'
-                      : '[&_img]:brightness-0 [&_img]:invert',
+                    isDarkGlyph ? "[&_img]:brightness-0" : "[&_img]:brightness-0 [&_img]:invert",
                   ]}
                 />
               )}
@@ -457,15 +417,11 @@ const backHref = localePath(locale, '/#products')
                 </span>
               )}
             </>
-          )
+          );
           return (
             <li data-product-badge>
               {href ? (
-                <a
-                  href={href}
-                  {...externalLinkAttributes(href)}
-                  class:list={badgeClass}
-                >
+                <a href={href} {...externalLinkAttributes(href)} class:list={badgeClass}>
                   {content}
                   <span class="sr-only">. {copy.opensInNewTab}</span>
                 </a>
@@ -473,13 +429,13 @@ const backHref = localePath(locale, '/#products')
                 <span class:list={badgeClass}>{content}</span>
               )}
             </li>
-          )
+          );
         })}
       </ul>
     </section>
 
     {data.gallery.length > 0 && (
-      <section class:list={['reveal', revealClass(6), sectionClass]}>
+      <section class:list={["reveal", revealClass(6), sectionClass]}>
         <h2 class={headingClass}>{ui.galleryHeading}</h2>
         <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 min-[640px]:grid-cols-3">
           {data.gallery.map((shot) => (
@@ -487,7 +443,7 @@ const backHref = localePath(locale, '/#products')
               <Picture
                 src={shot.src}
                 alt={shot.alt}
-                formats={['avif', 'webp']}
+                formats={["avif", "webp"]}
                 widths={[240, 480, 720]}
                 sizes="(min-width: 640px) 33vw, 100vw"
                 loading="lazy"
@@ -500,7 +456,7 @@ const backHref = localePath(locale, '/#products')
     )}
 
     {shouldShowWebsiteTile && data.website && (
-      <section class:list={['reveal', revealClass(7), sectionClass]}>
+      <section class:list={["reveal", revealClass(7), sectionClass]}>
         <h2 class={headingClass}>{ui.websiteHeading}</h2>
         <a
           href={data.url}
@@ -510,7 +466,7 @@ const backHref = localePath(locale, '/#products')
           data-product-website={data.key}
           {...analyticsAttributes(ANALYTICS_EVENTS.productOpen, {
             product: data.key,
-            link: 'website-tile',
+            link: "website-tile",
           })}
         >
           <span class="flex items-center gap-3 border-b border-border bg-card px-3.5 py-2.5">
@@ -522,16 +478,12 @@ const backHref = localePath(locale, '/#products')
             <span class="mx-auto min-w-0 rounded-pill bg-muted px-3 py-1 text-center font-mono text-[11px] break-all text-muted-foreground">
               {data.website.host}
             </span>
-            <ProductIcon
-              name="external-link"
-              size={14}
-              class="text-muted-foreground"
-            />
+            <ProductIcon name="external-link" size={14} class="text-muted-foreground" />
           </span>
           <Picture
             src={data.website.src}
             alt={data.website.alt}
-            formats={['avif', 'webp']}
+            formats={["avif", "webp"]}
             widths={[480, 720, 1200]}
             sizes="(min-width: 768px) 720px, 100vw"
             loading="lazy"
@@ -542,10 +494,8 @@ const backHref = localePath(locale, '/#products')
       </section>
     )}
 
-    <section class:list={['reveal', revealClass(8), sectionClass]}>
-      <h2 class={headingClass}>
-        {isContribution ? ui.contributionWhyHeading : ui.whyHeading}
-      </h2>
+    <section class:list={["reveal", revealClass(8), sectionClass]}>
+      <h2 class={headingClass}>{isContribution ? ui.contributionWhyHeading : ui.whyHeading}</h2>
       <div class="flex max-w-reading flex-col gap-3 [overflow-wrap:anywhere]">
         <Content />
       </div>
@@ -554,36 +504,36 @@ const backHref = localePath(locale, '/#products')
 </BaseLayout>
 
 <script>
-  import { isMotionReduced } from '../lib/motion'
-  import { startCountUp } from '../scripts/count-up'
-  import { observeVisibility } from '../scripts/in-view'
+  import { isMotionReduced } from "../lib/motion";
+  import { startCountUp } from "../scripts/count-up";
+  import { observeVisibility } from "../scripts/in-view";
 
   const createObserver =
-    'IntersectionObserver' in globalThis
+    "IntersectionObserver" in globalThis
       ? (callback: ConstructorParameters<typeof IntersectionObserver>[0]) =>
           new IntersectionObserver(callback)
-      : undefined
+      : undefined;
 
   observeVisibility(
-    [...document.querySelectorAll<HTMLElement>('[data-count-total]')],
+    [...document.querySelectorAll<HTMLElement>("[data-count-total]")],
     (target) => {
-      const total = Number(target.dataset.countTotal)
-      if (!Number.isFinite(total)) return
+      const total = Number(target.dataset.countTotal);
+      if (!Number.isFinite(total)) return;
       startCountUp(target, total, {
         reducedMotion: isMotionReduced(globalThis),
-        locale: target.dataset.countLocale ?? 'en',
+        locale: target.dataset.countLocale ?? "en",
         requestFrame: (callback) => requestAnimationFrame(callback),
-      })
+      });
     },
     { createObserver, once: true },
-  )
+  );
 
   observeVisibility(
-    [...document.querySelectorAll<HTMLElement>('[data-sprite]')],
+    [...document.querySelectorAll<HTMLElement>("[data-sprite]")],
     (target, visible) => {
-      if (visible) delete target.dataset.paused
-      else target.dataset.paused = ''
+      if (visible) delete target.dataset.paused;
+      else target.dataset.paused = "";
     },
     { createObserver },
-  )
+  );
 </script>

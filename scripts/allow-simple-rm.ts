@@ -1,6 +1,6 @@
-const SIMPLE_RM = /^rm(?: +[\w@%+=:,./~*?[\]-]+)+ *$/
+const SIMPLE_RM = /^rm(?: +[\w@%+=:,./~*?[\]-]+)+ *$/;
 
-const BROAD_TARGETS = new Set(['/', '/*', '~', '~/', '~/*', '.', '..', '*'])
+const BROAD_TARGETS = new Set(["/", "/*", "~", "~/", "~/*", ".", "..", "*"]);
 
 /**
  * Whether a Bash command is one plain `rm` invocation that is safe to approve
@@ -13,16 +13,14 @@ const BROAD_TARGETS = new Set(['/', '/*', '~', '~/', '~/*', '.', '..', '*'])
  */
 export function isSimpleRm(command: string): boolean {
   if (!SIMPLE_RM.test(command)) {
-    return false
+    return false;
   }
   const targets = command
     .trim()
     .split(/ +/)
     .slice(1)
-    .filter((argument) => !argument.startsWith('-'))
-  return (
-    targets.length > 0 && targets.every((target) => !BROAD_TARGETS.has(target))
-  )
+    .filter((argument) => !argument.startsWith("-"));
+  return targets.length > 0 && targets.every((target) => !BROAD_TARGETS.has(target));
 }
 
 /**
@@ -32,27 +30,27 @@ export function isSimpleRm(command: string): boolean {
  * @returns The JSON to print, or undefined when the command must prompt.
  */
 export function decideRmApproval(hookInput: string): string | undefined {
-  const parsed: unknown = JSON.parse(hookInput)
+  const parsed: unknown = JSON.parse(hookInput);
   const command =
-    typeof parsed === 'object' && parsed !== null && 'tool_input' in parsed
+    typeof parsed === "object" && parsed !== null && "tool_input" in parsed
       ? (parsed.tool_input as { command?: unknown }).command
-      : undefined
-  if (typeof command !== 'string' || !isSimpleRm(command)) {
-    return undefined
+      : undefined;
+  if (typeof command !== "string" || !isSimpleRm(command)) {
+    return undefined;
   }
   return JSON.stringify({
     hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'allow',
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
       permissionDecisionReason:
-        'auto-approved by project settings: a single plain rm; forge waves, workers and cleanup shell out to it unattended',
+        "auto-approved by project settings: a single plain rm; waves, workers and cleanup shell out to it unattended",
     },
-  })
+  });
 }
 
 if (import.meta.main) {
-  const output = decideRmApproval(await Bun.stdin.text())
+  const output = decideRmApproval(await Bun.stdin.text());
   if (output !== undefined) {
-    process.stdout.write(`${output}\n`)
+    process.stdout.write(`${output}\n`);
   }
 }

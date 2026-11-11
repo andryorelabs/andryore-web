@@ -11,7 +11,7 @@ knip) and the documentation:
 
 - [`docs/adr`](docs/adr): architecture decision records.
 - [`docs/brand`](docs/brand): the public brand assets and their export tooling.
-- [`docs/agents`](docs/agents): the tracker and `/forge` specifics for agents.
+- [`docs/agents`](docs/agents): the tracker and `/emet:run` specifics for agents.
 - [`docs/configuration.md`](docs/configuration.md): every environment variable
   and the dotenvx workflow.
 - [`eslint-rules`](eslint-rules): local lint rules, such as the TSDoc-only
@@ -42,8 +42,8 @@ never use another package manager (this repo uses `bun.lock`). Read
   `lint` runs Oxlint (type-aware) on everything but `.astro` and ESLint on
   `.astro` only ([ADR 0023](docs/adr/0023-oxc-toolchain-and-typescript-7-1.md)).
 - `bun run test` — the `bun test` suite, with coverage on. `bunfig.toml` sets a
-  `coverageThreshold` (lines 0.55, functions 0.4); a run below it fails, so add
-  tests with new code instead of lowering the threshold.
+  `coverageThreshold`; a run below it fails, so add tests with new code instead
+  of lowering the threshold.
 - `bun run cache:clear` — removes the Node compile cache and the ESLint cache.
   Run it when a command crashes inside `typescript.js`; more failures by symptom
   in [`docs/troubleshooting.md`](docs/troubleshooting.md).
@@ -53,11 +53,11 @@ never use another package manager (this repo uses `bun.lock`). Read
 - `bun run lint:docs` — offline link and anchor check of the Markdown. Run this
   after any docs change.
 - `bun run fix` — formats the repository with Oxfmt, then autofixes Oxlint and
-  ESLint. Prose wraps always.
+  ESLint. Prose keeps its line breaks (Oxfmt default).
 - `bun run build` — **do not run unless explicitly asked.** It is slow and not
   needed to verify most changes.
 
-## Site rules
+## Rules
 
 Rules for any change to the Site. Each one is backed by an ADR:
 
@@ -85,19 +85,7 @@ Rules for any change to the Site. Each one is backed by an ADR:
   components; every page and product page exists in English and Spanish.
   [ADR 0002](docs/adr/0002-bilingual-parity.md).
 
-## Coverage manifest
-
-Every source module under `scripts`, `eslint-rules`, `docs/brand/tools` and
-`src` needs a colocated test, or an entry with a written reason in `EXEMPTIONS`
-of `scripts/coverage-manifest.test.ts`. Add the test with the module; exempt
-only what cannot be tested in isolation.
-
-## Astro docs
-
-The `astro-docs` MCP server is declared in `.mcp.json`. Use its
-`search_astro_docs` tool before guessing an Astro API or config option.
-
-## Architecture decision records
+## ADRs
 
 A new ADR must add its row to [`docs/adr/README.md`](docs/adr/README.md);
 `docs/adr/adr-invariants.test.ts` fails when an ADR is missing from the index.
@@ -121,6 +109,18 @@ Every code comment is a TSDoc block on a non-obvious export. No `//` or
 non-JSDoc `/* */` comments, except lint or type directives. Detail:
 [`docs/development.md#code-documentation`](docs/development.md#code-documentation),
 [ADR 0005](docs/adr/0005-tsdoc-only-code-comments.md).
+
+## Coverage manifest
+
+Every source module under `scripts`, `eslint-rules`, `docs/brand/tools` and
+`src` needs a colocated test, or an entry with a written reason in `EXEMPTIONS`
+of `scripts/coverage-manifest.test.ts`. Add the test with the module; exempt
+only what cannot be tested in isolation.
+
+## Astro docs
+
+The `astro-docs` MCP server is declared in `.mcp.json`. Use its
+`search_astro_docs` tool before guessing an Astro API or config option.
 
 ## Escalating a `@shadcn/lint` finding
 
@@ -155,7 +155,8 @@ never disable the rule file-wide or project-wide:
   ([ADR 0023](docs/adr/0023-oxc-toolchain-and-typescript-7-1.md)). Fix a finding
   by renaming or returning `undefined`, never by disabling the rule.
 - Bun is pinned to `1.4.4` (`packageManager` and `engines`).
-- Oxfmt wraps prose always; run `bun run fix` instead of reflowing by hand.
+- Oxfmt runs on its defaults (double quotes, semicolons, prose line breaks
+  preserved); run `bun run fix` instead of reformatting by hand.
 - Actions are SHA-pinned and workflows are linted; edit them with care:
   [`docs/development.md#ci`](docs/development.md#ci).
 - Releases are tag-driven and have no npm step; never publish by hand:

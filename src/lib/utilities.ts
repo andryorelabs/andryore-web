@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 /**
  * Merges class names and resolves conflicting Tailwind utilities, the `cn`
@@ -8,5 +8,5 @@ import { twMerge } from 'tailwind-merge'
  * @returns One class string, the last conflicting utility winning.
  */
 export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }

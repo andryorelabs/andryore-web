@@ -1,7 +1,7 @@
 name: Bug Report
 description: Report a reproducible bug or unexpected behavior
-title: 'fix: '
-labels: ['Type: Bug', 'Status: Needs Info']
+title: "fix: "
+labels: ["Type: Bug", "Status: Needs Info"]
 
 body:
   - type: checkboxes
@@ -9,8 +9,7 @@ body:
     attributes:
       label: Pre-flight checklist
       options:
-        - label:
-            I have searched the existing issues and confirmed this hasn't been
+        - label: I have searched the existing issues and confirmed this hasn't been
             reported.
           required: true
 
@@ -24,7 +23,7 @@ body:
     attributes:
       label: Page or URL
       description: Where on the site (or in the repository) the bug appears.
-      placeholder: 'e.g. https://andryore.dev/ or docs/brand/tools/export.mjs'
+      placeholder: "e.g. https://andryore.dev/ or docs/brand/tools/export.mjs"
     validations:
       required: true
 
@@ -61,8 +60,7 @@ body:
     id: screenshots
     attributes:
       label: Screenshots / recording
-      description:
-        If applicable, add screenshots or a screen recording to help explain the
+      description: If applicable, add screenshots or a screen recording to help explain the
         problem.
 
   - type: textarea
@@ -78,6 +76,5 @@ body:
     id: context
     attributes:
       label: Additional context
-      description:
-        Any other context about the problem (console logs, related issues,
+      description: Any other context about the problem (console logs, related issues,
         etc.).

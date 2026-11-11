@@ -1,67 +1,54 @@
 ---
-import chrome from '../content/chrome.json'
-import uses from '../content/uses.json'
-import { localePath, type Locale } from '../i18n/locales'
-import BaseLayout from '../layouts/BaseLayout.astro'
-import { externalLinkAttributes } from '../lib/external-link'
-import { glyphSvg, type GlyphName } from '../lib/glyphs'
-import { revealClass } from '../lib/motion'
-import {
-  badgeIconId,
-  SWATCH_TOKENS,
-  type UsesBadge as Badge,
-} from '../lib/uses'
-import BrandIcon from './BrandIcon.astro'
-import UsesBadge from './UsesBadge.astro'
-import UsesIconField from './UsesIconField.astro'
+import chrome from "../content/chrome.json";
+import uses from "../content/uses.json";
+import { localePath, type Locale } from "../i18n/locales";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { externalLinkAttributes } from "../lib/external-link";
+import { glyphSvg, type GlyphName } from "../lib/glyphs";
+import { revealClass } from "../lib/motion";
+import { badgeIconId, SWATCH_TOKENS, type UsesBadge as Badge } from "../lib/uses";
+import BrandIcon from "./BrandIcon.astro";
+import UsesBadge from "./UsesBadge.astro";
+import UsesIconField from "./UsesIconField.astro";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = uses[locale]
-const site = copy.thisSite
-const newTabNote = chrome[locale].opensInNewTab
-const sourceLink = externalLinkAttributes(site.sourceUrl)
+const { locale } = Astro.props;
+const copy = uses[locale];
+const site = copy.thisSite;
+const newTabNote = chrome[locale].opensInNewTab;
+const sourceLink = externalLinkAttributes(site.sourceUrl);
 
-const toBadges = (
-  rows: readonly { name: string; icon: string; url?: string }[],
-): Badge[] =>
+const toBadges = (rows: readonly { name: string; icon: string; url?: string }[]): Badge[] =>
   rows.map((row) => ({
     name: row.name,
     icon: badgeIconId(row.icon),
     ...(row.url !== undefined && { url: row.url }),
-  }))
+  }));
 
 const sections = [
-  { id: 'tools', heading: copy.toolsHeading, badges: toBadges(copy.tools) },
-  { id: 'tech', heading: copy.techHeading, badges: toBadges(copy.tech) },
-]
+  { id: "tools", heading: copy.toolsHeading, badges: toBadges(copy.tools) },
+  { id: "tech", heading: copy.techHeading, badges: toBadges(copy.tech) },
+];
 
-const card =
-  'uses-lift bg-card border-border grid gap-2.5 rounded-[20px] border p-6'
-const cardHeading = 'm-0 text-xl font-bold tracking-[-0.02em]'
-const footnote = 'text-muted-foreground m-0 font-mono text-xs'
+const card = "uses-lift bg-card border-border grid gap-2.5 rounded-[20px] border p-6";
+const cardHeading = "m-0 text-xl font-bold tracking-[-0.02em]";
+const footnote = "text-muted-foreground m-0 font-mono text-xs";
 const tile =
-  'border-border grid content-start gap-2.5 rounded-[18px] border bg-(--card-2) p-[18px]'
+  "border-border grid content-start gap-2.5 rounded-[18px] border bg-(--card-2) p-[18px]";
 const kicker =
-  'text-muted-foreground font-mono text-[11px] font-medium tracking-[0.08em] uppercase'
-const logoBox =
-  'bg-card border-border grid size-11 place-items-center rounded-[24%] border'
-const logo = 'size-[56%]'
-const tileSub = 'text-muted-foreground m-0 text-[13px]'
+  "text-muted-foreground font-mono text-[11px] font-medium tracking-[0.08em] uppercase";
+const logoBox = "bg-card border-border grid size-11 place-items-center rounded-[24%] border";
+const logo = "size-[56%]";
+const tileSub = "text-muted-foreground m-0 text-[13px]";
 ---
 
-<BaseLayout
-  title={copy.meta.title}
-  description={copy.meta.description}
-  locale={locale}
-  wide
->
+<BaseLayout title={copy.meta.title} description={copy.meta.description} locale={locale} wide>
   <div class="uses-page grid gap-10 sm:px-4">
     <a
-      href={localePath(locale, '/')}
+      href={localePath(locale, "/")}
       class="inline-flex min-h-11 w-fit items-center gap-2 font-mono text-xs tracking-wide text-muted-foreground no-underline hover:text-foreground"
       data-page-back
     >
@@ -71,9 +58,9 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
     <section
       aria-labelledby="uses-heading"
       class:list={[
-        'reveal',
+        "reveal",
         revealClass(0),
-        'relative isolate h-[360px] overflow-hidden rounded-[20px] border border-border bg-card max-[639px]:h-auto max-[639px]:min-h-[360px] max-[639px]:py-[88px] min-[700px]:h-[420px]',
+        "relative isolate h-[360px] overflow-hidden rounded-[20px] border border-border bg-card max-[639px]:h-auto max-[639px]:min-h-[360px] max-[639px]:py-[88px] min-[700px]:h-[420px]",
       ]}
     >
       <UsesIconField />
@@ -85,9 +72,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
           >
             {copy.heading}
           </h1>
-          <p class="mx-auto mt-3 mb-0 max-w-[46ch] text-base text-muted-foreground">
-            {copy.intro}
-          </p>
+          <p class="mx-auto mt-3 mb-0 max-w-[46ch] text-base text-muted-foreground">{copy.intro}</p>
         </div>
       </div>
     </section>
@@ -97,7 +82,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
         <section
           id={section.id}
           aria-labelledby={`uses-${section.id}`}
-          class:list={['reveal', revealClass(index + 1), card]}
+          class:list={["reveal", revealClass(index + 1), card]}
         >
           <h2 id={`uses-${section.id}`} class={cardHeading}>
             {section.heading}
@@ -109,14 +94,14 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
               </li>
             ))}
           </ul>
-          {section.id === 'tech' && <p class={footnote}>{copy.techClosing}</p>}
+          {section.id === "tech" && <p class={footnote}>{copy.techClosing}</p>}
         </section>
       ))}
 
       <section
         id="setup"
         aria-labelledby="uses-setup"
-        class:list={['reveal', revealClass(3), card]}
+        class:list={["reveal", revealClass(3), card]}
       >
         <h2 id="uses-setup" class={cardHeading}>
           {copy.setupHeading}
@@ -145,7 +130,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
                   <span
                     aria-hidden="true"
                     class="inline-flex size-[14px]"
-                    set:html={glyphSvg('external-link', 14)}
+                    set:html={glyphSvg("external-link", 14)}
                   />
                 </a>
               </span>
@@ -157,7 +142,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
       <section
         id="this-site"
         aria-labelledby="this-site-heading"
-        class:list={['reveal', revealClass(4), card, 'scroll-mt-[88px]']}
+        class:list={["reveal", revealClass(4), card, "scroll-mt-[88px]"]}
       >
         <h2 id="this-site-heading" class={cardHeading}>
           {site.heading}
@@ -170,19 +155,11 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
             <div class="flex gap-2">
               <span class={logoBox}>
                 <BrandIcon id="astro" class={`${logo} dark:hidden`} />
-                <BrandIcon
-                  id="astro"
-                  variant="dark"
-                  class={`${logo} hidden dark:block`}
-                />
+                <BrandIcon id="astro" variant="dark" class={`${logo} hidden dark:block`} />
               </span>
               <span class={logoBox}>
                 <BrandIcon id="react" class={`${logo} dark:hidden`} />
-                <BrandIcon
-                  id="react"
-                  variant="dark"
-                  class={`${logo} hidden dark:block`}
-                />
+                <BrandIcon id="react" variant="dark" class={`${logo} hidden dark:block`} />
               </span>
             </div>
             <strong>{site.framework.name}</strong>
@@ -197,11 +174,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
               </span>
               <span class={logoBox}>
                 <BrandIcon id="shadcn-ui" class={`${logo} dark:hidden`} />
-                <BrandIcon
-                  id="shadcn-ui"
-                  variant="dark"
-                  class={`${logo} hidden dark:block`}
-                />
+                <BrandIcon id="shadcn-ui" variant="dark" class={`${logo} hidden dark:block`} />
               </span>
             </div>
             <strong>{site.styling.name}</strong>
@@ -242,7 +215,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
                     aria-label={swatch.token}
                     title={swatch.token}
                     class:list={[
-                      'block aspect-square rounded-[10px] border border-border',
+                      "block aspect-square rounded-[10px] border border-border",
                       swatch.bg,
                     ]}
                   />
@@ -273,18 +246,14 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
             {...sourceLink}
             class:list={[
               tile,
-              'text-inherit no-underline transition-[transform,border-color] duration-150 hover:-translate-y-0.5 hover:border-[color-mix(in_oklab,var(--border)_60%,var(--foreground))]',
+              "text-inherit no-underline transition-[transform,border-color] duration-150 hover:-translate-y-0.5 hover:border-[color-mix(in_oklab,var(--border)_60%,var(--foreground))]",
             ]}
           >
             <span class={kicker}>{site.source.title}</span>
             <div class="flex gap-2">
               <span class={logoBox}>
                 <BrandIcon id="github" class={`${logo} dark:hidden`} />
-                <BrandIcon
-                  id="github"
-                  variant="dark"
-                  class={`${logo} hidden dark:block`}
-                />
+                <BrandIcon id="github" variant="dark" class={`${logo} hidden dark:block`} />
               </span>
             </div>
             <strong class="inline-flex items-center gap-1.5">
@@ -293,7 +262,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
               <span
                 aria-hidden="true"
                 class="inline-flex size-[14px]"
-                set:html={glyphSvg('external-link', 14)}
+                set:html={glyphSvg("external-link", 14)}
               />
             </strong>
             <span class={tileSub}>{site.source.body}</span>
@@ -309,10 +278,7 @@ const tileSub = 'text-muted-foreground m-0 text-[13px]'
         </a>
       </section>
 
-      <section
-        aria-labelledby="uses-privacy"
-        class:list={['reveal', revealClass(5), card]}
-      >
+      <section aria-labelledby="uses-privacy" class:list={["reveal", revealClass(5), card]}>
         <h2 id="uses-privacy" class={cardHeading}>
           {site.privacyHeading}
         </h2>

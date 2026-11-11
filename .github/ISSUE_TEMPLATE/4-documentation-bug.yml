@@ -1,7 +1,7 @@
-name: Documentation
+name: Documentation Bug
 description: Report missing, unclear, or incorrect documentation
-title: 'docs: '
-labels: ['Type: Docs', 'Status: Needs Info']
+title: "docs: "
+labels: ["Type: Docs", "Status: Needs Info"]
 
 body:
   - type: checkboxes
@@ -9,8 +9,7 @@ body:
     attributes:
       label: Pre-flight checklist
       options:
-        - label:
-            I have searched the existing issues and confirmed this hasn't been
+        - label: I have searched the existing issues and confirmed this hasn't been
             reported.
           required: true
 

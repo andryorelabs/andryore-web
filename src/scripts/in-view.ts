@@ -1,21 +1,21 @@
 export interface VisibilityEntry {
-  target: object
-  isIntersecting: boolean
+  target: object;
+  isIntersecting: boolean;
 }
 
 interface VisibilityObserver {
-  observe(target: object): void
-  unobserve(target: object): void
-  disconnect(): void
+  observe(target: object): void;
+  unobserve(target: object): void;
+  disconnect(): void;
 }
 
 export type VisibilityObserverFactory = (
   callback: (entries: VisibilityEntry[]) => void,
-) => VisibilityObserver
+) => VisibilityObserver;
 
 export interface ObserveVisibilityOptions {
-  createObserver: VisibilityObserverFactory | undefined
-  once?: boolean
+  createObserver: VisibilityObserverFactory | undefined;
+  once?: boolean;
 }
 
 /**
@@ -32,17 +32,17 @@ export function observeVisibility<Target extends object>(
   onChange: (target: Target, isVisible: boolean) => void,
   options: ObserveVisibilityOptions,
 ): void {
-  const { createObserver, once = false } = options
+  const { createObserver, once = false } = options;
   if (!createObserver) {
-    for (const target of targets) onChange(target, true)
-    return
+    for (const target of targets) onChange(target, true);
+    return;
   }
   const observer = createObserver((entries) => {
     for (const entry of entries) {
-      if (once && !entry.isIntersecting) continue
-      onChange(entry.target as Target, entry.isIntersecting)
-      if (once) observer.unobserve(entry.target)
+      if (once && !entry.isIntersecting) continue;
+      onChange(entry.target as Target, entry.isIntersecting);
+      if (once) observer.unobserve(entry.target);
     }
-  })
-  for (const target of targets) observer.observe(target)
+  });
+  for (const target of targets) observer.observe(target);
 }

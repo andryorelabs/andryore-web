@@ -1,32 +1,32 @@
 /**
  * Site languages: English at `/`, Spanish at `/es/`.
  */
-export const LOCALES = ['en', 'es'] as const
+export const LOCALES = ["en", "es"] as const;
 
-export type Locale = (typeof LOCALES)[number]
+export type Locale = (typeof LOCALES)[number];
 
 /**
  * The language served at the root and used as `x-default`.
  */
-export const DEFAULT_LOCALE: Locale = 'en'
+export const DEFAULT_LOCALE: Locale = "en";
 
 /**
  * Production origin that canonical, hreflang and sitemap URLs hang from.
  */
-const SITE_ORIGIN = 'https://andryore.dev'
+const SITE_ORIGIN = "https://andryore.dev";
 
 /**
  * The `hreflang` code of each language.
  */
 const HREFLANG: Readonly<Record<Locale, string>> = {
-  en: 'en',
-  es: 'es',
-}
+  en: "en",
+  es: "es",
+};
 
 export interface LocaleAlternate {
-  locale: Locale
-  hreflang: string
-  path: string
+  locale: Locale;
+  hreflang: string;
+  path: string;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface LocaleAlternate {
  * @returns The path unchanged for English, prefixed with `/es` for Spanish.
  */
 export function localePath(locale: Locale, path: string): string {
-  return locale === DEFAULT_LOCALE ? path : `/${locale}${path}`
+  return locale === DEFAULT_LOCALE ? path : `/${locale}${path}`;
 }
 
 /**
@@ -45,7 +45,7 @@ export function localePath(locale: Locale, path: string): string {
  * @returns `/` for English, `/es/` for Spanish.
  */
 export function homePath(locale: Locale): string {
-  return localePath(locale, '/')
+  return localePath(locale, "/");
 }
 
 /**
@@ -54,18 +54,18 @@ export function homePath(locale: Locale): string {
  * @returns The language and the path without any language prefix.
  */
 export function splitLocalePath(pathname: string): {
-  locale: Locale
-  path: string
+  locale: Locale;
+  path: string;
 } {
   for (const locale of LOCALES) {
-    if (locale === DEFAULT_LOCALE) continue
-    const prefix = `/${locale}`
-    if (pathname === prefix) return { locale, path: '/' }
+    if (locale === DEFAULT_LOCALE) continue;
+    const prefix = `/${locale}`;
+    if (pathname === prefix) return { locale, path: "/" };
     if (pathname.startsWith(`${prefix}/`)) {
-      return { locale, path: pathname.slice(prefix.length) }
+      return { locale, path: pathname.slice(prefix.length) };
     }
   }
-  return { locale: DEFAULT_LOCALE, path: pathname }
+  return { locale: DEFAULT_LOCALE, path: pathname };
 }
 
 /**
@@ -74,7 +74,7 @@ export function splitLocalePath(pathname: string): {
  * @returns The other language.
  */
 export function otherLocale(locale: Locale): Locale {
-  return locale === 'en' ? 'es' : 'en'
+  return locale === "en" ? "es" : "en";
 }
 
 /**
@@ -87,7 +87,7 @@ export function alternatesFor(path: string): LocaleAlternate[] {
     locale,
     hreflang: HREFLANG[locale],
     path: localePath(locale, path),
-  }))
+  }));
 }
 
 /**
@@ -96,5 +96,5 @@ export function alternatesFor(path: string): LocaleAlternate[] {
  * @returns The path on the production origin.
  */
 export function absoluteUrl(path: string): string {
-  return `${SITE_ORIGIN}${path}`
+  return `${SITE_ORIGIN}${path}`;
 }

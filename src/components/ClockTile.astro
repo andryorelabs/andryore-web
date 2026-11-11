@@ -1,13 +1,13 @@
 ---
-import tiles from '../content/live-tiles.json'
-import type { Locale } from '../i18n/locales'
+import tiles from "../content/live-tiles.json";
+import type { Locale } from "../i18n/locales";
 
 interface Props {
-  locale: Locale
+  locale: Locale;
 }
 
-const { locale } = Astro.props
-const copy = tiles[locale].clock
+const { locale } = Astro.props;
+const copy = tiles[locale].clock;
 ---
 
 <p
@@ -15,10 +15,7 @@ const copy = tiles[locale].clock
   class="m-0 inline-flex items-center gap-2 rounded-pill border border-border bg-card px-3.5 py-2 font-mono text-xs font-medium whitespace-nowrap text-muted-foreground tabular-nums shadow-(--shadow)"
 >
   <span class="size-[7px] rounded-full bg-success" aria-hidden="true"></span>
-  <b
-    class="text-base font-bold tracking-[-0.02em] text-foreground"
-    data-clock-local
-  >
+  <b class="text-base font-bold tracking-[-0.02em] text-foreground" data-clock-local>
     {copy.placeholder}
   </b>
   <span>{copy.utcLabel}</span>
@@ -26,23 +23,23 @@ const copy = tiles[locale].clock
 </p>
 
 <script>
-  import { startClock, type ClockParts } from '../scripts/clock-tile'
+  import { startClock, type ClockParts } from "../scripts/clock-tile";
 
   const read = (root: HTMLElement): ClockParts | undefined => {
-    const local = root.querySelector('[data-clock-local]')
-    const utc = root.querySelector('[data-clock-utc]')
-    return local && utc ? { local, utc } : undefined
-  }
+    const local = root.querySelector("[data-clock-local]");
+    const utc = root.querySelector("[data-clock-utc]");
+    return local && utc ? { local, utc } : undefined;
+  };
 
-  for (const root of document.querySelectorAll<HTMLElement>('[data-clock]')) {
-    const parts = read(root)
-    if (!parts) continue
+  for (const root of document.querySelectorAll<HTMLElement>("[data-clock]")) {
+    const parts = read(root);
+    if (!parts) continue;
     startClock(parts, {
       now: () => new Date(),
       setInterval: (handler, delay) => Number(setInterval(handler, delay)),
       clearInterval: (id) => {
-        clearInterval(id)
+        clearInterval(id);
       },
-    })
+    });
   }
 </script>

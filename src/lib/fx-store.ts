@@ -1,29 +1,29 @@
 /**
 The localStorage key of the Sound preference.
  */
-export const FX_STORAGE_KEY = 'ao-fx2'
+export const FX_STORAGE_KEY = "ao-fx2";
 
 /**
 The slice of `Storage` the Sound preference needs.
  */
 export interface FxStorage {
-  getItem: (key: string) => string | null
-  setItem: (key: string, value: string) => void
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
 }
 
 /**
 The event dispatched on the window whenever the Sound choice changes.
  */
-const FX_CHANGE_EVENT = 'ao-fx-change'
+const FX_CHANGE_EVENT = "ao-fx-change";
 
 const noop = (): void => {
-  return
-}
+  return;
+};
 
 const memory: { enabled: boolean; unsaved: boolean } = {
   enabled: false,
   unsaved: false,
-}
+};
 
 /**
  * Reaches `localStorage` without throwing; merely touching it can throw when
@@ -35,9 +35,9 @@ export function getFxStorage(
   win: Readonly<{ localStorage?: FxStorage }> = globalThis,
 ): FxStorage | undefined {
   try {
-    return win.localStorage
+    return win.localStorage;
   } catch {
-    return undefined
+    return undefined;
   }
 }
 
@@ -48,11 +48,11 @@ export function getFxStorage(
  * @returns True only when the stored value is "on".
  */
 export function isFxEnabled(storage: FxStorage | undefined): boolean {
-  if (!storage || memory.unsaved) return memory.enabled
+  if (!storage || memory.unsaved) return memory.enabled;
   try {
-    return storage.getItem(FX_STORAGE_KEY) === 'on'
+    return storage.getItem(FX_STORAGE_KEY) === "on";
   } catch {
-    return memory.enabled
+    return memory.enabled;
   }
 }
 
@@ -62,8 +62,8 @@ export function isFxEnabled(storage: FxStorage | undefined): boolean {
  * @param isEnabled Whether Sound is on.
  */
 function paintFxRoot(isEnabled: boolean): void {
-  if (typeof document === 'undefined') return
-  document.documentElement.dataset.fx = isEnabled ? 'on' : 'off'
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.fx = isEnabled ? "on" : "off";
 }
 
 /**
@@ -71,20 +71,17 @@ function paintFxRoot(isEnabled: boolean): void {
  * @param storage The storage to write, if any.
  * @param isEnabled Whether Sound is on.
  */
-export function writeFx(
-  storage: FxStorage | undefined,
-  isEnabled: boolean,
-): void {
-  memory.enabled = isEnabled
+export function writeFx(storage: FxStorage | undefined, isEnabled: boolean): void {
+  memory.enabled = isEnabled;
   try {
-    storage?.setItem(FX_STORAGE_KEY, isEnabled ? 'on' : 'off')
-    memory.unsaved = false
+    storage?.setItem(FX_STORAGE_KEY, isEnabled ? "on" : "off");
+    memory.unsaved = false;
   } catch {
-    memory.unsaved = true
+    memory.unsaved = true;
   } finally {
-    paintFxRoot(isEnabled)
-    if (typeof globalThis.dispatchEvent === 'function')
-      globalThis.dispatchEvent(new Event(FX_CHANGE_EVENT))
+    paintFxRoot(isEnabled);
+    if (typeof globalThis.dispatchEvent === "function")
+      globalThis.dispatchEvent(new Event(FX_CHANGE_EVENT));
   }
 }
 
@@ -94,11 +91,11 @@ export function writeFx(
  * @returns A function that removes the subscription.
  */
 export function subscribeFx(onChange: () => void): () => void {
-  if (typeof globalThis.addEventListener !== 'function') return noop
-  globalThis.addEventListener(FX_CHANGE_EVENT, onChange)
-  globalThis.addEventListener('storage', onChange)
+  if (typeof globalThis.addEventListener !== "function") return noop;
+  globalThis.addEventListener(FX_CHANGE_EVENT, onChange);
+  globalThis.addEventListener("storage", onChange);
   return () => {
-    globalThis.removeEventListener(FX_CHANGE_EVENT, onChange)
-    globalThis.removeEventListener('storage', onChange)
-  }
+    globalThis.removeEventListener(FX_CHANGE_EVENT, onChange);
+    globalThis.removeEventListener("storage", onChange);
+  };
 }

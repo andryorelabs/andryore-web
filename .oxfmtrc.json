@@ -1,13 +1,5 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "trailingComma": "all",
-  "semi": false,
-  "tabWidth": 2,
-  "singleQuote": true,
-  "printWidth": 80,
-  "proseWrap": "always",
-  "endOfLine": "lf",
-  "arrowParens": "always",
   "astro": true,
   "sortPackageJson": false,
   "sortTailwindcss": {
@@ -25,9 +17,13 @@
     ],
     "groups": [
       "builtin",
-      { "newlinesBetween": false },
+      {
+        "newlinesBetween": false
+      },
       "astro",
-      { "newlinesBetween": false },
+      {
+        "newlinesBetween": false
+      },
       "external",
       "internal",
       ["parent", "sibling", "index"],
@@ -58,7 +54,6 @@
     "**/.astro",
     ".claude",
     ".agents",
-    ".forge",
     "GLOSSARY.md",
     "parity/fixtures",
     "parity/.corpus",

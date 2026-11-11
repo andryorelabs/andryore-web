@@ -1,27 +1,19 @@
 ---
-import { FIELD_ICONS, floatClass } from '../lib/uses'
-import BrandIcon from './BrandIcon.astro'
+import { FIELD_ICONS, floatClass } from "../lib/uses";
+import BrandIcon from "./BrandIcon.astro";
 ---
 
-<div
-  aria-hidden="true"
-  class="pointer-events-none absolute inset-0"
-  data-uses-field
->
+<div aria-hidden="true" class="pointer-events-none absolute inset-0" data-uses-field>
   {FIELD_ICONS.map((icon, index) => (
     <span
       class:list={[
-        'absolute grid place-items-center rounded-[24%] border uses-surface-2',
+        "absolute grid place-items-center rounded-[24%] border uses-surface-2",
         icon.placement,
         floatClass(index),
       ]}
     >
       <BrandIcon id={icon.id} class="size-[58%] dark:hidden" />
-      <BrandIcon
-        id={icon.id}
-        variant="dark"
-        class="hidden size-[58%] dark:block"
-      />
+      <BrandIcon id={icon.id} variant="dark" class="hidden size-[58%] dark:block" />
     </span>
   ))}
 </div>

@@ -1,8 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "contentMappers": [
-    { "package": "@astrojs/ts-content-mapper", "extensions": [".astro"] }
-  ],
+  "contentMappers": [{ "package": "@astrojs/ts-content-mapper", "extensions": [".astro"] }],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2025"],
@@ -15,6 +13,8 @@
     "noEmit": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
     "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -29,6 +29,7 @@
     "docs/adr",
     "docs/brand/tools",
     "docs/brand/tokens-contrast.test.ts",
+    "docs/standard-invariants.test.ts",
     "scripts",
     "e2e",
     "playwright.config.ts",
@@ -36,5 +37,5 @@
     "playwright.visual.config.ts",
     ".github/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", ".claude", ".forge"]
+  "exclude": ["node_modules", "dist", ".claude"]
 }
