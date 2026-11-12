@@ -378,6 +378,12 @@ them in the Dependency Dashboard issue. Review them like any other PR: the
 `CI passed` check must be green. Renovate branches are named `renovate/*`, which
 the `pre-push` hook allows.
 
+Renovate pull requests target `develop`, the integration branch that is promoted
+to `main` by merge commit
+([ADR 0026](adr/0026-develop-promoted-to-main-by-merge-commit.md)). Renovate
+reads its config from the default branch `main`, so a change to
+`renovate.json5` takes effect after a promotion.
+
 ## Releasing
 
 Releases are tag-driven and have no npm step. The notes come from
