@@ -4,6 +4,7 @@
 
   timezone: "UTC",
   schedule: ["before 12pm on monday"],
+  baseBranchPatterns: ["develop"],
 
   prConcurrentLimit: 3,
   prHourlyLimit: 2,
