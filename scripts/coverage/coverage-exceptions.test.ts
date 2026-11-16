@@ -16,8 +16,8 @@ describe("coverageExceptions", () => {
 
   test("keeps every floor under the per-file floor, so an entry is a real exception", () => {
     for (const entry of coverageExceptions) {
-      const underFloor = entry.lines < FILE_LINE_FLOOR || entry.functions < FILE_FUNCTION_FLOOR;
-      expect(underFloor).toBe(true);
+      const isUnderFloor = entry.lines < FILE_LINE_FLOOR || entry.functions < FILE_FUNCTION_FLOOR;
+      expect(isUnderFloor).toBe(true);
     }
   });
 

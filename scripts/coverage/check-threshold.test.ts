@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
+  isFullSuiteRun,
   checkCoverageReport,
   FILE_FUNCTION_FLOOR,
   FILE_LINE_FLOOR,
@@ -50,7 +51,7 @@ describe("parseLcov", () => {
   test("reads one record per file and normalises separators", () => {
     const lcov = [
       "TN:",
-      "SF:src\\a.ts",
+      String.raw`SF:src\a.ts`,
       "FNF:4",
       "FNH:3",
       "LF:10",
@@ -94,7 +95,10 @@ describe("findThresholdFailures", () => {
   });
 
   test("fails when the global thresholds are not met", () => {
-    const failures = findThresholdFailures({ lines: 0.5, functions: 0.5, files: 1 }, { lines: 0.9, functions: 0.9 });
+    const failures = findThresholdFailures(
+      { lines: 0.5, functions: 0.5, files: 1 },
+      { lines: 0.9, functions: 0.9 },
+    );
     expect(failures).toEqual([
       "Line coverage 50.00% is below the 90.00% threshold.",
       "Function coverage 50.00% is below the 90.00% threshold.",
@@ -123,9 +127,9 @@ describe("findThresholdFailures", () => {
   test("accepts files exactly on the floors", () => {
     expect(FILE_LINE_FLOOR).toBe(0.97);
     expect(FILE_FUNCTION_FLOOR).toBe(0.98);
-    expect(
-      failuresFor([file({ linesHit: 97, functionsFound: 100, functionsHit: 98 })]),
-    ).toEqual([]);
+    expect(failuresFor([file({ linesHit: 97, functionsFound: 100, functionsHit: 98 })])).toEqual(
+      [],
+    );
   });
 
   test("accepts an excepted file at or above its own floor", () => {
@@ -199,5 +203,20 @@ describe("checkCoverageReport", () => {
       repositoryWith("SF:a.ts\nLF:10\nLH:0\nFNF:1\nFNH:0\nend_of_record\n"),
     );
     expect(failures.length).toBeGreaterThan(0);
+  });
+});
+
+describe("isFullSuiteRun", () => {
+  test("keeps the gate for reporter flags, with and without a separate value", () => {
+    expect(isFullSuiteRun([])).toBe(true);
+    expect(isFullSuiteRun(["--reporter=junit", "--reporter-outfile=junit.xml"])).toBe(true);
+    expect(isFullSuiteRun(["--reporter", "junit", "--reporter-outfile", "junit.xml"])).toBe(true);
+  });
+
+  test("skips the gate for a path filter or a test-name pattern", () => {
+    expect(isFullSuiteRun(["scripts/coverage"])).toBe(false);
+    expect(isFullSuiteRun(["--reporter=junit", "src/lib"])).toBe(false);
+    expect(isFullSuiteRun(["-t", "parses"])).toBe(false);
+    expect(isFullSuiteRun(["--test-name-pattern=parses"])).toBe(false);
   });
 });

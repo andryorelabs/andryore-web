@@ -133,15 +133,15 @@ function findFileFailures(
   for (const file of files) {
     const lines = fraction(file.linesHit, file.linesFound);
     const functions = fraction(file.functionsHit, file.functionsFound);
-    const underFloor = lines < FILE_LINE_FLOOR || functions < FILE_FUNCTION_FLOOR;
+    const isUnderFloor = lines < FILE_LINE_FLOOR || functions < FILE_FUNCTION_FLOOR;
     const exception = excepted.get(file.path);
     if (exception === undefined) {
-      if (underFloor) {
+      if (isUnderFloor) {
         failures.push(
           `${file.path} has ${describeFile(file)}, below the ${percent(FILE_LINE_FLOOR)} lines and ${percent(FILE_FUNCTION_FLOOR)} functions floor, and has no coverage exception.`,
         );
       }
-    } else if (!underFloor) {
+    } else if (!isUnderFloor) {
       failures.push(
         `Coverage exception for ${file.path} is stale: the file now has ${describeFile(file)}. Remove the exception.`,
       );
@@ -167,6 +167,11 @@ function findFileFailures(
   return failures;
 }
 
+const DEFAULT_THRESHOLDS: CoverageThresholds = {
+  lines: LINE_THRESHOLD,
+  functions: FUNCTION_THRESHOLD,
+};
+
 /**
  * Lists one message per failed check: an "All files" metric under its threshold, a file under the per-file floor
  * without an exception, and an exception that is stale, missing from the report, unexplained or under its own floor.
@@ -178,7 +183,7 @@ function findFileFailures(
  */
 export function findThresholdFailures(
   summary: CoverageSummary,
-  thresholds: CoverageThresholds = { lines: LINE_THRESHOLD, functions: FUNCTION_THRESHOLD },
+  thresholds: CoverageThresholds = DEFAULT_THRESHOLDS,
   files: readonly FileCoverage[] = [],
   exceptions: readonly CoverageException[] = [],
 ): string[] {
@@ -199,18 +204,44 @@ export function findThresholdFailures(
 }
 
 /**
- * Reads `coverage/lcov.info` under `repoRoot` and returns the gate failures, or a single message when the report is missing.
- * @param repoRoot The repository root.
+ * Tells whether `bun test` arguments still run the whole suite. Reporter and timeout flags keep the run full;
+ * a positional path or name filter, or a test-name pattern, measures only part of the suite.
+ * @param testArguments The arguments passed to `bun test`.
+ * @returns `true` when the coverage gate should run.
+ */
+export function isFullSuiteRun(testArguments: readonly string[]): boolean {
+  const valueFlags = new Set([
+    "--reporter",
+    "--reporter-outfile",
+    "--timeout",
+    "--rerun-each",
+    "--bail",
+  ]);
+  for (let index = 0; index < testArguments.length; index += 1) {
+    const argument = testArguments[index] ?? "";
+    if (argument === "-t" || argument.startsWith("--test-name-pattern")) return false;
+    if (valueFlags.has(argument)) {
+      index += 1;
+      continue;
+    }
+    if (!argument.startsWith("-")) return false;
+  }
+  return true;
+}
+
+/**
+ * Reads `coverage/lcov.info` under `repositoryRoot` and returns the gate failures, or a single message when the report is missing.
+ * @param repositoryRoot The directory that holds `coverage/lcov.info`.
  * @param exceptions The allowed per-file exceptions.
  * @param thresholds The global thresholds.
  * @returns The failure messages; empty when the gate passes.
  */
 export function checkCoverageReport(
-  repoRoot: string,
+  repositoryRoot: string,
   exceptions: readonly CoverageException[] = coverageExceptions,
   thresholds: CoverageThresholds = committedFloors,
 ): string[] {
-  const reportPath = path.resolve(repoRoot, "coverage/lcov.info");
+  const reportPath = path.resolve(repositoryRoot, "coverage/lcov.info");
   if (!existsSync(reportPath)) {
     return [`No coverage report at ${reportPath}; run bun test with coverage enabled first.`];
   }
