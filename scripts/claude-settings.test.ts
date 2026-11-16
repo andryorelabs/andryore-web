@@ -17,6 +17,13 @@ describe(".claude/settings.json deny list", () => {
     "Bash(git push * -f)",
     "Bash(git push --force-with-lease *)",
     "Bash(git push * --force-with-lease)",
+    "Bash(git push * --force *)",
+    "Bash(git push * -f *)",
+    "Bash(git push * --force-with-lease *)",
+    "Bash(git push --force-with-lease=*)",
+    "Bash(git push * --force-with-lease=*)",
+    "Bash(git push * *:main)",
+    "Bash(git push * *:develop)",
   ])("denies %s", (rule) => {
     expect(settings.permissions.deny).toContain(rule);
   });
