@@ -502,29 +502,33 @@ This repository follows the andryorelabs
 [standard v1](https://github.com/andryorelabs/aokit/tree/main/docs/standards)
 ([ADR 0025](adr/0025-adopt-cross-repo-standard-v1.md)). The rulesets above are
 committed as code. The remaining GitHub repository settings are listed in
-`scripts/repo-settings.json`:
+[`.github/repo-settings.json`](../.github/repo-settings.json):
 
 - merge modes: squash and merge commits, each with the PR title and body as the
   message, auto-merge, update-branch and delete-on-merge
-- security features that are on: secret scanning, push protection and private
-  vulnerability reporting
-- the homepage and the topics
+- the description, homepage, topics and default branch, with the wiki,
+  projects and discussions off
+- security features that are on: secret scanning, push protection, private
+  vulnerability reporting, Dependabot alerts and Dependabot security updates
+- the read-only default `GITHUB_TOKEN`, fork-PR approval for every outside
+  contributor, and the CodeQL setup (advanced, through `codeql.yml`)
 
 `bun run repo-settings:check` reads the live values with `gh api` and compares
-them with that list and with `.github/rulesets/*.json`. It prints each
-difference, exits non-zero when there is one, and never changes a setting. To
-see the live values by hand:
+them with that list and with `.github/rulesets/*.json` (described in
+[`.github/rulesets/README.md`](../.github/rulesets/README.md)). It prints each
+difference by key, exits non-zero when there is one, and never changes a
+setting. To see the live values by hand:
 
 ```sh
 gh api repos/andryorelabs/andryore-web
 gh api repos/andryorelabs/andryore-web/private-vulnerability-reporting
+gh api repos/andryorelabs/andryore-web/vulnerability-alerts
+gh api repos/andryorelabs/andryore-web/actions/permissions/workflow
 gh api repos/andryorelabs/andryore-web/rulesets
 ```
 
-The check does not cover two settings from the posture: the read-only default
-`GITHUB_TOKEN` and fork-PR approval for outside contributors. Verify those in
-the repository's Actions settings. Dependabot security updates stay off, because
-Renovate is the single source of dependency updates.
+Dependabot alerts and security updates are on so a vulnerable dependency raises
+an alert and a fix PR; Renovate stays the source of routine version updates.
 [ADR 0011](adr/0011-public-repo-security-posture.md) records the posture and
 which settings are still open (only the CodeQL default setup).
 Settings are owner actions; an agent changes one only when the owner asks for
