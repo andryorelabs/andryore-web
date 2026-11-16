@@ -1,6 +1,6 @@
 const config = {
   "*.{ts,tsx,mts,cts,mjs}": [
-    "oxlint --type-aware --fix --deny-warnings",
+    "oxlint --type-aware --fix --deny-warnings --no-error-on-unmatched-pattern",
     "oxfmt --no-error-on-unmatched-pattern",
   ],
   "*.astro": [
