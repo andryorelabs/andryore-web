@@ -389,7 +389,7 @@ export const OXLINT_IGNORE_PATTERNS = [
   "**/*.{mts,cts,jsx}",
   "**/.astro/**",
   "**/dist/**",
-  "**/coverage/**",
+  "coverage/**",
   ".claude/**",
   ".agents/**",
   "parity/fixtures/**",

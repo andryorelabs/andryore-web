@@ -50,7 +50,7 @@
     "node_modules",
     "**/dist",
     "bun.lock",
-    "**/coverage",
+    "/coverage",
     "**/.astro",
     ".claude",
     ".agents",
