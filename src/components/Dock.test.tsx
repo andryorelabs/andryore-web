@@ -1,4 +1,7 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from "bun:test";
+import { Window } from "happy-dom";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import chrome from "../content/chrome.json";
@@ -213,5 +216,214 @@ describe("Dock pre-hydration state", () => {
     expect(html).not.toContain("data-ready");
     for (const option of ["auto", "light", "dark"])
       expect(html).toContain(`data-theme-icon="${option}"`);
+  });
+});
+
+const DOM_KEYS = [
+  "window",
+  "document",
+  "localStorage",
+  "sessionStorage",
+  "Node",
+  "Element",
+  "HTMLElement",
+  "SVGElement",
+  "Event",
+  "CustomEvent",
+  "KeyboardEvent",
+  "MouseEvent",
+  "PointerEvent",
+  "FocusEvent",
+  "MutationObserver",
+  "getComputedStyle",
+  "addEventListener",
+  "removeEventListener",
+  "dispatchEvent",
+] as const;
+
+const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
+
+const noop = (): void => undefined;
+const savedGlobals = new Map<string, PropertyDescriptor | undefined>();
+const mounted: Root[] = [];
+const pointer = { isFine: false };
+const domWindow = new Window({ url: "http://localhost/" });
+
+const stubMatchMedia = (mediaQuery: string) => ({
+  matches: mediaQuery === FINE_POINTER_QUERY && pointer.isFine,
+  media: mediaQuery,
+  addEventListener: noop,
+  removeEventListener: noop,
+});
+
+const defineGlobal = (key: string, value: unknown): void => {
+  savedGlobals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+  Object.defineProperty(globalThis, key, {
+    value,
+    configurable: true,
+    writable: true,
+  });
+};
+
+const isFunctionMember = (key: string, value: unknown): boolean =>
+  typeof value === "function" && /^[a-z]/.test(key);
+
+const createEvent = (type: string, init: object): Event => {
+  if (type.startsWith("pointer")) return new domWindow.PointerEvent(type, init) as unknown as Event;
+  if (type.startsWith("key")) return new domWindow.KeyboardEvent(type, init) as unknown as Event;
+  if (type === "focusin") return new domWindow.FocusEvent(type, init) as unknown as Event;
+  return new domWindow.MouseEvent(type, init) as unknown as Event;
+};
+
+const fire = (target: Element | Document, type: string, init: object = {}): void => {
+  act(() => {
+    target.dispatchEvent(createEvent(type, { bubbles: true, cancelable: true, ...init }));
+  });
+};
+
+const query = (selector: string): HTMLElement => {
+  const found = document.querySelector<HTMLElement>(selector);
+  if (!found) throw new Error(`missing ${selector}`);
+  return found;
+};
+
+const hasOpenMenu = (): boolean => document.querySelector('[role="menu"]') !== null;
+
+const mountDock = (): void => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  mounted.push(root);
+  act(() => {
+    root.render(<Dock copy={chrome.en.dock} themeCopy={chrome.en.theme} locale="en" path="/" />);
+  });
+};
+
+describe("Dock in a DOM", () => {
+  beforeAll(() => {
+    const source = domWindow as unknown as Record<string, unknown>;
+    for (const key of DOM_KEYS) {
+      const value = key === "window" ? domWindow : source[key];
+      defineGlobal(
+        key,
+        isFunctionMember(key, value) ? (value as () => unknown).bind(domWindow) : value,
+      );
+    }
+    defineGlobal("matchMedia", stubMatchMedia);
+    defineGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  });
+
+  afterEach(() => {
+    act(() => {
+      for (const root of mounted) root.unmount();
+    });
+    mounted.length = 0;
+    document.body.replaceChildren();
+    localStorage.clear();
+    pointer.isFine = false;
+    document.documentElement.className = "";
+  });
+
+  afterAll(() => {
+    for (const [key, descriptor] of savedGlobals) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+
+  test("opens the language menu, focuses the current language and closes on Escape", () => {
+    mountDock();
+    const trigger = query('[data-dock-trigger="language"]');
+    fire(trigger, "click");
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(document.activeElement).toBe(query('[data-locale-switch="en"]'));
+    fire(document, "keydown", { key: "Escape" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(trigger);
+    expect(hasOpenMenu()).toBe(false);
+  });
+
+  test("closes the open menu when its trigger is pressed again", () => {
+    mountDock();
+    const trigger = query('[data-dock-trigger="theme"]');
+    fire(trigger, "click");
+    expect(hasOpenMenu()).toBe(true);
+    fire(trigger, "click");
+    expect(hasOpenMenu()).toBe(false);
+  });
+
+  test("moves focus through the menu with the arrow, Home and End keys", () => {
+    mountDock();
+    fire(query('[data-dock-trigger="theme"]'), "click");
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')];
+    expect(document.activeElement).toBe(items[0] ?? null);
+    fire(document, "keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(items[1] ?? null);
+    fire(document, "keydown", { key: "End" });
+    expect(document.activeElement).toBe(items[2] ?? null);
+    fire(document, "keydown", { key: "ArrowUp" });
+    expect(document.activeElement).toBe(items[1] ?? null);
+    fire(document, "keydown", { key: "Home" });
+    expect(document.activeElement).toBe(items[0] ?? null);
+    fire(document, "keydown", { key: "a" });
+    expect(document.activeElement).toBe(items[0] ?? null);
+  });
+
+  test("closes the menu on a press or focus outside the dock, not inside it", () => {
+    mountDock();
+    const trigger = query('[data-dock-trigger="language"]');
+    fire(trigger, "click");
+    fire(query('[data-locale-switch="es"]'), "pointerdown");
+    expect(hasOpenMenu()).toBe(true);
+    fire(document.body, "pointerdown");
+    expect(hasOpenMenu()).toBe(false);
+    fire(trigger, "click");
+    fire(document.body, "focusin");
+    expect(hasOpenMenu()).toBe(false);
+  });
+
+  test("stores the chosen theme, closes the menu and returns focus to its trigger", () => {
+    mountDock();
+    const trigger = query('[data-dock-trigger="theme"]');
+    fire(trigger, "click");
+    fire(query('[role="menuitemradio"]:nth-child(3)'), "click");
+    expect(localStorage.getItem("theme")).toBe("dark");
+    expect(hasOpenMenu()).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    expect(query('[data-theme-icon="dark"]').dataset.active).toBe("");
+  });
+
+  test("switches Sound on and off and stores the choice", () => {
+    mountDock();
+    const sound = query("[data-dock-sound]");
+    expect(sound.getAttribute("aria-checked")).toBe("false");
+    fire(sound, "click");
+    expect(sound.getAttribute("aria-checked")).toBe("true");
+    expect(localStorage.getItem("ao-fx2")).toBe("on");
+    fire(sound, "click");
+    expect(sound.getAttribute("aria-checked")).toBe("false");
+  });
+
+  test("magnifies the items under a mouse and clears them when the pointer leaves", () => {
+    pointer.isFine = true;
+    mountDock();
+    const nav = query("[data-dock-nav]");
+    fire(nav, "pointermove", { pointerType: "mouse", clientX: 10 });
+    const scaled = [...nav.querySelectorAll<HTMLElement>("[data-dock-scale]")];
+    expect(scaled.some((item) => item.style.transform.startsWith("scale("))).toBe(true);
+    fire(nav, "pointerout", { relatedTarget: document.body });
+    expect(scaled.every((item) => item.style.transform === "")).toBe(true);
+  });
+
+  test("leaves items alone for touch pointers", () => {
+    pointer.isFine = true;
+    mountDock();
+    const nav = query("[data-dock-nav]");
+    fire(nav, "pointermove", { pointerType: "touch", clientX: 10 });
+    expect(
+      [...nav.querySelectorAll<HTMLElement>("[data-dock-scale]")].every(
+        (item) => item.style.transform === "",
+      ),
+    ).toBe(true);
   });
 });
