@@ -26,7 +26,7 @@ nothing decrypted, counts as missing. Variables outside the Site (`CHROME_PATH`,
 `SMOKE_BASE_URL`, `PLAYWRIGHT_PREVIEW_COMMAND`, `PARITY_CORPUS`) only tune test
 and audit tooling, and `CI` and `GITHUB_STEP_SUMMARY` are set by GitHub Actions;
 see [Development](development.md). A test
-(`scripts/environment-docs.test.ts`) fails when code reads a variable that this
+(`scripts/environment-documentation.test.ts`) fails when code reads a variable that this
 page does not name.
 
 ## dotenvx workflow

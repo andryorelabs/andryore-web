@@ -1015,7 +1015,7 @@ describe("release.yml changelog guard", () => {
 });
 
 const TAG_GUARD_STEP = "Require a signed annotated tag that matches package.json";
-const SIGNING_KEYS_STEP = "Fetch the tag object and the owner's SSH signing keys";
+const SIGNING_KEYS_STEP = "Fetch the tag object and the release signer's SSH signing keys";
 
 type TagKind = "lightweight" | "annotated" | "signed" | "signed by a stranger";
 
@@ -1149,7 +1149,14 @@ describe("release.yml tag guard", () => {
     }
   });
 
-  test("reads the owner's SSH signing keys into the file the guard verifies against", () => {
+  test("reads the signing keys of a named user account, never the organization owner", () => {
+    const keysStep = collectSteps(release).find((step) => step.name === SIGNING_KEYS_STEP);
+    expect(keysStep?.env?.RELEASE_SIGNER).toBe("AndryOre");
+    expect(keysStep?.run).toContain("users/${RELEASE_SIGNER}/ssh_signing_keys");
+    expect(keysStep?.run).not.toContain("GITHUB_REPOSITORY_OWNER");
+  });
+
+  test("reads the release signer's SSH signing keys into the file the guard verifies against", () => {
     const steps = collectSteps(release);
     const keysStep = steps.find((step) => step.name === SIGNING_KEYS_STEP);
     const guardStep = steps.find((step) => step.name === TAG_GUARD_STEP);
