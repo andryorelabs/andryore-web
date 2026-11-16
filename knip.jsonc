@@ -8,8 +8,10 @@
     // Loaded by the lint parity runner, never imported.
     "parity/eslint-baseline.config.mjs",
   ],
-  // Run through node_modules/typescript7/bin/tsc by path, so no import names it.
-  "ignoreDependencies": ["typescript7"],
+  // typescript7 runs through node_modules/typescript7/bin/tsc by path, and
+  // @commitlint/cli is spawned as `bunx commitlint` by the commit-msg hook and
+  // lint:commits, so no import names either.
+  "ignoreDependencies": ["typescript7", "@commitlint/cli"],
   // Every source file kind the repository ships.
   "project": ["**/*.{ts,tsx,mjs,astro,css}"],
   "ignore": [
