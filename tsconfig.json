@@ -7,6 +7,10 @@
     "types": ["node", "bun"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "jsx": "react-jsx",
     "paths": { "@/*": ["./src/*"] },
     "skipLibCheck": true,
@@ -33,9 +37,8 @@
     "docs/standard-invariants.test.ts",
     "scripts",
     "e2e",
-    "playwright.config.ts",
-    "oxlint.config.ts",
-    "playwright.visual.config.ts",
+    "*.ts",
+    "*.mts",
     ".github/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", ".claude"]

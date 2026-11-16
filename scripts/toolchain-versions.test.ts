@@ -352,3 +352,23 @@ describe("format config (E13)", () => {
     }
   });
 });
+
+describe("tsconfig (E14)", () => {
+  const tsconfig = readRepositoryJson("tsconfig.json") as {
+    compilerOptions: Record<string, unknown>;
+    include: string[];
+  };
+
+  test("the root tsconfig includes root *.ts and *.mts config files", () => {
+    expect(["*.ts", "*.mts"].filter((pattern) => !tsconfig.include.includes(pattern))).toEqual([]);
+  });
+
+  test("the root tsconfig sets the standard's module and casing options", () => {
+    expect(tsconfig.compilerOptions).toMatchObject({
+      moduleDetection: "force",
+      isolatedModules: true,
+      forceConsistentCasingInFileNames: true,
+      resolveJsonModule: true,
+    });
+  });
+});
