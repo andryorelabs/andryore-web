@@ -7,7 +7,12 @@ import { listWorkflowFiles, readWorkflow } from "./workflow-files";
 const RULESETS_DIRECTORY = path.resolve(import.meta.dirname, "../.github/rulesets");
 const SETTINGS_FILE = path.resolve(import.meta.dirname, "../.github/repo-settings.json");
 const GITHUB_ACTIONS_INTEGRATION_ID = 15_368;
-const REQUIRED_CHECKS = ["CI passed", "Validate PR title", "Check markdown links"];
+const REQUIRED_CHECKS = [
+  "CI passed",
+  "Validate PR title",
+  "Check markdown links",
+  "Analyze (actions, javascript-typescript)",
+];
 const PROMOTION_SKIP_CONDITION =
   "github.event_name == 'pull_request' && !(github.base_ref == 'main' && github.head_ref == 'develop' && !github.event.pull_request.head.repo.fork)";
 
@@ -87,7 +92,7 @@ describe("develop ruleset", () => {
     expect(parameters.required_review_thread_resolution).toBe(true);
   });
 
-  test("requires the three checks, strictly, from GitHub Actions", () => {
+  test("requires the checks, strictly, from GitHub Actions", () => {
     const parameters = ruleParameters(developRuleset, "required_status_checks");
 
     expect(parameters.strict_required_status_checks_policy).toBe(true);
@@ -125,7 +130,7 @@ describe("main ruleset", () => {
     expect(parameters.required_review_thread_resolution).toBe(true);
   });
 
-  test("requires the three checks, not strictly, from GitHub Actions", () => {
+  test("requires the checks, not strictly, from GitHub Actions", () => {
     const parameters = ruleParameters(mainRuleset, "required_status_checks");
 
     expect(parameters.strict_required_status_checks_policy).toBe(false);

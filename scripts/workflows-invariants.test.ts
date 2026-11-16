@@ -87,23 +87,32 @@ function findJobsWithoutTimeout(workflow: Workflow): string[] {
 
 /**
  * Finds jobs whose `actions/checkout` keeps the token in the git config. A job
- * that pushes may opt in with an explicit `persist-credentials: true` only
- * when it also holds `contents: write`.
+ * that pushes passes the token in the pushing step's env instead.
  * @param workflow The parsed workflow.
  * @returns The offending job names.
  */
 function findCheckoutsPersistingCredentials(workflow: Workflow): string[] {
   return Object.entries(workflow.jobs ?? {})
-    .filter(([, job]) => {
-      const permissions = job.permissions as Record<string, unknown> | undefined;
-      const isMayPush = permissions?.contents === "write";
-      return (job.steps ?? []).some((step) => {
-        if (!step.uses?.startsWith("actions/checkout@")) return false;
-        const persist = step.with?.["persist-credentials"];
-        return !(persist === false || (persist === true && isMayPush));
-      });
-    })
+    .filter(([, job]) =>
+      (job.steps ?? []).some(
+        (step) =>
+          step.uses?.startsWith("actions/checkout@") === true &&
+          step.with?.["persist-credentials"] !== false,
+      ),
+    )
     .map(([jobName]) => jobName);
+}
+
+/**
+ * Finds `run:` scripts that call commitlint through `bunx` instead of the
+ * `lint:commits` package script.
+ * @param workflow The parsed workflow.
+ * @returns The offending scripts.
+ */
+function findDirectCommitlintCalls(workflow: Workflow): string[] {
+  return collectSteps(workflow)
+    .map((step) => step.run ?? "")
+    .filter((script) => /\bbunx\s+commitlint\b/.test(script));
 }
 
 /**
@@ -542,6 +551,26 @@ function workflowWithConcurrency(concurrency: string): Workflow {
   return parseWorkflow(`on: push\n${concurrency}jobs: {}\n`);
 }
 
+/**
+ * Builds a one-job workflow whose only step runs the given script.
+ * @param run The script body.
+ * @returns The parsed workflow.
+ */
+function workflowWithRun(run: string): Workflow {
+  return parseWorkflow(`${JOB_HEADER}    steps:\n      - run: ${run}\n`);
+}
+
+/**
+ * Builds a one-job workflow that uploads an `e2e-report` artifact.
+ * @param condition The raw YAML `if:` line of the upload step, or "".
+ * @returns The parsed workflow.
+ */
+function workflowUploadingReport(condition: string): Workflow {
+  return parseWorkflow(
+    `${JOB_HEADER}    steps:\n      - uses: actions/upload-artifact@${PINNED_SHA}\n${condition}        with:\n          name: e2e-report\n`,
+  );
+}
+
 describe("hardening detectors", () => {
   test("flags a job without timeout-minutes", () => {
     const bad = parseWorkflow(`${JOB_HEADER}    steps:
@@ -568,20 +597,22 @@ describe("hardening detectors", () => {
     expect(findCheckoutsPersistingCredentials(disabled)).toEqual([]);
   });
 
-  test("allows explicit persist-credentials only for a pushing job", () => {
-    const steps = `    steps:
+  test("flags persist-credentials: true even for a pushing job", () => {
+    const pushing = parseWorkflow(`${JOB_HEADER}    permissions:
+      contents: write
+    steps:
       - uses: ${CHECKOUT}
         with:
           persist-credentials: true
-`;
-    const pushing = parseWorkflow(`${JOB_HEADER}    permissions:
-      contents: write
-${steps}`);
-    const readOnly = parseWorkflow(`${JOB_HEADER}    permissions:
-      contents: read
-${steps}`);
-    expect(findCheckoutsPersistingCredentials(pushing)).toEqual([]);
-    expect(findCheckoutsPersistingCredentials(readOnly)).toEqual(["build"]);
+`);
+    expect(findCheckoutsPersistingCredentials(pushing)).toEqual(["build"]);
+  });
+
+  test("flags a direct bunx commitlint call", () => {
+    expect(
+      findDirectCommitlintCalls(workflowWithRun("bunx commitlint --from a --to b")),
+    ).toHaveLength(1);
+    expect(findDirectCommitlintCalls(workflowWithRun("bun run lint:commits"))).toEqual([]);
   });
 
   test("flags the pull_request_target trigger", () => {
@@ -983,11 +1014,386 @@ describe("release.yml changelog guard", () => {
   });
 });
 
+const TAG_GUARD_STEP = "Require a signed annotated tag that matches package.json";
+const SIGNING_KEYS_STEP = "Fetch the tag object and the owner's SSH signing keys";
+
+type TagKind = "lightweight" | "annotated" | "signed" | "signed by a stranger";
+
+/**
+ * Runs a command in a scratch directory with an isolated git configuration.
+ * @param directory The working directory.
+ * @param command The command and its arguments.
+ * @param environment The environment of the command.
+ * @returns The spawn result.
+ */
+function runIn(
+  directory: string,
+  command: readonly string[],
+  environment: Record<string, string>,
+): ReturnType<typeof spawnSync> {
+  const [executable, ...commandArguments] = command;
+  if (executable === undefined) throw new Error("runIn needs a command");
+  const result = spawnSync(executable, commandArguments, {
+    cwd: directory,
+    env: environment,
+    encoding: "utf8",
+  });
+  return result;
+}
+
+/**
+ * Runs the release workflow's tag guard the way the runner does, in a scratch
+ * repository holding a `package.json` and a tag of the given kind.
+ * @param options The tag name, its kind and the `package.json` version.
+ * @param options.tag The pushed tag, as `GITHUB_REF_NAME`.
+ * @param options.kind How the tag is created.
+ * @param options.packageVersion The `version` field, or undefined to omit it.
+ * @returns The exit code and the output of the guard.
+ */
+function runTagGuard(options: { tag: string; kind: TagKind; packageVersion: string | undefined }): {
+  status: number | null;
+  output: string;
+} {
+  const script = collectSteps(readWorkflow("release.yml")).find(
+    (step) => step.name === TAG_GUARD_STEP,
+  )?.run;
+  if (script === undefined) throw new Error(`release.yml has no "${TAG_GUARD_STEP}" step`);
+  const directory = mkdtempSync(path.join(tmpdir(), "tag-guard-"));
+  const keys = mkdtempSync(path.join(tmpdir(), "tag-guard-keys-"));
+  const environment = {
+    PATH: process.env.PATH ?? "",
+    HOME: keys,
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    GIT_CONFIG_NOSYSTEM: "1",
+    GITHUB_REF_NAME: options.tag,
+    ALLOWED_SIGNERS: path.join(keys, "allowed_signers"),
+  };
+  const run = (command: readonly string[]) => runIn(directory, command, environment);
+  try {
+    for (const name of ["owner", "stranger"]) {
+      runIn(keys, ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", name], environment);
+    }
+    writeFileSync(
+      environment.ALLOWED_SIGNERS,
+      `* ${readFileSync(path.join(keys, "owner.pub"), "utf8")}`,
+    );
+    writeFileSync(
+      path.join(directory, "package.json"),
+      JSON.stringify(
+        options.packageVersion === undefined ? {} : { version: options.packageVersion },
+      ),
+    );
+    run(["git", "init", "-q"]);
+    run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.test", "add", "."]);
+    run([
+      "git",
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.test",
+      "commit",
+      "-qm",
+      "init",
+    ]);
+    const identity = ["-c", "user.name=Test", "-c", "user.email=test@example.test"];
+    const signer = (name: string) => [
+      ...identity,
+      "-c",
+      "gpg.format=ssh",
+      "-c",
+      `user.signingkey=${path.join(keys, `${name}.pub`)}`,
+    ];
+    const tagCommands: Record<TagKind, string[]> = {
+      lightweight: ["git", ...identity, "tag", options.tag],
+      annotated: ["git", ...identity, "tag", "-a", "-m", "release", options.tag],
+      signed: ["git", ...signer("owner"), "tag", "-s", "-m", "release", options.tag],
+      "signed by a stranger": [
+        "git",
+        ...signer("stranger"),
+        "tag",
+        "-s",
+        "-m",
+        "release",
+        options.tag,
+      ],
+    };
+    const tagged = run(tagCommands[options.kind]);
+    if (tagged.status !== 0) throw new Error(`could not create the tag: ${String(tagged.stderr)}`);
+    writeFileSync(path.join(directory, "guard.sh"), script);
+    const result = run(["bash", "--noprofile", "--norc", "-eo", "pipefail", "guard.sh"]);
+    return {
+      status: result.status,
+      output: `${String(result.stdout)}${String(result.stderr)}`,
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+    rmSync(keys, { recursive: true, force: true });
+  }
+}
+
+describe("release.yml tag guard", () => {
+  const release = readWorkflow("release.yml");
+  const names = collectSteps(release).map((step) => step.name);
+
+  test("runs before every other gate and before the Release", () => {
+    const guard = names.indexOf(TAG_GUARD_STEP);
+    expect(guard).toBeGreaterThan(-1);
+    expect(names.indexOf(SIGNING_KEYS_STEP)).toBeLessThan(guard);
+    for (const later of [
+      "Check the tagged commit is on main",
+      CHANGELOG_GUARD_STEP,
+      "Require green CI on the tagged commit",
+      "Create GitHub Release",
+    ]) {
+      expect(names.indexOf(later)).toBeGreaterThan(guard);
+    }
+  });
+
+  test("reads the owner's SSH signing keys into the file the guard verifies against", () => {
+    const steps = collectSteps(release);
+    const keysStep = steps.find((step) => step.name === SIGNING_KEYS_STEP);
+    const guardStep = steps.find((step) => step.name === TAG_GUARD_STEP);
+    expect(keysStep?.run).toContain("ssh_signing_keys");
+    expect(keysStep?.run).toContain("refs/tags/${GITHUB_REF_NAME}");
+    expect(keysStep?.env?.ALLOWED_SIGNERS).toBe("${{ runner.temp }}/allowed_signers");
+    expect(guardStep?.env?.ALLOWED_SIGNERS).toBe(keysStep?.env?.ALLOWED_SIGNERS);
+  });
+
+  test("passes a tag signed by the owner that matches package.json", () => {
+    const result = runTagGuard({
+      tag: "v1.2.3",
+      kind: "signed",
+      packageVersion: "1.2.3",
+    });
+    expect(result.output).toContain("v1.2.3");
+    expect(result.status).toBe(0);
+  });
+
+  test("fails a lightweight tag", () => {
+    const result = runTagGuard({
+      tag: "v1.2.3",
+      kind: "lightweight",
+      packageVersion: "1.2.3",
+    });
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("lightweight");
+  });
+
+  test.each<TagKind>(["annotated", "signed by a stranger"])("fails when the tag is %s", (kind) => {
+    const result = runTagGuard({
+      tag: "v1.2.3",
+      kind,
+      packageVersion: "1.2.3",
+    });
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("signature");
+  });
+
+  test.each([
+    ["another version", "1.2.4"],
+    ["no version", undefined],
+  ])("fails when package.json has %s", (_label, packageVersion) => {
+    const result = runTagGuard({
+      tag: "v1.2.3",
+      kind: "signed",
+      packageVersion,
+    });
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("package.json");
+  });
+});
+
 describe("codeql.yml", () => {
+  const codeql = readWorkflow("codeql.yml");
+
   test("scans the workflows as well as the code", () => {
-    expect(collectCodeqlLanguages(readWorkflow("codeql.yml"))).toEqual([
-      "actions",
-      "javascript-typescript",
+    expect(collectCodeqlLanguages(codeql)).toEqual(["actions", "javascript-typescript"]);
+  });
+
+  test("runs without a build on pull requests, trunk pushes and dispatch", () => {
+    const init = collectSteps(codeql).find((step) =>
+      step.uses?.startsWith("github/codeql-action/init@"),
+    );
+    expect(init?.with?.["build-mode"]).toBe("none");
+    for (const trigger of ["pull_request", "push", "workflow_dispatch"]) {
+      expect(triggerNames(codeql)).toContain(trigger);
+    }
+    const push = (codeql.on as { push?: { branches?: string[] } }).push;
+    expect(push?.branches).toEqual(["main", "develop"]);
+  });
+});
+
+const PUBLIC_ONLY_CONDITION = "!github.event.repository.private";
+
+describe("security scans", () => {
+  test.each([
+    ["codeql.yml", "analyze"],
+    ["scorecard.yml", "analysis"],
+  ])("%s skips private repositories", (fileName, jobName) => {
+    expect(readWorkflow(fileName).jobs?.[jobName]?.if ?? "").toContain(PUBLIC_ONLY_CONDITION);
+  });
+
+  test("Scorecard runs on main pushes and branch protection changes and uploads SARIF", () => {
+    const scorecard = readWorkflow("scorecard.yml");
+    for (const trigger of ["push", "branch_protection_rule"]) {
+      expect(triggerNames(scorecard)).toContain(trigger);
+    }
+    expect((scorecard.on as { push?: { branches?: string[] } }).push?.branches).toEqual(["main"]);
+    const steps = collectSteps(scorecard);
+    expect(
+      steps.find((step) => step.uses?.startsWith("ossf/scorecard-action@"))?.with?.results_format,
+    ).toBe("sarif");
+    expect(steps.some((step) => step.uses?.startsWith("github/codeql-action/upload-sarif@"))).toBe(
+      true,
+    );
+  });
+});
+
+/**
+ * Finds `upload-artifact` steps that upload a test report on every run instead
+ * of only on failure. A report is an artifact whose name says report or diff.
+ * @param workflow The parsed workflow.
+ * @returns The names of the offending artifacts.
+ */
+function findReportsUploadedOutsideFailure(workflow: Workflow): string[] {
+  return collectSteps(workflow)
+    .filter((step) => step.uses?.startsWith("actions/upload-artifact@"))
+    .map((step) => ({
+      name: typeof step.with?.name === "string" ? step.with.name : "",
+      condition: step.if,
+    }))
+    .filter(({ name }) => /report|diff/.test(name))
+    .filter(({ condition }) => condition !== "failure()")
+    .map(({ name }) => name);
+}
+
+describe("deploys, reports and the Bun canary", () => {
+  test("flags a test report uploaded on success", () => {
+    const upload = workflowUploadingReport;
+    expect(findReportsUploadedOutsideFailure(upload(""))).toEqual(["e2e-report"]);
+    expect(findReportsUploadedOutsideFailure(upload("        if: always()\n"))).toEqual([
+      "e2e-report",
+    ]);
+    expect(findReportsUploadedOutsideFailure(upload("        if: failure()\n"))).toEqual([]);
+  });
+
+  test.each(listWorkflowFiles())("%s uploads test reports only on failure", (fileName) => {
+    expect(findReportsUploadedOutsideFailure(readWorkflow(fileName))).toEqual([]);
+  });
+
+  test("the CI test job uploads its JUnit report on failure", () => {
+    const steps = readWorkflow("ci.yml").jobs?.test?.steps ?? [];
+    expect(steps.map((step) => step.run)).toContain(
+      "bun run test --reporter=junit --reporter-outfile=junit.xml",
+    );
+    const upload = steps.find((step) => step.uses?.startsWith("actions/upload-artifact@"));
+    expect(upload?.if).toBe("failure()");
+    expect(upload?.with?.path).toBe("junit.xml");
+  });
+
+  test("labels sync only applies on main and dry-runs everywhere else", () => {
+    const sync = collectSteps(readWorkflow("labels.yml")).find((step) =>
+      step.uses?.startsWith("crazy-max/ghaction-github-labeler@"),
+    );
+    expect(sync?.with?.["dry-run"]).toBe("${{ github.ref != 'refs/heads/main' }}");
+  });
+
+  test("Scorecard publishes from main only", () => {
+    expect(readWorkflow("scorecard.yml").jobs?.analysis?.if ?? "").toContain(
+      "github.ref == 'refs/heads/main'",
+    );
+  });
+
+  test("a latest-Bun canary runs outside the required aggregate", () => {
+    const ci = readWorkflow("ci.yml");
+    const canary = ci.jobs?.["bun-canary"];
+    expect(canary?.["continue-on-error"]).toBe(true);
+    const setup = (canary?.steps ?? []).find((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
+    expect(setup?.with?.["bun-version"]).toBe("latest");
+    expect((canary?.steps ?? []).map((step) => step.run)).toContain("bun run test");
+    expect(ci.jobs?.["ci-passed"]?.needs).not.toContain("bun-canary");
+  });
+
+  test("the pinned jobs still read the Bun version from package.json", () => {
+    const ci = readWorkflow("ci.yml");
+    const pinned = Object.entries(ci.jobs ?? {})
+      .filter(([jobName]) => jobName !== "bun-canary")
+      .flatMap(([, job]) => job.steps ?? [])
+      .filter((step) => step.uses?.startsWith("oven-sh/setup-bun@"));
+    expect(pinned.length).toBeGreaterThan(0);
+    expect(pinned.every((step) => step.with?.["bun-version-file"] === "package.json")).toBe(true);
+  });
+});
+
+describe("triggers", () => {
+  test.each(["ci.yml", "codeql.yml", "lint-docs.yml", "lint-workflows.yml"])(
+    "%s can be dispatched by hand",
+    (fileName) => {
+      expect(triggerNames(readWorkflow(fileName))).toContain("workflow_dispatch");
+    },
+  );
+
+  test("actionlint and zizmor also run on trunk pushes that touch .github", () => {
+    const on = readWorkflow("lint-workflows.yml").on as {
+      push?: { branches?: string[]; paths?: string[] };
+      pull_request?: { paths?: string[] };
+    };
+    expect(on.push?.branches).toEqual(["main", "develop"]);
+    expect(on.push?.paths).toEqual([".github/**"]);
+    expect(on.pull_request?.paths).toEqual([".github/**"]);
+  });
+});
+
+/**
+ * Lists the required status check contexts of every ruleset file.
+ * @returns Pairs of ruleset file name and required context.
+ */
+function listRulesetContexts(): [string, string][] {
+  const directory = new URL("../.github/rulesets/", import.meta.url);
+  return ["main.json", "develop.json", "tags.json"].flatMap((fileName) => {
+    const text = readFileSync(new URL(fileName, directory), "utf8");
+    const ruleset = JSON.parse(text) as {
+      rules: {
+        parameters?: { required_status_checks?: { context: string }[] };
+      }[];
+    };
+    return ruleset.rules
+      .flatMap((rule) => rule.parameters?.required_status_checks ?? [])
+      .map((check): [string, string] => [fileName, check.context]);
+  });
+}
+
+/**
+ * Finds the workflows whose jobs produce a check context. A required check
+ * must come from a workflow that runs on every pull request, or the merge
+ * waits forever for a check that never reports.
+ * @param context The required check context.
+ * @returns The file names of the workflows whose jobs carry that name.
+ */
+function findWorkflowsProducing(context: string): string[] {
+  return listWorkflowFiles().filter((fileName) =>
+    collectJobNames(readWorkflow(fileName)).includes(context),
+  );
+}
+
+describe("required checks", () => {
+  test.each(listRulesetContexts())(
+    "%s requires %s, which a job of an unfiltered pull_request workflow produces",
+    (_fileName, context) => {
+      const producers = findWorkflowsProducing(context);
+      expect(producers).toHaveLength(1);
+      const on = readWorkflow(producers[0] ?? "").on as {
+        pull_request?: { paths?: unknown } | null;
+      };
+      expect(Object.keys(on)).toContain("pull_request");
+      expect(on.pull_request?.paths).toBeUndefined();
+    },
+  );
+
+  test.each(["main.json", "develop.json"])("%s requires the CodeQL analyze job", (fileName) => {
+    expect(listRulesetContexts()).toContainEqual([
+      fileName,
+      readWorkflow("codeql.yml").jobs?.analyze?.name ?? "missing analyze job",
     ]);
   });
 });
@@ -1076,6 +1482,29 @@ describe.each(listWorkflowFiles())("%s", (fileName) => {
 
   test("every setup-node reads .node-version", () => {
     expect(findSetupNodeWithoutVersionFile(workflow)).toEqual([]);
+  });
+
+  test("no step calls bunx commitlint", () => {
+    expect(findDirectCommitlintCalls(workflow)).toEqual([]);
+  });
+});
+
+describe("commit and push credentials", () => {
+  test("the commitlint job lints through bun run lint:commits", () => {
+    const steps = readWorkflow("ci.yml").jobs?.commitlint?.steps ?? [];
+    const runs = steps.map((step) => step.run);
+    const rangeStart = runs.indexOf('git update-ref refs/remotes/origin/main "${BASE_SHA}"');
+    expect(rangeStart).toBeGreaterThan(-1);
+    expect(steps[rangeStart]?.env?.BASE_SHA).toBe("${{ github.event.pull_request.base.sha }}");
+    expect(rangeStart).toBeLessThan(runs.indexOf("bun run lint:commits"));
+  });
+
+  test("grid-snapshot.yml pushes with the token from the step env, not the git config", () => {
+    const steps = readWorkflow("grid-snapshot.yml").jobs?.refresh?.steps ?? [];
+    const push = steps.find((step) => (step.run ?? "").includes("push origin"));
+    expect(push?.env?.GH_TOKEN).toBe("${{ github.token }}");
+    expect(push?.run).toContain("http.https://github.com/.extraheader");
+    expect(push?.run).toContain('"${GH_TOKEN}"');
   });
 });
 

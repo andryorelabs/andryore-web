@@ -25,6 +25,39 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Fetch the tag object and the owner's SSH signing keys
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALLOWED_SIGNERS: ${{ runner.temp }}/allowed_signers
+        run: |
+          git fetch --no-tags --force origin "+refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          gh api "users/${GITHUB_REPOSITORY_OWNER}/ssh_signing_keys" \
+            --jq '.[] | "* namespaces=\"git\" " + .key' > "${ALLOWED_SIGNERS}"
+          if [[ ! -s "${ALLOWED_SIGNERS}" ]]; then
+            echo "::error::${GITHUB_REPOSITORY_OWNER} has no SSH signing key on GitHub to verify ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Require a signed annotated tag that matches package.json
+        env:
+          ALLOWED_SIGNERS: ${{ runner.temp }}/allowed_signers
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ "$(git cat-file -t "refs/tags/${tag}")" != "tag" ]]; then
+            echo "::error::${tag} is a lightweight tag; push an annotated, signed tag (git tag -s)"
+            exit 1
+          fi
+          if ! git -c gpg.ssh.allowedSignersFile="${ALLOWED_SIGNERS}" tag -v "${tag}"; then
+            echo "::error::${tag} has no valid signature from a key of the repository owner"
+            exit 1
+          fi
+          package_version="$(jq -r '.version // empty' package.json)"
+          if [[ "v${package_version}" != "${tag}" ]]; then
+            echo "::error file=package.json::package.json version \"${package_version}\" does not match tag ${tag}"
+            exit 1
+          fi
+          echo "${tag} is a signed annotated tag matching package.json"
+
       - name: Check the tagged commit is on main
         run: |
           git fetch --no-tags origin main
