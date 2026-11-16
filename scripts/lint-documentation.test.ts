@@ -189,28 +189,34 @@ describe("ensureLycheeBinary", () => {
   });
 });
 
+const noIgnoredLinks = (): [] => [];
+
 describe("runDocumentationLint", () => {
   test("runs lychee with the shared args plus the extra ones", async () => {
     const ensureBinary = mock().mockResolvedValue("/bin/lychee");
     const spawnBinary = mock().mockResolvedValue(2);
-    expect(await runDocumentationLint(["--verbose"], ensureBinary, spawnBinary)).toBe(2);
+    expect(
+      await runDocumentationLint(["--verbose"], ensureBinary, spawnBinary, noIgnoredLinks),
+    ).toBe(2);
     expect(ensureBinary).toHaveBeenCalledWith(LYCHEE_VERSION);
     expect(spawnBinary).toHaveBeenCalledWith("/bin/lychee", [...LYCHEE_ARGS, "--verbose"]);
   });
 
   test("returns the exit code of the spawned binary", async () => {
     const ensureBinary = mock().mockResolvedValue("/usr/bin/false");
-    expect(await runDocumentationLint([], ensureBinary)).toBe(1);
+    expect(await runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks)).toBe(1);
   });
 
   test("resolves zero when the spawned binary succeeds", async () => {
     const ensureBinary = mock().mockResolvedValue("/usr/bin/true");
-    expect(await runDocumentationLint([], ensureBinary)).toBe(0);
+    expect(await runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks)).toBe(0);
   });
 
   test("rejects when the binary cannot be spawned", async () => {
     const ensureBinary = mock().mockResolvedValue("/nonexistent/lychee");
-    const message = await rejectionMessage(runDocumentationLint([], ensureBinary));
+    const message = await rejectionMessage(
+      runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks),
+    );
     expect(message).toBeString();
   });
 });
@@ -250,7 +256,7 @@ describe("repository-backed lint", () => {
   afterEach(() => {
     process.chdir(originalDirectory);
     process.argv[1] = originalArgument ?? "";
-    process.exitCode = originalExitCode;
+    process.exitCode = originalExitCode ?? 0;
     for (const directory of directories.splice(0)) {
       rmSync(directory, { recursive: true, force: true });
     }

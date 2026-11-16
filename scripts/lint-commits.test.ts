@@ -141,7 +141,7 @@ describe("entry point", () => {
     process.chdir(originalDirectory);
     process.argv[1] = originalArgument ?? "";
     process.env.PATH = originalPath;
-    process.exitCode = originalExitCode;
+    process.exitCode = originalExitCode ?? 0;
     for (const directory of directories.splice(0)) {
       rmSync(directory, { recursive: true, force: true });
     }
