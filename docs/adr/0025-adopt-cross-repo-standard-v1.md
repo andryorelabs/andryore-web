@@ -2,9 +2,13 @@
 
 ## Status
 
-Accepted
+Accepted. Amended by [0027](0027-adopt-cross-repo-standard-v2.md): standard v2
+is adopted on top of v1.
 
 Date: 2026-11-11
+
+Revised: 2026-11-16, "no root llms.txt" now reads "no repository-root llms.txt",
+F3 and H6 point to the ADRs that meet them (0024 and 0022), and 0027 amends it.
 
 ## Context
 
@@ -31,8 +35,14 @@ The standard's items that do not apply here, each with its reason:
 - **Build attestation.** No release artifact is published, so there is nothing
   to attest.
 - **Plugin manifests.** The repository ships no agent plugin.
-- **Root `llms.txt`.** Crawler and agent access is set by `robots.txt`
-  ([0013](0013-ai-crawler-policy.md)); no root `llms.txt` is published.
+- **Repository-root `llms.txt`.** Crawler and agent access is set by
+  `robots.txt` ([0013](0013-ai-crawler-policy.md)); the Site serves its own
+  `/llms.txt`, and no repository-root `llms.txt` is kept.
+
+Two standard items are met by earlier decisions: the runner expression with
+`BLACKSMITH_RUNNER` (F3) by [0024](0024-ci-runner-standard-and-sharded-site-quality.md),
+and the dotenvx-encrypted `.env` that may be committed while `.env.keys` never is
+(H6) by [0022](0022-secrets-in-dotenvx-encrypted-env-files.md).
 
 Repository settings that the standard lists are applied from a committed
 settings list, and `bun run repo-settings:check` reports drift against GitHub
