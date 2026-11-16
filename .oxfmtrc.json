@@ -7,8 +7,9 @@
     "functions": ["cn", "cva", "clsx"]
   },
   "sortImports": {
-    "newlinesBetween": true,
     "internalPattern": ["@/"],
+    "ignoreCase": true,
+    "newlinesBetween": true,
     "customGroups": [
       {
         "groupName": "astro",
@@ -32,9 +33,6 @@
   },
   "ignorePatterns": [
     "*.cjs",
-    "*.cts",
-    "*.mts",
-    "*.jsonc",
     "*.toml",
     "*.html",
     "*.vue",

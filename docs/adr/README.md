@@ -39,5 +39,6 @@ ADR 0016 does not exist: its decision was merged into
 | 0022   | [Secrets live in dotenvx-encrypted env files](0022-secrets-in-dotenvx-encrypted-env-files.md)            | Accepted | -                               |
 | 0023   | [Oxc toolchain and TypeScript 7.1](0023-oxc-toolchain-and-typescript-7-1.md)                             | Accepted | -                               |
 | 0024   | [CI runner standard and sharded Site quality](0024-ci-runner-standard-and-sharded-site-quality.md)       | Accepted | -                               |
-| 0025   | [Adopt the cross-repo standard v1](0025-adopt-cross-repo-standard-v1.md)                                 | Accepted | -                               |
+| 0025   | [Adopt the cross-repo standard v1](0025-adopt-cross-repo-standard-v1.md)                                 | Accepted | 0027                            |
 | 0026   | [develop promoted to main by merge commit](0026-develop-promoted-to-main-by-merge-commit.md)             | Accepted | -                               |
+| 0027   | [Adopt the cross-repo standard v2](0027-adopt-cross-repo-standard-v2.md)                                 | Accepted | -                               |
