@@ -1,6 +1,11 @@
 import { defineConfig } from "oxlint";
 
 import {
+  BASELINE_TEST_FILE_GLOBS,
+  OXLINT_BASELINE_RULES,
+  OXLINT_BASELINE_TEST_RULES,
+} from "./eslint-rules/oxlint-baseline.mjs";
+import {
   OXLINT_BASE_RULES,
   OXLINT_IGNORE_PATTERNS,
   OXLINT_JS_PLUGINS,
@@ -16,6 +21,10 @@ import {
  * configs ESLint uses. Every category is off so nothing beyond them runs.
  * `bun run lint:oxlint` passes `--type-aware` (tsgolint) and
  * `--deny-warnings`, which gates `warn` like ESLint's `--max-warnings=0`.
+ * On top, every rule of aokit's shared Oxlint baseline (standard rule E10,
+ * `eslint-rules/oxlint-baseline.mjs`) is an error; the test-only baseline
+ * rules apply to test files. `scripts/oxlint-baseline.test.ts` fails when a
+ * baseline rule goes missing.
  */
 export default defineConfig({
   plugins: OXLINT_NATIVE_PLUGINS,
@@ -32,7 +41,10 @@ export default defineConfig({
   },
   options: { reportUnusedDisableDirectives: "error" },
   settings: OXLINT_SETTINGS,
-  rules: OXLINT_BASE_RULES,
-  overrides: OXLINT_OVERRIDES,
+  rules: { ...OXLINT_BASE_RULES, ...OXLINT_BASELINE_RULES },
+  overrides: [
+    ...OXLINT_OVERRIDES,
+    { files: BASELINE_TEST_FILE_GLOBS, rules: OXLINT_BASELINE_TEST_RULES },
+  ],
   ignorePatterns: OXLINT_IGNORE_PATTERNS,
 });

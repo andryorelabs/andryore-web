@@ -20,7 +20,7 @@ knip) and the documentation:
   tests.
 
 The domain vocabulary is in [`GLOSSARY.md`](GLOSSARY.md). Skills live in
-`.claude/skills` (25 of them, including `playwright-component-testing`,
+`.claude/skills` (27 of them, including `playwright-component-testing`,
 `product-marketing` and `typescript-advanced-types`) and are pinned in
 `skills-lock.json`. A map of the docs tree is in
 [`docs/README.md`](docs/README.md).

@@ -128,10 +128,19 @@ const LOCAL_DIRECTIVE_RULES = new Set([
 ]);
 
 /**
- * The native Oxlint plugins `NATIVE_PORTS` and tsgolint rules need. Every
+ * The native Oxlint plugins `NATIVE_PORTS`, tsgolint rules and the Oxlint
+ * baseline (`oxlint-baseline.mjs`) need. Every
  * category is off, so enabling a plugin runs none of its other rules.
  */
-export const OXLINT_NATIVE_PLUGINS = ["eslint", "typescript", "unicorn", "jsx-a11y"];
+export const OXLINT_NATIVE_PLUGINS = [
+  "eslint",
+  "typescript",
+  "unicorn",
+  "jsx-a11y",
+  "jsdoc",
+  "import",
+  "jest",
+];
 
 /**
  * typescript-eslint rules that need type information. They run on tsgolint
@@ -258,7 +267,9 @@ const TYPESCRIPT_RULES = {
   "@typescript-eslint/no-floating-promises": "error",
   "@typescript-eslint/await-thenable": "error",
   "@typescript-eslint/no-misused-promises": ["error", { checksVoidReturn: { attributes: false } }],
-  "@typescript-eslint/no-deprecated": "warn",
+  "@typescript-eslint/no-deprecated": "error",
+  "@typescript-eslint/return-await": ["error", "in-try-catch"],
+  "@typescript-eslint/switch-exhaustiveness-check": "error",
 };
 
 /**
