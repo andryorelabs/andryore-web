@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -11,22 +11,24 @@ import {
   type GitResult,
   type GitRunner,
 } from "./lint-commits";
-
-function readCommitlintRunCommand(): string {
-  const workflow = readFileSync(".github/workflows/ci.yml", "utf8");
-  const match = /run: (bunx commitlint .+)/.exec(workflow);
-  if (match?.[1] === undefined) {
-    throw new Error("ci.yml has no commitlint run step.");
-  }
-  return match[1].trim();
-}
+import { readWorkflow } from "./workflow-files";
 
 describe("buildCommitlintCommand", () => {
-  test("uses the same invocation and flags as the ci.yml commitlint job", () => {
-    const workflowCommand = readCommitlintRunCommand()
-      .replace('"$BASE_SHA"', "BASE")
-      .replace('"$HEAD_SHA"', "HEAD");
-    expect(buildCommitlintCommand("BASE", "HEAD").join(" ")).toBe(workflowCommand);
+  test("lints the range verbosely with the local commitlint", () => {
+    expect(buildCommitlintCommand("BASE", "HEAD")).toEqual([
+      "bunx",
+      "commitlint",
+      "--from",
+      "BASE",
+      "--to",
+      "HEAD",
+      "--verbose",
+    ]);
+  });
+
+  test("is what the ci.yml commitlint job runs, through bun run lint:commits", () => {
+    const runs = (readWorkflow("ci.yml").jobs?.commitlint?.steps ?? []).map((step) => step.run);
+    expect(runs).toContain("bun run lint:commits");
   });
 });
 

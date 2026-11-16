@@ -4,10 +4,15 @@ on:
   pull_request:
     paths:
       - ".github/**"
+  push:
+    branches: [main, develop]
+    paths:
+      - ".github/**"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

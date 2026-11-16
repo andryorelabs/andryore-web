@@ -50,6 +50,10 @@
           {
             "context": "Check markdown links",
             "integration_id": 15368
+          },
+          {
+            "context": "Analyze (actions, javascript-typescript)",
+            "integration_id": 15368
           }
         ]
       }

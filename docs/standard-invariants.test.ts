@@ -87,6 +87,12 @@ function skillLockDrift(
   };
 }
 
+function isMarkedGenerated(attributes: string, filePath: string): boolean {
+  return attributes
+    .split("\n")
+    .some((line) => line.trim().replaceAll(/\s+/g, " ") === `${filePath} linguist-generated`);
+}
+
 const trackedFiles = listTrackedFiles();
 
 describe("owner slug", () => {
@@ -210,5 +216,19 @@ describe("skills lock", () => {
       missingFromLock: [],
       missingFromDisk: ["b"],
     });
+  });
+});
+
+describe("generated files", () => {
+  const attributes = readFileSync(path.join(repositoryRoot, ".gitattributes"), "utf8");
+
+  test("bun.lock and skills-lock.json are marked linguist-generated", () => {
+    expect(isMarkedGenerated(attributes, "bun.lock")).toBe(true);
+    expect(isMarkedGenerated(attributes, "skills-lock.json")).toBe(true);
+  });
+
+  test("an unmarked file is detected", () => {
+    expect(isMarkedGenerated(attributes, "package.json")).toBe(false);
+    expect(isMarkedGenerated("skills-lock.json text", "skills-lock.json")).toBe(false);
   });
 });
