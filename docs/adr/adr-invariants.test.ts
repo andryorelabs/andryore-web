@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const ADR_DIRECTORY = import.meta.dir;
+const TEMPLATE_FILE_NAME = "0000-template.md";
 const ADR_FILE_PATTERN = /^(\d{4})-[\da-z-]+\.md$/;
 const ALLOWED_STATUSES = /^(Accepted|Proposed|Deprecated|Superseded)\b/;
 const NOT_YET_IMPLEMENTED_STATUS = /^Accepted — not yet implemented\b/;
@@ -207,6 +208,12 @@ function findAdrViolations(adrs: readonly AdrFile[], indexContent: string): stri
     if (revisedLines.some((line) => !VALID_REVISED_LINE_PATTERN.test(line))) {
       violations.push(`${adr.fileName}: Revised line must be "Revised: YYYY-MM-DD, <text>"`);
     }
+    const strayRevisedLines = adr.content
+      .split("\n")
+      .filter((line) => line.startsWith("Revised:") && !statusSection.includes(line));
+    if (strayRevisedLines.length > 0) {
+      violations.push(`${adr.fileName}: Revised line belongs in the Status section`);
+    }
     if (!indexContent.includes(`](${adr.fileName})`)) {
       violations.push(`${adr.fileName}: not listed in README`);
     }
@@ -230,7 +237,7 @@ function findAdrViolations(adrs: readonly AdrFile[], indexContent: string): stri
 
 function readAdrs(): AdrFile[] {
   return readdirSync(ADR_DIRECTORY)
-    .filter((fileName) => ADR_FILE_PATTERN.test(fileName))
+    .filter((fileName) => ADR_FILE_PATTERN.test(fileName) && fileName !== TEMPLATE_FILE_NAME)
     .toSorted((left, right) => left.localeCompare(right))
     .map((fileName) => ({
       fileName,
@@ -257,6 +264,26 @@ describe("ADR invariants", () => {
     expect(adrs.length).toBeGreaterThan(0);
     const indexContent = readFileSync(path.join(ADR_DIRECTORY, "README.md"), "utf8");
     expect(findAdrViolations(adrs, indexContent)).toEqual([]);
+  });
+});
+
+describe("ADR template", () => {
+  const template = readFileSync(path.join(ADR_DIRECTORY, TEMPLATE_FILE_NAME), "utf8");
+
+  it("has the ADR header and sections", () => {
+    expect(template.split("\n", 1)[0]).toMatch(/^# 0000: \S/);
+    for (const heading of ["## Status", "## Context", "## Decision", "## Consequences"]) {
+      expect(template).toContain(`${heading}\n`);
+    }
+    expect(template).toContain("\nDate: YYYY-MM-DD\n");
+  });
+
+  it("documents the Revised line format", () => {
+    expect(template).toContain("Revised: YYYY-MM-DD, what changed");
+  });
+
+  it("is not indexed as an ADR", () => {
+    expect(readAdrs().some((adr) => adr.fileName === TEMPLATE_FILE_NAME)).toBe(false);
   });
 });
 
@@ -355,6 +382,16 @@ describe("findAdrViolations", () => {
     };
     expect(findAdrViolations([adr], "[a](0001-fixture.md)")).toContain(
       '0001-fixture.md: Revised line must be "Revised: YYYY-MM-DD, <text>"',
+    );
+  });
+
+  it("flags a Revised line outside the Status section", () => {
+    const adr: AdrFile = {
+      ...fixtureAdr("0001"),
+      content: `${fixtureAdr("0001").content}\nRevised: 2026-10-19, late edit.\n`,
+    };
+    expect(findAdrViolations([adr], "[a](0001-fixture.md)")).toContain(
+      "0001-fixture.md: Revised line belongs in the Status section",
     );
   });
 

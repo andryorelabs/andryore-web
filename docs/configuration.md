@@ -23,8 +23,11 @@ list of names is [`.env.example`](../.env.example).
 endpoint server inside the image. A blank value, or an `encrypted:` value that
 nothing decrypted, counts as missing. Variables outside the Site (`CHROME_PATH`,
 `E2E_PORT`, `E2E_BASE_URL`, `AUDIT_BASE_URL`, `FIDELITY_CANVAS`,
-`SMOKE_BASE_URL`) only tune test and audit tooling; see
-[Development](development.md).
+`SMOKE_BASE_URL`, `PLAYWRIGHT_PREVIEW_COMMAND`, `PARITY_CORPUS`) only tune test
+and audit tooling, and `CI` and `GITHUB_STEP_SUMMARY` are set by GitHub Actions;
+see [Development](development.md). A test
+(`scripts/environment-docs.test.ts`) fails when code reads a variable that this
+page does not name.
 
 ## dotenvx workflow
 
