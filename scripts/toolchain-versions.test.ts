@@ -280,3 +280,75 @@ describe("every non-npm pin is Renovate-managed", () => {
     expect(matchedValues("scripts/lighthouse-budget.ts")).toEqual(["13.5.0"]);
   });
 });
+
+/**
+ * The standard's `sortImports` (E13): the common base with the Astro variant's
+ * custom group and group order.
+ */
+const STANDARD_SORT_IMPORTS = {
+  internalPattern: ["@/"],
+  ignoreCase: true,
+  newlinesBetween: true,
+  customGroups: [
+    {
+      groupName: "astro",
+      elementNamePattern: ["astro", "astro/**", "astro:*"],
+    },
+  ],
+  groups: [
+    "builtin",
+    { newlinesBetween: false },
+    "astro",
+    { newlinesBetween: false },
+    "external",
+    "internal",
+    ["parent", "sibling", "index"],
+    "unknown",
+  ],
+};
+
+function readRepositoryJson(relativePath: string): unknown {
+  return JSON.parse(readFileSync(path.join(REPO_ROOT, relativePath), "utf8"));
+}
+
+const formatConfig = readRepositoryJson(".oxfmtrc.json") as {
+  sortImports?: unknown;
+  ignorePatterns?: string[];
+};
+
+/**
+ * Reads the glob keys of `lint-staged.config.mjs` whose command list runs oxfmt.
+ * @returns The globs, as written in the config.
+ */
+function lintStagedOxfmtGlobs(): string[] {
+  const text = readFileSync(path.join(REPO_ROOT, "lint-staged.config.mjs"), "utf8");
+  return Array.from(text.matchAll(/"([^"]+)":\s*\[([^\]]*)\]/g), (match) => ({
+    glob: match[1] ?? "",
+    commands: match[2] ?? "",
+  }))
+    .filter(({ commands }) => commands.includes("oxfmt"))
+    .map(({ glob }) => glob);
+}
+
+function ignoringPatterns(file: string): string[] {
+  return (formatConfig.ignorePatterns ?? []).filter((pattern) => new Bun.Glob(pattern).match(file));
+}
+
+describe("format config (E13)", () => {
+  test(".oxfmtrc.json carries the standard's sortImports", () => {
+    expect(formatConfig.sortImports).toEqual(STANDARD_SORT_IMPORTS);
+  });
+
+  test("the oxfmt scope keeps .mts, .cts and .jsonc files", () => {
+    for (const file of ["config.mts", "config.cts", "settings.jsonc", "src/a.mts"]) {
+      expect(ignoringPatterns(file)).toEqual([]);
+    }
+  });
+
+  test("lint-staged formats .mts, .cts and .jsonc files", () => {
+    const globs = lintStagedOxfmtGlobs();
+    for (const file of ["config.mts", "config.cts", "settings.jsonc"]) {
+      expect(globs.some((glob) => new Bun.Glob(glob).match(file))).toBe(true);
+    }
+  });
+});
