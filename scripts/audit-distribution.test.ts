@@ -51,6 +51,12 @@ describe("auditHtml", () => {
   });
 });
 
+describe("auditHtml malformed URLs", () => {
+  test("ignores a script whose URL cannot be parsed", () => {
+    expect(auditHtml('<script src="//[broken"></script>')).toEqual([]);
+  });
+});
+
 describe("auditCss", () => {
   test("flags remote url() and @import", () => {
     const css = `a{background:url(https://x.example/a.png)} @import "https://y.example/b.css"; b{background:url(/local.png)}`;

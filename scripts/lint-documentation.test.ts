@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
+  buildIgnoredMarkdownExcludeArguments,
   buildLycheeCacheRelativePath,
   buildLycheeDownloadUrl,
   ensureLycheeBinary,
@@ -188,28 +189,34 @@ describe("ensureLycheeBinary", () => {
   });
 });
 
+const noIgnoredLinks = (): [] => [];
+
 describe("runDocumentationLint", () => {
   test("runs lychee with the shared args plus the extra ones", async () => {
     const ensureBinary = mock().mockResolvedValue("/bin/lychee");
     const spawnBinary = mock().mockResolvedValue(2);
-    expect(await runDocumentationLint(["--verbose"], ensureBinary, spawnBinary)).toBe(2);
+    expect(
+      await runDocumentationLint(["--verbose"], ensureBinary, spawnBinary, noIgnoredLinks),
+    ).toBe(2);
     expect(ensureBinary).toHaveBeenCalledWith(LYCHEE_VERSION);
     expect(spawnBinary).toHaveBeenCalledWith("/bin/lychee", [...LYCHEE_ARGS, "--verbose"]);
   });
 
   test("returns the exit code of the spawned binary", async () => {
     const ensureBinary = mock().mockResolvedValue("/usr/bin/false");
-    expect(await runDocumentationLint([], ensureBinary)).toBe(1);
+    expect(await runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks)).toBe(1);
   });
 
   test("resolves zero when the spawned binary succeeds", async () => {
     const ensureBinary = mock().mockResolvedValue("/usr/bin/true");
-    expect(await runDocumentationLint([], ensureBinary)).toBe(0);
+    expect(await runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks)).toBe(0);
   });
 
   test("rejects when the binary cannot be spawned", async () => {
     const ensureBinary = mock().mockResolvedValue("/nonexistent/lychee");
-    const message = await rejectionMessage(runDocumentationLint([], ensureBinary));
+    const message = await rejectionMessage(
+      runDocumentationLint([], ensureBinary, undefined, noIgnoredLinks),
+    );
     expect(message).toBeString();
   });
 });
@@ -236,5 +243,88 @@ describe("findLinksToIgnoredPaths", () => {
     expect(findLinksToIgnoredPaths(["README.md"], () => "[b](docs/public.md)", isIgnored)).toEqual(
       [],
     );
+  });
+});
+
+describe("repository-backed lint", () => {
+  const originalDirectory = process.cwd();
+  const originalArgument = process.argv[1];
+  const originalExitCode = process.exitCode;
+  const directories: string[] = [];
+  let importCounter = 0;
+
+  afterEach(() => {
+    process.chdir(originalDirectory);
+    process.argv[1] = originalArgument ?? "";
+    process.exitCode = originalExitCode ?? 0;
+    for (const directory of directories.splice(0)) {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  function makeDirectory(): string {
+    const directory = mkdtempSync(path.join(tmpdir(), "lint-docs-repo-"));
+    directories.push(directory);
+    return directory;
+  }
+
+  function makeRepository(): string {
+    const directory = makeDirectory();
+    expect(spawnSync("git", ["init", "-q"], { cwd: directory }).status).toBe(0);
+    writeFileSync(path.join(directory, ".gitignore"), "private.md\nnode_modules/\n");
+    writeFileSync(path.join(directory, "README.md"), "[hidden](private.md)\n");
+    writeFileSync(path.join(directory, "private.md"), "# private\n");
+    mkdirSync(path.join(directory, "node_modules"));
+    writeFileSync(path.join(directory, "node_modules", "dependency.md"), "# dependency\n");
+    expect(spawnSync("git", ["add", "README.md", ".gitignore"], { cwd: directory }).status).toBe(0);
+    return directory;
+  }
+
+  async function runEntry(directory: string): Promise<number | string | undefined> {
+    process.chdir(directory);
+    const modulePath = path.join(originalDirectory, "scripts", "lint-documentation.ts");
+    process.argv[1] = modulePath;
+    process.exitCode = undefined;
+    importCounter += 1;
+    await import(`${modulePath}?entry=${String(importCounter)}`);
+    return process.exitCode;
+  }
+
+  test("excludes ignored Markdown files but not node_modules", () => {
+    process.chdir(makeRepository());
+    expect(buildIgnoredMarkdownExcludeArguments()).toEqual(["--exclude-path", "private.md"]);
+  });
+
+  test("throws when git ls-files fails outside a repository", () => {
+    process.chdir(makeDirectory());
+    expect(() => buildIgnoredMarkdownExcludeArguments()).toThrow(/git ls-files/);
+  });
+
+  test("runDocumentationLint rejects when tracked files cannot be listed", async () => {
+    process.chdir(makeDirectory());
+    const ensureBinary = mock().mockResolvedValue("/bin/lychee");
+    const spawnBinary = mock().mockResolvedValue(0);
+    let message = "";
+    try {
+      await runDocumentationLint([], ensureBinary, spawnBinary);
+    } catch (error: unknown) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    expect(message).toMatch(/git ls-files/);
+    expect(spawnBinary).not.toHaveBeenCalled();
+  });
+
+  test("the entry point fails on a link to a gitignored path", async () => {
+    const error = spyOn(console, "error").mockImplementation((): void => undefined);
+    expect(await runEntry(makeRepository())).toBe(1);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("links to gitignored path"));
+    error.mockRestore();
+  });
+
+  test("the entry point reports a failure outside a repository", async () => {
+    const error = spyOn(console, "error").mockImplementation((): void => undefined);
+    expect(await runEntry(makeDirectory())).toBe(1);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("git ls-files"));
+    error.mockRestore();
   });
 });

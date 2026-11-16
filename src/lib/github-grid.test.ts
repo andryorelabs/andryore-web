@@ -157,3 +157,51 @@ describe("resolveGridSnapshot", () => {
     ).toBeUndefined();
   });
 });
+
+const calendar = (inner: unknown) => ({
+  data: { user: { contributionsCollection: { contributionCalendar: inner } } },
+});
+const day = { date: "2026-10-12", contributionCount: 1, contributionLevel: "FIRST_QUARTILE" };
+
+describe("parseContributionResponse malformed bodies", () => {
+  test("rejects non-object bodies and missing layers", () => {
+    expect(parseContributionResponse("x", NOW)).toBeUndefined();
+    expect(parseContributionResponse({ data: null }, NOW)).toBeUndefined();
+    expect(parseContributionResponse({ data: { user: null } }, NOW)).toBeUndefined();
+    expect(parseContributionResponse({ data: { user: {} } }, NOW)).toBeUndefined();
+    expect(
+      parseContributionResponse({ data: { user: { contributionsCollection: {} } } }, NOW),
+    ).toBeUndefined();
+  });
+
+  test("rejects a calendar with a bad total or weeks", () => {
+    expect(
+      parseContributionResponse(calendar({ totalContributions: "1", weeks: [] }), NOW),
+    ).toBeUndefined();
+    expect(
+      parseContributionResponse(calendar({ totalContributions: 1, weeks: "x" }), NOW),
+    ).toBeUndefined();
+  });
+
+  test("rejects malformed weeks and days", () => {
+    const total = 1;
+    expect(
+      parseContributionResponse(calendar({ totalContributions: total, weeks: [null] }), NOW),
+    ).toBeUndefined();
+    expect(
+      parseContributionResponse(calendar({ totalContributions: total, weeks: [{}] }), NOW),
+    ).toBeUndefined();
+    const bad = [
+      null,
+      { ...day, date: 5 },
+      { ...day, contributionCount: "1" },
+      { ...day, contributionLevel: "HUGE" },
+    ];
+    for (const entry of bad) {
+      const weeks = [{ contributionDays: [entry] }];
+      expect(
+        parseContributionResponse(calendar({ totalContributions: total, weeks }), NOW),
+      ).toBeUndefined();
+    }
+  });
+});

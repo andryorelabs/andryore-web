@@ -21,7 +21,7 @@
   osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     enabled: true,
-    labels: ["Priority: Critical", "Type: Security"],
+    labels: ["Priority: Critical", "Type: Security", "security"],
     assignees: ["AndryOre"],
   },
 

@@ -8,6 +8,9 @@ the `main` ruleset no longer requires a linear history.
 
 Date: 2026-11-11
 
+Revised: 2026-11-16, the expected repository settings moved from
+`scripts/repo-settings.json` to `.github/repo-settings.json`.
+
 ## Context
 
 [0015](0015-develop-as-integration-branch.md) made `develop` the integration
@@ -71,6 +74,6 @@ repositories snug, aokit, emet and jobship already promote with a merge commit.
   a convention that no ruleset enforces.
 - Renaming a required job in a workflow means updating both branch rulesets in
   the same change, or `bun run test` fails.
-- `scripts/repo-settings.json` and `.github/rulesets/main.json` hold the
+- `.github/repo-settings.json` and `.github/rulesets/main.json` hold the
   expected values, and `bun run repo-settings:check` compares them with the live
   repository.

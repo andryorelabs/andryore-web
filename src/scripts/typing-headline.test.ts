@@ -77,4 +77,27 @@ describe("startPhraseTyping", () => {
     }
     expect(seen).toEqual(["a", "ab", "a", "", "c", ""]);
   });
+
+  test("returns a stop function that does nothing without phrases", () => {
+    const queue: (() => void)[] = [];
+    const target = { textContent: "kept" };
+    const stop = startPhraseTyping(target, [], options(false, queue));
+    stop();
+    expect(target.textContent).toBe("kept");
+    expect(queue).toHaveLength(0);
+  });
+
+  test("cancels the pending step when stopped", () => {
+    const cancelled: number[] = [];
+    const stop = startPhraseTyping({ textContent: "" }, ["ab"], {
+      reducedMotion: false,
+      random: () => 0,
+      schedule: () => 7,
+      cancel: (handle: number) => {
+        cancelled.push(handle);
+      },
+    });
+    stop();
+    expect(cancelled).toEqual([7]);
+  });
 });

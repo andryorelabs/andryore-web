@@ -46,6 +46,16 @@ describe("pickAnchor", () => {
     ).toEqual({ selector: "#find-me", offset: 40 });
   });
 
+  test("orders several visible sections by their top edge", () => {
+    expect(
+      pickAnchor([
+        { selector: "#find-me", top: 300, bottom: 900 },
+        { selector: "#products", top: 100, bottom: 700 },
+        { selector: '[data-slot="live-strip"]', top: 200, bottom: 800 },
+      ]),
+    ).toEqual({ selector: "#products", offset: -100 });
+  });
+
   test("returns undefined when nothing is visible", () => {
     expect(pickAnchor([])).toBeUndefined();
     expect(pickAnchor([{ selector: "#products", top: -500, bottom: -1 }])).toBeUndefined();

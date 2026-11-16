@@ -22,6 +22,8 @@ describe("loadExpectedRepositorySettings", () => {
     expect(repository).toBe("andryorelabs/andryore-web");
     expect(expected.settings.squashMergeCommitTitle).toBe("PR_TITLE");
     expect(expected.settings.mergeCommitTitle).toBe("PR_TITLE");
+    expect(expected.settings.dependabotAlerts).toBe(true);
+    expect(expected.settings.dependabotSecurityUpdates).toBe("enabled");
     expect(
       Object.keys(expected.rulesets).toSorted((left, right) => left.localeCompare(right)),
     ).toEqual(["develop", "main", "tags"]);
@@ -112,6 +114,17 @@ describe("formatDifferences", () => {
   });
 });
 
+function extraRoutes(repository_: string): Record<string, unknown> {
+  return {
+    [`repos/${repository_}/vulnerability-alerts`]: "",
+    [`repos/${repository_}/actions/permissions/workflow`]: { default_workflow_permissions: "read" },
+    [`repos/${repository_}/actions/permissions/fork-pr-contributor-approval`]: {
+      approval_policy: "all_external_contributors",
+    },
+    [`repos/${repository_}/code-scanning/default-setup`]: { state: "not-configured" },
+  };
+}
+
 function fakeGh(routes: Record<string, unknown>): GhRunner {
   return ([, endpoint = ""]) => {
     const body = routes[endpoint];
@@ -136,14 +149,23 @@ describe("fetchLiveRepositorySettings", () => {
     const live = fetchLiveRepositorySettings(
       "o/r",
       fakeGh({
+        ...extraRoutes("o/r"),
         "repos/o/r": {
+          description: "d",
+          default_branch: "main",
+          has_wiki: false,
+          has_projects: false,
+          has_discussions: false,
           allow_squash_merge: true,
           allow_merge_commit: true,
           merge_commit_title: "PR_TITLE",
           merge_commit_message: "PR_BODY",
           homepage: "https://andryore.dev",
           topics: ["astro"],
-          security_and_analysis: { secret_scanning: { status: "enabled" } },
+          security_and_analysis: {
+            secret_scanning: { status: "enabled" },
+            dependabot_security_updates: { status: "enabled" },
+          },
         },
         "repos/o/r/private-vulnerability-reporting": { enabled: true },
         "repos/o/r/rulesets": [{ id: 3, name: "develop" }],
@@ -156,8 +178,36 @@ describe("fetchLiveRepositorySettings", () => {
     expect(live.settings.secretScanning).toBe("enabled");
     expect(live.settings.privateVulnerabilityReporting).toBe(true);
     expect(live.settings.secretScanningPushProtection).toBeUndefined();
+    expect(live.settings.description).toBe("d");
+    expect(live.settings.defaultBranch).toBe("main");
+    expect(live.settings.hasWiki).toBe(false);
+    expect(live.settings.dependabotAlerts).toBe(true);
+    expect(live.settings.dependabotSecurityUpdates).toBe("enabled");
+    expect(live.settings.defaultWorkflowPermissions).toBe("read");
+    expect(live.settings.forkPrApproval).toBe("all_external_contributors");
+    expect(live.settings.codeqlSetup).toBe("not-configured");
     expect(live.topics).toEqual(["astro"]);
     expect(live.rulesets.develop).toEqual({ name: "develop", rules: [] });
+  });
+
+  test("reads Dependabot alerts as off on a 404 and fails on another error", () => {
+    const routes = { ...extraRoutes("o/r"), "repos/o/r": {}, "repos/o/r/rulesets": [] };
+    const base = {
+      ...routes,
+      "repos/o/r/private-vulnerability-reporting": { enabled: true },
+    };
+    const gh = fakeGh(base);
+    const withAlerts =
+      (stderr: string): GhRunner =>
+      (arguments_) =>
+        arguments_[1] === "repos/o/r/vulnerability-alerts"
+          ? { status: 1, stdout: "", stderr }
+          : gh(arguments_);
+    expect(
+      fetchLiveRepositorySettings("o/r", withAlerts("Not Found (HTTP 404)")).settings
+        .dependabotAlerts,
+    ).toBe(false);
+    expect(() => fetchLiveRepositorySettings("o/r", withAlerts("boom"))).toThrow(/boom/);
   });
 
   test("fails clearly when gh is unauthenticated", () => {
@@ -181,6 +231,7 @@ describe("fetchLiveRepositorySettings", () => {
     const live = fetchLiveRepositorySettings(
       "o/r",
       fakeGh({
+        ...extraRoutes("o/r"),
         "repos/o/r": JSON.parse('{"security_and_analysis": null, "homepage": null}') as unknown,
         "repos/o/r/private-vulnerability-reporting": { enabled: false },
         "repos/o/r/rulesets": [],
@@ -214,7 +265,13 @@ function captureErrors(run: () => number): {
 
 describe("runRepositorySettingsCheck", () => {
   const matchingRoutes: Record<string, unknown> = {
+    ...extraRoutes(repository),
     [`repos/${repository}`]: {
+      description: expected.settings.description,
+      default_branch: expected.settings.defaultBranch,
+      has_wiki: false,
+      has_projects: false,
+      has_discussions: false,
       allow_squash_merge: true,
       allow_merge_commit: true,
       merge_commit_title: "PR_TITLE",
@@ -230,6 +287,7 @@ describe("runRepositorySettingsCheck", () => {
       security_and_analysis: {
         secret_scanning: { status: "enabled" },
         secret_scanning_push_protection: { status: "enabled" },
+        dependabot_security_updates: { status: "enabled" },
       },
     },
     [`repos/${repository}/private-vulnerability-reporting`]: { enabled: true },
@@ -250,6 +308,21 @@ describe("runRepositorySettingsCheck", () => {
       exitCode: 0,
       output: "",
     });
+  });
+
+  test("returns 1 and names the key when a live setting differs", () => {
+    const result = captureErrors(() =>
+      runRepositorySettingsCheck(
+        fakeGh({
+          ...matchingRoutes,
+          [`repos/${repository}/actions/permissions/workflow`]: {
+            default_workflow_permissions: "write",
+          },
+        }),
+      ),
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain("settings.defaultWorkflowPermissions");
   });
 
   test("returns 1 and names the rule the live ruleset lacks", () => {

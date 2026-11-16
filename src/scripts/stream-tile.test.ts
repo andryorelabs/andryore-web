@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 
 import type { StreamStatus } from "../lib/twitch-status";
 import {
@@ -137,5 +137,24 @@ describe("refreshCountdown", () => {
     expect(next.textContent).toBe("Tue 19:00 UTC · in 3 h 20 min");
     refreshCountdown(root, new Date("2026-10-20T15:41:00Z"));
     expect(next.textContent).toBe("Tue 19:00 UTC · in 3 h 19 min");
+  });
+});
+
+describe("default fetcher", () => {
+  test("asks the same-origin endpoint without credentials", async () => {
+    const calls: { url: string; credentials: string | undefined }[] = [];
+    const stub = spyOn(globalThis, "fetch").mockImplementation(((
+      url: string,
+      init?: RequestInit,
+    ) => {
+      calls.push({ url, credentials: init?.credentials });
+      return Promise.resolve(Response.json({ state: "offline" }));
+    }) as unknown as typeof fetch);
+    try {
+      expect(await loadStreamStatus()).toEqual({ state: "offline" });
+    } finally {
+      stub.mockRestore();
+    }
+    expect(calls).toEqual([{ url: STATUS_ENDPOINT, credentials: "omit" }]);
   });
 });
