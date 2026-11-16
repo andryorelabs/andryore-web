@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
 
-import { FX_STORAGE_KEY, isFxEnabled, subscribeFx, writeFx, type FxStorage } from "./fx-store";
+import {
+  FX_STORAGE_KEY,
+  getFxStorage,
+  isFxEnabled,
+  subscribeFx,
+  writeFx,
+  type FxStorage,
+} from "./fx-store";
 
 const fakeStorage = (): FxStorage & { values: Map<string, string> } => {
   const values = new Map<string, string>();
@@ -11,6 +18,10 @@ const fakeStorage = (): FxStorage & { values: Map<string, string> } => {
       values.set(key, value);
     },
   };
+};
+
+const noopListener = (): void => {
+  return;
 };
 
 const brokenStorage: FxStorage = {
@@ -119,6 +130,51 @@ describe("writeFx root mirror", () => {
     } finally {
       if (previous) Object.defineProperty(globalThis, "document", previous);
       else Reflect.deleteProperty(globalThis, "document");
+    }
+  });
+});
+
+describe("getFxStorage", () => {
+  test("returns the storage the window exposes", () => {
+    const storage = fakeStorage();
+    expect(getFxStorage({ localStorage: storage })).toBe(storage);
+  });
+
+  test("returns undefined when touching localStorage throws", () => {
+    const blocked = {
+      get localStorage(): FxStorage {
+        throw new Error("blocked");
+      },
+    };
+    expect(getFxStorage(blocked)).toBeUndefined();
+  });
+});
+
+describe("isFxEnabled read failures", () => {
+  test("falls back to memory when a saved choice cannot be read", () => {
+    const storage = fakeStorage();
+    writeFx(storage, true);
+    expect(isFxEnabled(brokenStorage)).toBe(true);
+    writeFx(storage, false);
+    expect(isFxEnabled(brokenStorage)).toBe(false);
+  });
+});
+
+describe("subscribeFx without window events", () => {
+  test("returns a no-op unsubscribe", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, "addEventListener");
+    Object.defineProperty(globalThis, "addEventListener", {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const unsubscribe = subscribeFx(noopListener);
+      unsubscribe();
+      expect(typeof unsubscribe).toBe("function");
+    } finally {
+      if (descriptor) Object.defineProperty(globalThis, "addEventListener", descriptor);
+      else Reflect.deleteProperty(globalThis, "addEventListener");
     }
   });
 });

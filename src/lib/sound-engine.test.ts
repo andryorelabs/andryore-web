@@ -4,6 +4,7 @@ import {
   createSoundEngine,
   isSoundManifest,
   SOUND_FILES,
+  soundEngine,
   type SoundEngineDependencies,
 } from "./sound-engine";
 
@@ -351,5 +352,62 @@ describe("play", () => {
     state.engine.play("click");
     await flush();
     expect(state.fake.sources).toHaveLength(1);
+  });
+});
+
+const define = (key: string, value: unknown) => {
+  Object.defineProperty(globalThis, key, { value, configurable: true, writable: true });
+};
+
+describe("soundEngine browser wiring", () => {
+  const keys = [
+    "AudioContext",
+    "webkitAudioContext",
+    "document",
+    "matchMedia",
+    "localStorage",
+    "fetch",
+  ];
+
+  const snapshotGlobals = () =>
+    keys.map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+
+  const restoreGlobals = (saved: ReturnType<typeof snapshotGlobals>) => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  };
+
+  test("plays through the browser globals", async () => {
+    const saved = snapshotGlobals();
+    const fake = createFakeContext();
+    let constructed = 0;
+    function WebkitContext() {
+      constructed += 1;
+      return fake.context;
+    }
+    define("AudioContext", undefined);
+    define("webkitAudioContext", WebkitContext);
+    define("document", { hidden: false });
+    define("matchMedia", () => ({ matches: true }));
+    define("localStorage", { getItem: () => "on", setItem: noop });
+    define("fetch", (input: string) =>
+      Promise.resolve(
+        input.endsWith("manifest.json")
+          ? Response.json(MANIFEST)
+          : new Response(new Uint8Array([1, 2, 3, 4])),
+      ),
+    );
+    try {
+      await soundEngine.loadAvailability();
+      expect(soundEngine.isAvailable()).toBe(true);
+      soundEngine.play("hover");
+      await flush();
+      expect(constructed).toBe(1);
+      expect(fake.sources).toHaveLength(1);
+    } finally {
+      restoreGlobals(saved);
+    }
   });
 });

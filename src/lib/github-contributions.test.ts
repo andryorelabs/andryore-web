@@ -37,6 +37,18 @@ const stub = (calls: { count: number }, isOk = true) => {
   };
 };
 
+const stubGlobalFetch = (implementation: () => Promise<Response>): (() => void) => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "fetch");
+  Object.defineProperty(globalThis, "fetch", {
+    value: implementation,
+    configurable: true,
+    writable: true,
+  });
+  return () => {
+    if (original) Object.defineProperty(globalThis, "fetch", original);
+  };
+};
+
 describe("createContributionsReader", () => {
   test("returns the grid with the fetch moment", async () => {
     const reader = createContributionsReader({
@@ -116,5 +128,20 @@ describe("contributionsResponse", () => {
     });
     expect(response.status).toBe(200);
     expect(((await response.json()) as { total: number }).total).toBe(1);
+  });
+});
+
+describe("createContributionsReader defaults", () => {
+  test("uses the global fetch and the system clock when none are given", async () => {
+    const calls = { count: 0 };
+    const restoreFetch = stubGlobalFetch(stub(calls));
+    try {
+      const reader = createContributionsReader({ token: "t" });
+      const grid = await reader.get();
+      expect(grid?.total).toBe(3);
+      expect(calls.count).toBe(1);
+    } finally {
+      restoreFetch();
+    }
   });
 });

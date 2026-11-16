@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 
 import type { GridSnapshot } from "./github-grid";
 import {
@@ -279,5 +279,21 @@ describe("monthLabels", () => {
 
   test("uses the locale month names", () => {
     expect(monthLabels([week("2026-10-04")], "es")[0]?.label).toBe("oct");
+  });
+});
+
+describe("loadLiveSnapshot default fetcher", () => {
+  test("requests the endpoint with the platform fetch", async () => {
+    const urls: string[] = [];
+    const spy = spyOn(globalThis, "fetch").mockImplementation(((input: URL | string) => {
+      urls.push(typeof input === "string" ? input : input.href);
+      return Promise.resolve(new Response("x", { status: 503 }));
+    }) as typeof fetch);
+    try {
+      expect(await loadLiveSnapshot()).toBeUndefined();
+      expect(urls).toHaveLength(1);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

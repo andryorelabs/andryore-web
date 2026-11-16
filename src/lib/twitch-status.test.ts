@@ -22,6 +22,25 @@ const stubTwitch = (streams: unknown[], calls: Call[] = []): FetchLike => {
   };
 };
 
+const rejectedStreams: FetchLike = (url) =>
+  Promise.resolve(
+    String(url).includes("id.twitch.tv")
+      ? json({ access_token: "token-123", expires_in: 3600 })
+      : json({ message: "bad" }, 500),
+  );
+
+const stubGlobalFetch = (implementation: () => Promise<Response>): (() => void) => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "fetch");
+  Object.defineProperty(globalThis, "fetch", {
+    value: implementation,
+    configurable: true,
+    writable: true,
+  });
+  return () => {
+    if (original) Object.defineProperty(globalThis, "fetch", original);
+  };
+};
+
 const credentials = { clientId: "id-abc", clientSecret: "secret-xyz" };
 
 describe("createLiveStatus", () => {
@@ -127,5 +146,21 @@ describe("statusResponse", () => {
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(response.headers.get("cache-control")).toBe("public, max-age=60");
     expect(await response.json()).toEqual({ state: "offline" });
+  });
+
+  test("falls back to offline when the streams request is rejected", async () => {
+    const status = createLiveStatus({ ...credentials, fetch: rejectedStreams });
+    expect(await status.get()).toEqual({ state: "offline" });
+  });
+
+  test("uses the global fetch when none is given", async () => {
+    const restoreFetch = stubGlobalFetch(() =>
+      stubTwitch([])("https://api.twitch.tv/helix/streams"),
+    );
+    try {
+      expect(await createLiveStatus(credentials).get()).toEqual({ state: "offline" });
+    } finally {
+      restoreFetch();
+    }
   });
 });
