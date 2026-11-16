@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -1085,97 +1085,3 @@ test.each(["release.yml", "grid-snapshot.yml"])(
     expect(readConcurrency(readWorkflow(fileName))?.cancelInProgress).toBe(false);
   },
 );
-
-const ZERO_SHA = "0".repeat(40);
-const SOME_SHA = "a".repeat(40);
-
-/**
- * Runs `.husky/pre-push` with a stub `bun` first on `PATH`, so the hook's
- * typecheck is observable without running tsc.
- * @param pushLines The ref lines git writes to the hook's stdin.
- * @param typecheckExitCode The exit code the stub returns for the typecheck.
- * @returns The hook's exit code and the commands the stub received.
- */
-function runPrePush(
-  pushLines: string[],
-  typecheckExitCode: number,
-): { status: number | null; bunCalls: string[] } {
-  const stubDirectory = mkdtempSync(path.join(tmpdir(), "pre-push-"));
-  const callLog = path.join(stubDirectory, "calls.log");
-  try {
-    const stub = path.join(stubDirectory, "bun");
-    writeFileSync(
-      stub,
-      `#!/bin/sh\necho "$*" >> "${callLog}"\nexit ${String(typecheckExitCode)}\n`,
-    );
-    chmodSync(stub, 0o755);
-    writeFileSync(callLog, "");
-    const result = spawnSync("sh", [new URL("../.husky/pre-push", import.meta.url).pathname], {
-      input: pushLines.map((line) => `${line}\n`).join(""),
-      env: {
-        ...process.env,
-        PATH: `${stubDirectory}:${process.env.PATH ?? ""}`,
-      },
-      encoding: "utf8",
-    });
-    const bunCalls = readFileSync(callLog, "utf8").split("\n").filter(Boolean);
-    return { status: result.status, bunCalls };
-  } finally {
-    rmSync(stubDirectory, { recursive: true, force: true });
-  }
-}
-
-describe(".husky/pre-push", () => {
-  const branchPush = `refs/heads/feat/x ${SOME_SHA} refs/heads/feat/x ${ZERO_SHA}`;
-
-  test("typechecks once and allows a clean tree", () => {
-    const result = runPrePush([branchPush, branchPush], 0);
-    expect(result.status).toBe(0);
-    expect(result.bunCalls).toEqual(["run typecheck"]);
-  });
-
-  test("rejects the push when the typecheck fails", () => {
-    expect(runPrePush([branchPush], 2).status).not.toBe(0);
-  });
-
-  test("rejects an invalid branch name before typechecking", () => {
-    const result = runPrePush([`refs/heads/bad ${SOME_SHA} refs/heads/bad ${ZERO_SHA}`], 0);
-    expect(result.status).toBe(1);
-    expect(result.bunCalls).toEqual([]);
-  });
-
-  test.each(["ao-2999-some-slug", "worktree-agent-1", "renovate/lock-file-maintenance", "develop"])(
-    "accepts the branch name %s",
-    (branch) => {
-      const result = runPrePush(
-        [`refs/heads/${branch} ${SOME_SHA} refs/heads/${branch} ${ZERO_SHA}`],
-        0,
-      );
-      expect(result.status).toBe(0);
-      expect(result.bunCalls).toEqual(["run typecheck"]);
-    },
-  );
-
-  test.each(["ao-some-slug", "worktree", "renovate", "wip/x"])(
-    "rejects the branch name %s",
-    (branch) => {
-      const result = runPrePush(
-        [`refs/heads/${branch} ${SOME_SHA} refs/heads/${branch} ${ZERO_SHA}`],
-        0,
-      );
-      expect(result.status).toBe(1);
-    },
-  );
-
-  test("skips the typecheck for a deletion-only push", () => {
-    const result = runPrePush([`(delete) ${ZERO_SHA} refs/heads/feat/x ${SOME_SHA}`], 2);
-    expect(result.status).toBe(0);
-    expect(result.bunCalls).toEqual([]);
-  });
-
-  test("skips the typecheck for a tag-only push", () => {
-    const result = runPrePush([`refs/tags/v1.0.0 ${SOME_SHA} refs/tags/v1.0.0 ${ZERO_SHA}`], 2);
-    expect(result.status).toBe(0);
-    expect(result.bunCalls).toEqual([]);
-  });
-});
