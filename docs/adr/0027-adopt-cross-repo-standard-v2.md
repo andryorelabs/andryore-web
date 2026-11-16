@@ -5,6 +5,7 @@
 Accepted. Extends [0025](0025-adopt-cross-repo-standard-v1.md).
 
 Date: 2026-11-16
+Revised: 2026-11-16, recorded the Oxlint baseline and the add-adr and cut-release skills
 
 ## Context
 
@@ -36,6 +37,20 @@ Where the standard's rules are met in this repository:
 - **Type-checked root configs (E14).** `tsconfig.json` includes root `*.ts` and
   `*.mts` files and sets `moduleDetection`, `isolatedModules`,
   `forceConsistentCasingInFileNames` and `resolveJsonModule`.
+- **Oxlint baseline (E10).** Every rule of aokit's shared baseline is an error
+  in `oxlint.config.ts`, from `eslint-rules/oxlint-baseline.mjs`: the Oxlint
+  equivalents of typescript-eslint `strictTypeChecked` and
+  `stylisticTypeChecked`, `switch-exhaustiveness-check`, `return-await`
+  (`in-try-catch`), the JSDoc content rules, the eslint-comments hygiene set
+  and, for test files, `jest/no-focused-tests`, `jest/no-identical-title` and
+  the local `no-unawaited-async-matcher` and `no-bun-test-only` rules.
+  `scripts/oxlint-baseline.json` is a vendored copy of aokit's list, and
+  `scripts/oxlint-baseline.test.ts` fails when a listed rule is missing or
+  below error.
+- **Project skills.** `add-adr` (aokit Module `adr-docs@1.1.0`) and
+  `cut-release` (Module `release-skills@1.0.0`) are installed in
+  `.claude/skills`, adapted to this repository's ADR form and tag-driven
+  release, and locked in `skills-lock.json`.
 - **Committed secrets (H4, H6).** The dotenvx-encrypted `.env` of
   [0022](0022-secrets-in-dotenvx-encrypted-env-files.md) is committed as H6
   allows: `.gitignore` covers `.env.keys`, `.emet/` and `.claude/worktrees/`,
@@ -67,6 +82,10 @@ environment, so it needs no exception.
 - A change to the standard's toolchain table is copied into
   `scripts/toolchain-versions.test.ts`, so the drift test keeps comparing
   against the standard and not against itself.
+- A change to aokit's Oxlint baseline is copied into
+  `scripts/oxlint-baseline.json` and `eslint-rules/oxlint-baseline.mjs`;
+  violations are fixed in code, never disabled. A new Module version of a
+  copied skill is applied by hand and its lock entry updated.
 - The N-A, deferred and skipped lists above are the only places a v2 item is
   declined; a new exception needs a revision here.
 - `.mts` and `.cts` files are now formatted, and lint-staged passes
