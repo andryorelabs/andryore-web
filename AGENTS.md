@@ -160,6 +160,6 @@ never disable the rule file-wide or project-wide:
 - Actions are SHA-pinned and workflows are linted; edit them with care:
   [`docs/development.md#ci`](docs/development.md#ci).
 - Releases are tag-driven and have no npm step; never publish by hand:
-  [`docs/development.md#releasing`](docs/development.md#releasing).
+  [`docs/how-to/cut-a-release.md`](docs/how-to/cut-a-release.md).
 - Brand assets and Site content changes need the owner's approval:
   [ADR 0007](docs/adr/0007-split-license.md).

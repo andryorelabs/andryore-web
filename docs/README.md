@@ -14,6 +14,10 @@ up) or **Explanation** (the why behind a choice).
   the dotenvx workflow for the encrypted env files.
 - [Troubleshooting](./troubleshooting.md): How-to. Common failures grouped by
   symptom, each with its root cause and fix.
+- [How-to guides](./how-to/README.md): How-to. Index of the step-by-step
+  runbooks.
+- [Cut a release](./how-to/cut-a-release.md): How-to. Tag and publish a version
+  from the changelog.
 
 ## How the Site works
 
@@ -45,6 +49,8 @@ up) or **Explanation** (the why behind a choice).
 
 ## Agent configuration
 
+- [Codebase map](./agents/codebase.md): Reference. Where things live in the
+  repository.
 - [Domain docs](./agents/domain.md): Reference. How skills consume the domain
   documentation.
 - [Issue tracker](./agents/issue-tracker.md): Reference. The Linear conventions.
