@@ -98,4 +98,41 @@ describe("didMountGithubTile", () => {
     expect(text("[data-gh-grid]")).toBeUndefined();
     expect(text("[data-gh-updated]")?.textContent).toBe("Updated 3 days ago");
   });
+
+  test("uses the platform clock and DOM cells by default", async () => {
+    const { root, text } = createRoot();
+    const created: string[] = [];
+    const original = Object.getOwnPropertyDescriptor(globalThis, "document");
+    Object.defineProperty(globalThis, "document", {
+      value: {
+        createElement: (tag: string) => {
+          created.push(tag);
+          return { dataset: {} };
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const shown = await didMountGithubTile(root, {
+        fetcher: () =>
+          Promise.resolve(Response.json({ ...live, updatedAt: new Date().toISOString() })),
+      });
+      expect(shown).toBe(true);
+    } finally {
+      if (original) Object.defineProperty(globalThis, "document", original);
+      else Reflect.deleteProperty(globalThis, "document");
+    }
+    expect(created).toEqual(["i", "i"]);
+    expect(text("[data-gh-updated]")?.textContent).toStartWith("Updated");
+  });
+
+  test("relabels the snapshot against the platform clock by default", async () => {
+    const { root, text } = createRoot();
+    const shown = await didMountGithubTile(root, {
+      fetcher: () => Promise.resolve(new Response("x", { status: 503 })),
+    });
+    expect(shown).toBe(false);
+    expect(text("[data-gh-updated]")?.textContent).toStartWith("Updated");
+  });
 });

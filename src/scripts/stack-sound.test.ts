@@ -1,11 +1,16 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 
+import { soundTriggers } from "./sound-triggers";
 import {
   mountStackSound,
   mountStackSoundInBrowser,
   type StackSoundDependencies,
   type StackSoundScene,
 } from "./stack-sound";
+
+function noop(): void {
+  return;
+}
 
 const VIEWPORT = 800;
 const HEIGHT = 2000;
@@ -274,5 +279,67 @@ describe("mountStackSoundInBrowser", () => {
 
     stop();
     expect(observed).toEqual([scene, "disconnected"]);
+  });
+
+  test("plays the scroll cues through the unlocked sound triggers", () => {
+    const unlocked = spyOn(soundTriggers, "isUnlocked").mockReturnValue(true);
+    const played: string[] = [];
+    const play = spyOn(soundTriggers, "playUnlocked").mockImplementation((event) => {
+      played.push(event);
+    });
+    const frames: FrameRequestCallback[] = [];
+    let scrollListener: (() => void) | undefined;
+    let observerCallback: IntersectionObserverCallback | undefined;
+    let top = topFor(0);
+    stubGlobal("localStorage", { getItem: () => "on", setItem: noop });
+    stubGlobal("document", { hidden: false });
+    stubGlobal("matchMedia", () => ({ matches: false }));
+    stubGlobal("CSS", { supports: () => true });
+    stubGlobal("innerHeight", VIEWPORT);
+    stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    stubGlobal("addEventListener", (_type: string, listener: () => void) => {
+      scrollListener = listener;
+    });
+    stubGlobal("removeEventListener", noop);
+    stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          observerCallback = callback;
+        }
+        observe(): void {
+          return;
+        }
+        disconnect(): void {
+          return;
+        }
+      },
+    );
+    stubGlobal("HTMLElement", EventTarget);
+    class FakeScene extends HTMLElement {
+      override getBoundingClientRect(): DOMRect {
+        return { top, height: HEIGHT } as DOMRect;
+      }
+    }
+    try {
+      const stop = mountStackSoundInBrowser(new FakeScene());
+      observerCallback?.(
+        [{ isIntersecting: true }] as IntersectionObserverEntry[],
+        {} as IntersectionObserver,
+      );
+      for (let step = 1; step <= 40; step += 1) {
+        top = topFor(step / 40);
+        scrollListener?.();
+        for (const frame of frames.splice(0)) frame(0);
+      }
+      stop();
+      expect(played.length).toBeGreaterThan(0);
+    } finally {
+      unlocked.mockRestore();
+      play.mockRestore();
+    }
   });
 });

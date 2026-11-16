@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import * as dotenvx from "@dotenvx/dotenvx";
 import { set } from "@dotenvx/dotenvx";
 
 import { hasLoadedEncryptedEnvironment } from "./load-encrypted-environment";
@@ -54,6 +55,22 @@ describe("hasLoadedEncryptedEnvironment", () => {
         env: environment,
       }),
     ).not.toThrow();
+  });
+
+  test("returns false when loading throws", () => {
+    const environmentFile = path.join(directory, ".env");
+    writeFileSync(environmentFile, "GITHUB_TOKEN=plain\n");
+    const environment: Record<string, string> = { DOTENV_PRIVATE_KEY: "a".repeat(64) };
+    const failing = spyOn(dotenvx, "config").mockImplementation(() => {
+      throw new Error("decrypt failed");
+    });
+    try {
+      expect(hasLoadedEncryptedEnvironment({ envFile: environmentFile, env: environment })).toBe(
+        false,
+      );
+    } finally {
+      failing.mockRestore();
+    }
   });
 
   test("decrypts the file when key and file are present", async () => {

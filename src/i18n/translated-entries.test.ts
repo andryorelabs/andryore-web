@@ -13,6 +13,10 @@ describe("frontmatterValue", () => {
     expect(frontmatterValue(frontmatter, "c")).toBe("it's");
   });
 
+  test("falls back to the raw text of a double-quoted value that is not valid JSON", () => {
+    expect(frontmatterValue(String.raw`a: "bad \q escape"`, "a")).toBe(String.raw`bad \q escape`);
+  });
+
   test("returns undefined for an absent key", () => {
     expect(frontmatterValue("a: 1", "b")).toBeUndefined();
   });

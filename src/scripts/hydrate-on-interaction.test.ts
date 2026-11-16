@@ -1,6 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 
-import { hydrateOnInteraction, INTERACTION_EVENTS } from "./hydrate-on-interaction";
+import hydrateOnInteractionDirective, {
+  hydrateOnInteraction,
+  INTERACTION_EVENTS,
+} from "./hydrate-on-interaction";
+
+function noop(): void {
+  return;
+}
 
 interface ClickableTarget extends EventTarget {
   clicks: number;
@@ -145,5 +152,44 @@ describe("hydrateOnInteraction", () => {
     state.release();
     await done;
     expect(target.clicks).toBe(0);
+  });
+});
+
+describe("hydrateOnInteractionDirective", () => {
+  const directive = hydrateOnInteractionDirective as unknown as (
+    load: () => Promise<() => Promise<void>>,
+    options: unknown,
+    element: EventTarget,
+  ) => void;
+
+  test("hydrates the island on its first interaction", async () => {
+    const root = createRoot();
+    let hydrations = 0;
+    directive(
+      () =>
+        Promise.resolve(() => {
+          hydrations += 1;
+          return Promise.resolve();
+        }),
+      {},
+      root,
+    );
+    root.dispatchEvent(new Event("focusin"));
+    await Bun.sleep(0);
+    expect(hydrations).toBe(1);
+  });
+
+  test("reports a failed hydration instead of throwing", async () => {
+    const root = createRoot();
+    const failure = new Error("chunk failed");
+    const report = spyOn(console, "error").mockImplementation(noop);
+    try {
+      directive(() => Promise.reject(failure), {}, root);
+      root.dispatchEvent(new Event("pointerover"));
+      await Bun.sleep(0);
+      expect(report).toHaveBeenCalledWith("client:interaction failed to hydrate", failure);
+    } finally {
+      report.mockRestore();
+    }
   });
 });
