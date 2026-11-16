@@ -63,7 +63,7 @@ committed grid snapshot and no credentials ([Configuration](configuration.md)).
 | `bun run lint:fix`        | Oxlint and ESLint with autofix.                                                                                                                                       |
 | `bun run typecheck`       | `astro sync`, then `tsc --noEmit --runExternalCode` from `typescript7` with the content mapper.                                                                       |
 | `bun run knip`            | Finds unused files, exports and dependencies.                                                                                                                         |
-| `bun run test`            | Runs `bun test` with coverage and the `bunfig.toml` threshold.                                                                                                        |
+| `bun run test`            | Runs `bun test` with coverage, then the coverage gate (see [Coverage](#coverage)).                                                                                    |
 | `bun run lint:docs`       | Offline link and anchor check of the Markdown with lychee.                                                                                                            |
 | `bun run lint:lighthouse` | Lighthouse budget over the built `dist/`; see [Lighthouse budget](#lighthouse-budget).                                                                                |
 | `bun run lint:commits`    | Runs commitlint over the commits of the current branch.                                                                                                               |
@@ -117,15 +117,33 @@ your own preview and pass `AUDIT_BASE_URL`.
 
 ## Coverage
 
-`bunfig.toml` turns coverage on for `bun test` and sets
-a `coverageThreshold` for lines and functions. A run under either
-value fails, locally and in CI. Test files are skipped from the report
-(`coverageSkipTestFiles`).
+`bunfig.toml` turns coverage on for `bun test` and writes `coverage/lcov.info`.
+`bun run test` runs `scripts/coverage/run-tests.ts`, which runs the suite and
+then `scripts/coverage/check-threshold.ts` over the report. `bun run
+test:coverage` is plain `bun test` with coverage and no gate; a filtered run
+(`bun run test <file>`) also skips the gate because it measures only part of the
+suite. The gate fails when:
+
+- the mean line or function coverage is below the global threshold in
+  `scripts/coverage/coverage-floors.json`. It is set to the measured value and
+  may only rise: raise it in the same change that raises coverage.
+- a file is under the per-file floor of 97% lines and 98% functions without an
+  entry in `scripts/coverage/coverage-exceptions.ts`.
+- an exception is stale (its file now meets the floor), names a missing file,
+  has an empty or `TODO` reason, or its file drops below the exception's own
+  `lines` and `functions` floor.
+
+An exception is only for a file that tests cannot reach, such as a CLI entry
+point behind `import.meta.main` or a spawn of an external tool. Its reason must
+say why tests cannot reach it. Add a test instead of an entry, and remove the
+entry once the file meets the floor. Test files are skipped from the report
+(`coverageSkipTestFiles`), and no path is ignored.
 
 `scripts/coverage-manifest.test.ts` enforces the manifest rule: every source
 module under `scripts`, `eslint-rules`, `docs/brand/tools` and `src` needs a
-colocated `.test.ts` or `.test.mjs`, or an entry in its `EXEMPTIONS` map with a
-written reason. The test also fails on a stale exemption: the module is gone,
+colocated `.test.ts`, `.test.tsx` or `.test.mjs`, a test that imports it
+(directly or through another module), or an entry in its `EXEMPTIONS` map with
+a written reason. The test also fails on a stale exemption: the module is gone,
 now has a test, or the reason is empty.
 
 ## Browser checks

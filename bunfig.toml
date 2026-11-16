@@ -3,7 +3,7 @@ linker = "isolated"
 
 [test]
 coverage = true
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"
 pathIgnorePatterns = ["e2e/**", ".claude/**"]
 coverageSkipTestFiles = true
-coveragePathIgnorePatterns = ["src/components/ui/dropdown-menu.tsx"]
-coverageThreshold = { lines = 0.75, functions = 0.45 }
