@@ -13,6 +13,8 @@ Date: 2026-10-17
 Revised: 2026-10-19, the tags ruleset has an admin bypass and the settings
 section exists
 
+Revised: 2026-11-16, Dependabot alerts and security updates are on, no longer rejected
+
 Revised: 2026-11-11, `main` takes merge commits only and squash stays on
 `develop` (0026)
 
@@ -65,6 +67,10 @@ reference is AFE's ADR 0001, which follows the OpenSSF SCM best-practices guide.
 - **Immutable releases**, so a published Release and its assets cannot be edited
   or replaced (applied 2026-10-17).
 
+- **Dependabot alerts and security updates**, both on, so a vulnerable
+  dependency raises an alert and a fix PR. Renovate stays the source of routine
+  version updates, and `repo-settings:check` verifies both (applied 2026-11-16).
+
 ### Still open (owner action, applied through the GitHub API)
 
 - **CodeQL default setup.** `codeql.yml` is an advanced setup today. Default
@@ -73,8 +79,6 @@ reference is AFE's ADR 0001, which follows the OpenSSF SCM best-practices guide.
 
 ### Rejected
 
-- **Dependabot alerts and security updates**: Renovate is the single source of
-  dependency updates.
 - **A merge queue**: unavailable on personal-account repositories and
   unnecessary for one maintainer.
 - **Required code-owner review**: no benefit with a single owner.
