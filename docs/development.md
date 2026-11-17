@@ -63,7 +63,7 @@ committed grid snapshot and no credentials ([Configuration](configuration.md)).
 | `bun run lint:fix`        | Oxlint and ESLint with autofix.                                                                                                                                       |
 | `bun run typecheck`       | `astro sync`, then `tsc --noEmit --runExternalCode` from `typescript7` with the content mapper.                                                                       |
 | `bun run knip`            | Finds unused files, exports and dependencies.                                                                                                                         |
-| `bun run test`            | Runs `bun test` with coverage and the `bunfig.toml` threshold.                                                                                                        |
+| `bun run test`            | Runs `bun test` with coverage, then the coverage gate (see [Coverage](#coverage)).                                                                                    |
 | `bun run lint:docs`       | Offline link and anchor check of the Markdown with lychee.                                                                                                            |
 | `bun run lint:lighthouse` | Lighthouse budget over the built `dist/`; see [Lighthouse budget](#lighthouse-budget).                                                                                |
 | `bun run lint:commits`    | Runs commitlint over the commits of the current branch.                                                                                                               |
@@ -117,15 +117,33 @@ your own preview and pass `AUDIT_BASE_URL`.
 
 ## Coverage
 
-`bunfig.toml` turns coverage on for `bun test` and sets
-a `coverageThreshold` for lines and functions. A run under either
-value fails, locally and in CI. Test files are skipped from the report
-(`coverageSkipTestFiles`).
+`bunfig.toml` turns coverage on for `bun test` and writes `coverage/lcov.info`.
+`bun run test` runs `scripts/coverage/run-tests.ts`, which runs the suite and
+then `scripts/coverage/check-threshold.ts` over the report. `bun run
+test:coverage` is plain `bun test` with coverage and no gate; a filtered run
+(`bun run test <file>`) also skips the gate because it measures only part of the
+suite. The gate fails when:
+
+- the mean line or function coverage is below the global threshold in
+  `scripts/coverage/coverage-floors.json`. It is set to the measured value and
+  may only rise: raise it in the same change that raises coverage.
+- a file is under the per-file floor of 97% lines and 98% functions without an
+  entry in `scripts/coverage/coverage-exceptions.ts`.
+- an exception is stale (its file now meets the floor), names a missing file,
+  has an empty or `TODO` reason, or its file drops below the exception's own
+  `lines` and `functions` floor.
+
+An exception is only for a file that tests cannot reach, such as a CLI entry
+point behind `import.meta.main` or a spawn of an external tool. Its reason must
+say why tests cannot reach it. Add a test instead of an entry, and remove the
+entry once the file meets the floor. Test files are skipped from the report
+(`coverageSkipTestFiles`), and no path is ignored.
 
 `scripts/coverage-manifest.test.ts` enforces the manifest rule: every source
 module under `scripts`, `eslint-rules`, `docs/brand/tools` and `src` needs a
-colocated `.test.ts` or `.test.mjs`, or an entry in its `EXEMPTIONS` map with a
-written reason. The test also fails on a stale exemption: the module is gone,
+colocated `.test.ts`, `.test.tsx` or `.test.mjs`, a test that imports it
+(directly or through another module), or an entry in its `EXEMPTIONS` map with
+a written reason. The test also fails on a stale exemption: the module is gone,
 now has a test, or the reason is empty.
 
 ## Browser checks
@@ -387,23 +405,8 @@ reads its config from the default branch `main`, so a change to
 ## Releasing
 
 Releases are tag-driven and have no npm step. The notes come from
-`CHANGELOG.md`.
-
-1. In `CHANGELOG.md`, move the `[Unreleased]` entries into a new
-   `## [x.y.z] - YYYY-MM-DD` section and leave an empty `## [Unreleased]` above
-   it.
-2. Run `bun run check` and `bun run test`.
-3. Open a PR titled `chore: 🔖 release x.y.z` and merge it.
-4. Tag the merge commit with a signed tag and push it:
-   `git tag -s vX.Y.Z <merge-sha> && git push origin vX.Y.Z`.
-
-Pushing a `v*` tag triggers `.github/workflows/release.yml`. After the
-main-ancestry check, a gate step polls the check runs of the tagged commit and
-requires a green `CI passed`, waiting up to 20 minutes for a pending one. A
-failed or missing `CI passed` stops the release; re-run the failed CI job on
-`main`, then re-run the release workflow. After the gate, the workflow extracts
-the matching section of `CHANGELOG.md` as the release notes and creates the
-GitHub Release. Nothing is published to npm.
+`CHANGELOG.md`. The steps, and what the tag triggers, are in the runbook
+[Cut a release](how-to/cut-a-release.md).
 
 ## Deploying
 
@@ -502,29 +505,33 @@ This repository follows the andryorelabs
 [standard v1](https://github.com/andryorelabs/aokit/tree/main/docs/standards)
 ([ADR 0025](adr/0025-adopt-cross-repo-standard-v1.md)). The rulesets above are
 committed as code. The remaining GitHub repository settings are listed in
-`scripts/repo-settings.json`:
+[`.github/repo-settings.json`](../.github/repo-settings.json):
 
 - merge modes: squash and merge commits, each with the PR title and body as the
   message, auto-merge, update-branch and delete-on-merge
-- security features that are on: secret scanning, push protection and private
-  vulnerability reporting
-- the homepage and the topics
+- the description, homepage, topics and default branch, with the wiki,
+  projects and discussions off
+- security features that are on: secret scanning, push protection, private
+  vulnerability reporting, Dependabot alerts and Dependabot security updates
+- the read-only default `GITHUB_TOKEN`, fork-PR approval for every outside
+  contributor, and the CodeQL setup (advanced, through `codeql.yml`)
 
 `bun run repo-settings:check` reads the live values with `gh api` and compares
-them with that list and with `.github/rulesets/*.json`. It prints each
-difference, exits non-zero when there is one, and never changes a setting. To
-see the live values by hand:
+them with that list and with `.github/rulesets/*.json` (described in
+[`.github/rulesets/README.md`](../.github/rulesets/README.md)). It prints each
+difference by key, exits non-zero when there is one, and never changes a
+setting. To see the live values by hand:
 
 ```sh
 gh api repos/andryorelabs/andryore-web
 gh api repos/andryorelabs/andryore-web/private-vulnerability-reporting
+gh api repos/andryorelabs/andryore-web/vulnerability-alerts
+gh api repos/andryorelabs/andryore-web/actions/permissions/workflow
 gh api repos/andryorelabs/andryore-web/rulesets
 ```
 
-The check does not cover two settings from the posture: the read-only default
-`GITHUB_TOKEN` and fork-PR approval for outside contributors. Verify those in
-the repository's Actions settings. Dependabot security updates stay off, because
-Renovate is the single source of dependency updates.
+Dependabot alerts and security updates are on so a vulnerable dependency raises
+an alert and a fix PR; Renovate stays the source of routine version updates.
 [ADR 0011](adr/0011-public-repo-security-posture.md) records the posture and
 which settings are still open (only the CodeQL default setup).
 Settings are owner actions; an agent changes one only when the owner asks for

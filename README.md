@@ -11,7 +11,10 @@
 <br>
 <br>
 
-<img src="docs/brand/og/og-en.png" alt="andryore.dev, the personal site of Andry Orellana" width="640">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/brand/readme/cover-dark.svg">
+  <img src="docs/brand/og/og-en.png" alt="andryore.dev, the personal site of Andry Orellana" width="640">
+</picture>
 
 **The source of andryore.dev, the personal site of Andry Orellana.**
 
@@ -63,7 +66,7 @@ bun run test
 Details are in [Running locally](docs/development.md#running-locally) and the
 [script reference](docs/development.md#scripts).
 
-## Project structure
+## How it works
 
 ```text
 src/

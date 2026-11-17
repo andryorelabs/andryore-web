@@ -1,6 +1,14 @@
 {
   "version": 1,
   "skills": {
+    "add-adr": {
+      "source": "andryorelabs/aokit",
+      "ref": "adr-docs@1.1.0",
+      "sourceType": "local",
+      "skillPath": "registry-src/adr-docs/files/skill/add-adr.md",
+      "computedHash": "8eb47c56be67c028608259be1fd3f6011603a3a2cbd5b351e055b9e29726f2b3",
+      "installMode": "copy"
+    },
     "ai-seo": {
       "source": "coreyhaines31/marketingskills",
       "ref": "dda3841f0b294e01e93b1541486beefbfab0915e",
@@ -54,6 +62,14 @@
       "sourceType": "github",
       "skillPath": "skills/copywriting/SKILL.md",
       "computedHash": "34095dc1ba236967c7515c62568591008f8ec795e1a5fd4b018f2b127a36b32c"
+    },
+    "cut-release": {
+      "source": "andryorelabs/aokit",
+      "ref": "release-skills@1.0.0",
+      "sourceType": "local",
+      "skillPath": "registry-src/release-skills/files/cut-release.md",
+      "computedHash": "94f60eb09c58e70dc6dbcfbf976310ca8e4e4c9b5cdcbf555fe600cb79d776fa",
+      "installMode": "copy"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",

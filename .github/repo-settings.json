@@ -1,6 +1,12 @@
 {
   "repository": "andryorelabs/andryore-web",
   "settings": {
+    "description": "The source of andryore.dev, the personal site of Andry Orellana.",
+    "homepage": "https://andryore.dev",
+    "defaultBranch": "main",
+    "hasWiki": false,
+    "hasProjects": false,
+    "hasDiscussions": false,
     "allowSquashMerge": true,
     "allowMergeCommit": true,
     "allowRebaseMerge": false,
@@ -10,11 +16,17 @@
     "mergeCommitTitle": "PR_TITLE",
     "mergeCommitMessage": "PR_BODY",
     "squashMergeCommitTitle": "PR_TITLE",
-    "squashMergeCommitMessage": "PR_BODY",
+    "squashMergeCommitMessage": "PR_BODY"
+  },
+  "security": {
     "secretScanning": "enabled",
     "secretScanningPushProtection": "enabled",
     "privateVulnerabilityReporting": true,
-    "homepage": "https://andryore.dev"
+    "dependabotAlerts": true,
+    "dependabotSecurityUpdates": "enabled",
+    "defaultWorkflowPermissions": "read",
+    "forkPrApproval": "all_external_contributors",
+    "codeqlSetup": "not-configured"
   },
   "topics": ["astro", "personal-website", "portfolio", "typescript", "tailwindcss", "react", "i18n"]
 }

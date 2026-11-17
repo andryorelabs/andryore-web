@@ -7,9 +7,7 @@ import type { DummyRuleMap, OxlintConfig, OxlintOverride } from "oxlint";
 type EslintRules = Record<string, unknown>;
 
 export declare const OXLINT_JS_PLUGINS: NonNullable<OxlintConfig["jsPlugins"]>;
-export declare const OXLINT_NATIVE_PLUGINS: NonNullable<
-  OxlintConfig["plugins"]
->;
+export declare const OXLINT_NATIVE_PLUGINS: NonNullable<OxlintConfig["plugins"]>;
 export declare const NATIVE_PORTS: ReadonlyMap<string, string>;
 export declare function toOxlintRuleId(ruleId: string): string;
 export declare const ESLINT_PATH_BLOCKS: readonly {

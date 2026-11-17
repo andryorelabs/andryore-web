@@ -22,6 +22,10 @@
   color: "d876e3"
   description: Waiting for more information from the reporter
 
+- name: "Status: Needs Decision"
+  color: "d4c5f9"
+  description: Waiting for a decision from the maintainer
+
 - name: "Status: In Progress"
   color: "fbca04"
   description: Actively being worked on
@@ -54,6 +58,10 @@
   color: "cfd3d7"
   description: This will not be worked on
 
+- name: "Resolution: Invalid"
+  color: "cfd3d7"
+  description: This is not a valid issue or PR
+
 - name: "Area: site"
   color: "fbca04"
   description: Pages, layouts, components and styling
@@ -81,6 +89,10 @@
 - name: "github-actions"
   color: "2088ff"
   description: GitHub Actions workflow changes
+
+- name: "security"
+  color: "b60205"
+  description: Security-related change or advisory
 
 - name: "good first issue"
   color: "7057ff"

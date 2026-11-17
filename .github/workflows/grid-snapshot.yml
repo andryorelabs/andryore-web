@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: develop
-          persist-credentials: true
+          persist-credentials: false
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
@@ -52,7 +52,10 @@ jobs:
           git checkout -b "${branch}"
           git add src/content/github-grid.json
           git commit -m "chore: 📊 refresh the github contribution grid"
-          git push origin "${branch}"
+          basic_auth="$(printf 'x-access-token:%s' "${GH_TOKEN}" | base64 -w0)"
+          echo "::add-mask::${basic_auth}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${basic_auth}" \
+            push origin "${branch}"
           gh pr create --base develop --head "${branch}" \
             --title "chore: 📊 refresh the github contribution grid" \
             --body "Weekly refresh of the committed contribution grid snapshot."

@@ -20,7 +20,7 @@ knip) and the documentation:
   tests.
 
 The domain vocabulary is in [`GLOSSARY.md`](GLOSSARY.md). Skills live in
-`.claude/skills` (25 of them, including `playwright-component-testing`,
+`.claude/skills` (27 of them, including `playwright-component-testing`,
 `product-marketing` and `typescript-advanced-types`) and are pinned in
 `skills-lock.json`. A map of the docs tree is in
 [`docs/README.md`](docs/README.md).
@@ -41,9 +41,11 @@ never use another package manager (this repo uses `bun.lock`). Read
   with the `@astrojs/ts-content-mapper`, so `.astro` files are type-checked too.
   `lint` runs Oxlint (type-aware) on everything but `.astro` and ESLint on
   `.astro` only ([ADR 0023](docs/adr/0023-oxc-toolchain-and-typescript-7-1.md)).
-- `bun run test` — the `bun test` suite, with coverage on. `bunfig.toml` sets a
-  `coverageThreshold`; a run below it fails, so add tests with new code instead
-  of lowering the threshold.
+- `bun run test` — the `bun test` suite, with coverage on, then the gate in
+  `scripts/coverage`: a global floor in `coverage-floors.json` that may only
+  rise and a per-file floor of 97% lines and 98% functions, with the few
+  reasoned exceptions in `coverage-exceptions.ts`. A run below it fails, so add
+  tests with new code instead of lowering a floor.
 - `bun run cache:clear` — removes the Node compile cache and the ESLint cache.
   Run it when a command crashes inside `typescript.js`; more failures by symptom
   in [`docs/troubleshooting.md`](docs/troubleshooting.md).
@@ -160,6 +162,6 @@ never disable the rule file-wide or project-wide:
 - Actions are SHA-pinned and workflows are linted; edit them with care:
   [`docs/development.md#ci`](docs/development.md#ci).
 - Releases are tag-driven and have no npm step; never publish by hand:
-  [`docs/development.md#releasing`](docs/development.md#releasing).
+  [`docs/how-to/cut-a-release.md`](docs/how-to/cut-a-release.md).
 - Brand assets and Site content changes need the owner's approval:
   [ADR 0007](docs/adr/0007-split-license.md).

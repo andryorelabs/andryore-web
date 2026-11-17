@@ -243,6 +243,15 @@ function scalar(value: JsonValue): string | boolean | undefined {
   return typeof value === "string" || typeof value === "boolean" ? value : undefined;
 }
 
+function areDependabotAlertsOn(gh: GhRunner, repository: string): boolean {
+  const endpoint = `repos/${repository}/vulnerability-alerts`;
+  const result = gh(["api", endpoint]);
+  if (result.status === 0) return true;
+  if (/HTTP 404|Not Found/i.test(result.stderr)) return false;
+  readApi(() => result, endpoint);
+  return false;
+}
+
 /**
  * Reads the live repository settings, topics and rulesets with `gh api`.
  * Never writes: it only issues GET requests.
@@ -257,6 +266,13 @@ export function fetchLiveRepositorySettings(
 ): RepositorySettings {
   const repositoryData = readApi(gh, `repos/${repository}`);
   const reporting = readApi(gh, `repos/${repository}/private-vulnerability-reporting`);
+  const workflowPermissions = readApi(gh, `repos/${repository}/actions/permissions/workflow`);
+  const forkApproval = readApi(
+    gh,
+    `repos/${repository}/actions/permissions/fork-pr-contributor-approval`,
+  );
+  const codeqlSetup = readApi(gh, `repos/${repository}/code-scanning/default-setup`);
+  const isDependabotAlerts = areDependabotAlertsOn(gh, repository);
   const summaries = readApi(gh, `repos/${repository}/rulesets`);
   const rulesets: Record<string, JsonValue> = {};
   const summaryList = Array.isArray(summaries) ? summaries : [];
@@ -284,6 +300,18 @@ export function fetchLiveRepositorySettings(
       secretScanningPushProtection: status(repositoryData, "secret_scanning_push_protection"),
       privateVulnerabilityReporting: scalar(field(reporting, "enabled")),
       homepage: scalar(field(repositoryData, "homepage")),
+      description: scalar(field(repositoryData, "description")),
+      defaultBranch: scalar(field(repositoryData, "default_branch")),
+      hasWiki: scalar(field(repositoryData, "has_wiki")),
+      hasProjects: scalar(field(repositoryData, "has_projects")),
+      hasDiscussions: scalar(field(repositoryData, "has_discussions")),
+      dependabotAlerts: isDependabotAlerts,
+      dependabotSecurityUpdates: status(repositoryData, "dependabot_security_updates"),
+      defaultWorkflowPermissions: scalar(
+        field(workflowPermissions, "default_workflow_permissions"),
+      ),
+      forkPrApproval: scalar(field(forkApproval, "approval_policy")),
+      codeqlSetup: scalar(field(codeqlSetup, "state")),
     },
     topics: Array.isArray(topics) ? topics.filter((topic) => typeof topic === "string") : [],
     rulesets,
@@ -291,7 +319,8 @@ export function fetchLiveRepositorySettings(
 }
 
 /**
- * Loads the expected settings from `scripts/repo-settings.json` and the
+ * Loads the expected settings from `.github/repo-settings.json` (its
+ * `settings` and `security` keys are merged into one flat map) and the
  * rulesets from `.github/rulesets/*.json`.
  * @param root The repository root, defaults to the one that holds this script.
  * @returns The repository slug and the expected settings.
@@ -300,9 +329,10 @@ export function loadExpectedRepositorySettings(root: URL = new URL("../", import
   repository: string;
   expected: RepositorySettings;
 } {
-  const file = JSON.parse(readFileSync(new URL("scripts/repo-settings.json", root), "utf8")) as {
+  const file = JSON.parse(readFileSync(new URL(".github/repo-settings.json", root), "utf8")) as {
     repository: string;
     settings: RepositorySettings["settings"];
+    security: RepositorySettings["settings"];
     topics: string[];
   };
   const rulesetsDirectory = new URL(".github/rulesets/", root);
@@ -315,7 +345,11 @@ export function loadExpectedRepositorySettings(root: URL = new URL("../", import
   }
   return {
     repository: file.repository,
-    expected: { settings: file.settings, topics: file.topics, rulesets },
+    expected: {
+      settings: { ...file.settings, ...file.security },
+      topics: file.topics,
+      rulesets,
+    },
   };
 }
 

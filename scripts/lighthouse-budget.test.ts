@@ -1,5 +1,13 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -7,6 +15,7 @@ import {
   auditPages,
   findFailures,
   formatTable,
+  main,
   median,
   parseReport,
   resolveStaticFile,
@@ -237,5 +246,70 @@ describe("respondWithFile", () => {
       const response = await respondWithFile(file, acceptEncoding);
       expect(response.headers.get("content-encoding")).toBeNull();
     }
+  });
+});
+
+describe("main", () => {
+  const distributionDirectory = path.resolve(import.meta.dir, "../dist");
+  const originalPath = process.env.PATH;
+  const originalChromePath = process.env.CHROME_PATH;
+  let isCreatedDistribution = false;
+
+  beforeEach(() => {
+    isCreatedDistribution = !existsSync(distributionDirectory);
+    if (!isCreatedDistribution) return;
+    mkdirSync(distributionDirectory);
+    writeFileSync(path.join(distributionDirectory, "index.html"), "<html></html>");
+  });
+
+  afterEach(() => {
+    process.env.PATH = originalPath;
+    if (originalChromePath === undefined) delete process.env.CHROME_PATH;
+    else process.env.CHROME_PATH = originalChromePath;
+    if (isCreatedDistribution) rmSync(distributionDirectory, { recursive: true, force: true });
+  });
+
+  /**
+   * Puts a fake `bunx` first on the PATH that requests the served site and prints a report.
+   * @param score The 0 to 1 score for every category.
+   */
+  function stubLighthouse(score: number): void {
+    const probe = [
+      String.raw`base=$(echo "$2" | sed "s#^\(http://[^/]*\).*#\1#")`,
+      'curl -s -o /dev/null "$2"',
+      'curl -s -o /dev/null "$base/api/stream-status"',
+      'curl -s -o /dev/null "$base/missing.txt"',
+    ].join("\n");
+    const stub = writeStub(`${probe}\n${printing(report(score))}`);
+    process.env.PATH = `${path.dirname(stub)}:${originalPath ?? ""}`;
+  }
+
+  test("returns 1 when the build output is missing", async () => {
+    if (!isCreatedDistribution) return;
+    rmSync(distributionDirectory, { recursive: true, force: true });
+    const error = spyOn(console, "error").mockImplementation((): void => undefined);
+    expect(await main()).toBe(1);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("dist/ not found"));
+    error.mockRestore();
+  });
+
+  test("returns 0 when every category reaches the threshold", async () => {
+    stubLighthouse(0.95);
+    process.env.CHROME_PATH = "/usr/bin/chromium";
+    const log = spyOn(console, "log").mockImplementation((): void => undefined);
+    expect(await main()).toBe(0);
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  test("returns 1 and lists the categories below the threshold", async () => {
+    stubLighthouse(0.5);
+    delete process.env.CHROME_PATH;
+    const log = spyOn(console, "log").mockImplementation((): void => undefined);
+    const error = spyOn(console, "error").mockImplementation((): void => undefined);
+    expect(await main()).toBe(1);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("Below"));
+    log.mockRestore();
+    error.mockRestore();
   });
 });

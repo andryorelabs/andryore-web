@@ -1,4 +1,4 @@
-FROM oven/bun:1.4.4-alpine AS build
+FROM oven/bun:1.4.4-alpine@sha256:4cf82f5686b196504fe119db3fcd9185b191f82ece82c40680e597228ec6070a AS build
 WORKDIR /repo
 
 COPY package.json bun.lock bunfig.toml ./
@@ -24,7 +24,7 @@ COPY scripts/render-csp.ts scripts/render-csp.ts
 RUN bun scripts/render-csp.ts dist docker/security-headers.conf.template /repo/security-headers.conf
 RUN bun build --compile --no-compile-autoload-dotenv src/server/stream-status-server.ts --outfile /repo/stream-status-server
 
-FROM nginx:1.29-alpine
+FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
 RUN rm -f /etc/nginx/conf.d/default.conf
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /repo/security-headers.conf /etc/nginx/snippets/security-headers.conf
