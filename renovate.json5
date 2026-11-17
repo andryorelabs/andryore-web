@@ -15,7 +15,9 @@
 
   minimumReleaseAge: "3 days",
 
-  dependencyDashboard: true,
+  dependencyDashboard: {
+    enabled: true,
+  },
   labels: ["dependencies"],
 
   osvVulnerabilityAlerts: true,
@@ -89,6 +91,10 @@
     {
       groupName: "github-actions",
       matchManagers: ["github-actions"],
+    },
+    {
+      groupName: "playwright",
+      matchPackageNames: ["playwright", "@playwright/test", "@axe-core/playwright"],
     },
 
     {

@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 
 interface PackageRule {
   groupName?: string;
+  matchPackageNames?: string[];
   matchDepTypes?: string[];
   matchUpdateTypes?: string[];
   automerge?: boolean;
@@ -11,7 +12,7 @@ interface PackageRule {
 }
 
 interface RenovateConfig {
-  dependencyDashboard?: boolean;
+  dependencyDashboard?: { enabled?: boolean };
   labels?: string[];
   vulnerabilityAlerts?: { labels?: string[] };
   packageRules: PackageRule[];
@@ -23,8 +24,15 @@ const config = Bun.JSON5.parse(
 
 describe("renovate.json5", () => {
   test("enables the dependency dashboard and labels", () => {
-    expect(config.dependencyDashboard).toBe(true);
+    expect(config.dependencyDashboard).toEqual({ enabled: true });
     expect(config.labels?.length).toBeGreaterThan(0);
+  });
+
+  test("groups the playwright packages so they update together", () => {
+    const playwrightRule = config.packageRules.find((rule) => rule.groupName === "playwright");
+    expect(
+      playwrightRule?.matchPackageNames?.toSorted((left, right) => left.localeCompare(right)),
+    ).toEqual(["@axe-core/playwright", "@playwright/test", "playwright"]);
   });
 
   test("the oxc no-automerge rule comes after the devDependencies automerge rule", () => {
