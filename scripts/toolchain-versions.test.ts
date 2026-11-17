@@ -233,6 +233,59 @@ describe("toolchain drift (E15)", () => {
 });
 
 /**
+ * Packages that must resolve to one exact version, because each bundles its own
+ * `playwright-core` and the Docker browser image is chosen from `playwright`.
+ */
+const SAME_VERSION_PACKAGES = ["playwright", "@playwright/test"] as const;
+
+/**
+ * The `packages` table of `bun.lock`: each entry starts with `name@version`.
+ */
+interface Lockfile {
+  packages: Record<string, readonly unknown[]>;
+}
+
+function lockedVersion(lockfile: Lockfile, packageName: string): string | undefined {
+  const [resolution] = lockfile.packages[packageName] ?? [];
+  return typeof resolution === "string"
+    ? resolution.slice(resolution.lastIndexOf("@") + 1)
+    : undefined;
+}
+
+describe("playwright and @playwright/test stay on one version", () => {
+  const manifest = readRepositoryJson("package.json") as Manifest;
+  const lockfile = Bun.JSON5.parse(
+    readFileSync(path.join(REPO_ROOT, "bun.lock"), "utf8"),
+  ) as Lockfile;
+
+  test("lockedVersion reads the version of a scoped package", () => {
+    const sample: Lockfile = {
+      packages: {
+        "@playwright/test": ["@playwright/test@1.65.1", "", {}, "sha512-x"],
+      },
+    };
+    expect(lockedVersion(sample, "@playwright/test")).toBe("1.65.1");
+    expect(lockedVersion(sample, "playwright")).toBeUndefined();
+  });
+
+  test("package.json pins both to the same exact version", () => {
+    const declared = SAME_VERSION_PACKAGES.map((name) => declaredRange(manifest, name));
+    expect(declared[0]).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(declared[1]).toBe(declared[0]);
+  });
+
+  test("bun.lock resolves both, and playwright-core, to that version", () => {
+    const expected = declaredRange(manifest, "playwright");
+    for (const name of [...SAME_VERSION_PACKAGES, "playwright-core"]) {
+      expect({ name, version: lockedVersion(lockfile, name) }).toEqual({
+        name,
+        version: expected,
+      });
+    }
+  });
+});
+
+/**
  * The custom managers in `renovate.json5` that keep non-npm pins Renovate-managed.
  */
 interface CustomManager {
