@@ -124,6 +124,15 @@ only what cannot be tested in isolation.
 The `astro-docs` MCP server is declared in `.mcp.json`. Use its
 `search_astro_docs` tool before guessing an Astro API or config option.
 
+## modern-web-guidance CLI
+
+The vendored `modern-web-guidance` skill tells agents to run
+`npx -y modern-web-guidance@latest`. Here, run it as
+`bunx modern-web-guidance@1.0.1 <search|retrieve|legacy-scan>` instead: never
+`npx`, never `@latest`. Do not add the command to a permission allowlist; each
+run asks for confirmation. When the skill is updated, bump this pin to match
+the skill's version.
+
 ## Escalating a `@shadcn/lint` finding
 
 When `bun run lint` reports a `shadcn/*` finding (for example
