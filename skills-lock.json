@@ -101,9 +101,10 @@
     },
     "modern-web-guidance": {
       "source": "googlechrome/modern-web-guidance",
+      "ref": "64a6d708f5a43f2cd3fde5d4d7db3905ba1bdf65",
       "sourceType": "github",
       "skillPath": "skills/modern-web-guidance/SKILL.md",
-      "computedHash": "813274e05233f139ad0bc5f67ce7c4c524b4c81c672f9ff7905957b3a09b46b4"
+      "computedHash": "d9f3ceba8b5c77b12ae6f852932a349843ce086d03ce76ab5e2257e7e5acd16d"
     },
     "playwright-best-practices": {
       "source": "currents-dev/playwright-best-practices-skill",
