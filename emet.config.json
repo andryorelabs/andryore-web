@@ -71,5 +71,13 @@
   "language": {
     "conversation": "es",
     "artifacts": "en"
+  },
+  "deploy": {
+    "check": {
+      "command": "curl -fsS https://andryore.dev/",
+      "retries": 20,
+      "intervalSeconds": 15,
+      "timeoutSeconds": 360
+    }
   }
 }
