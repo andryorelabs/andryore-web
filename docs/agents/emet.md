@@ -81,3 +81,50 @@ host otherwise would. Both settings live in `emet.config.json`.
 `EMET_MAX_LIVE_WORKERS` (accepting `"auto"` too) and
 `EMET_RUN_IDLE_THRESHOLD_MS` still override their config counterparts when set,
 same as before this repo had a config file at all.
+
+## Browser verification
+
+`verify.browser` in `emet.config.json` starts the dev server with
+`bun run dev --host 127.0.0.1 --port 4321` and checks `http://127.0.0.1:4321`.
+`emet assess` sets `browserVerify.run` to `true` only when a reviewer tier runs
+and the diff touches `src/**`, `public/**` or `astro.config.mjs`; a diff that
+only touches other paths, such as `scripts/**`, skips it with the paths reason.
+
+`agent-browser` is the primary browser for this check. It starts on this host
+once the AppArmor profile from `emet setup` is loaded. Chrome DevTools MCP is
+only the reviewer prompt's fallback, used after two failed `agent-browser`
+commands.
+
+## Deploy check and promotion
+
+`handoff.afterSpec` is `promote`: when a spec lands on `develop`, `emet promote`
+opens and merges the promotion pull request into `main`
+([ADR 0026](../adr/0026-develop-promoted-to-main-by-merge-commit.md)).
+`emet promote --spec <id> --dry-run` reports `mode: "promote"` and
+`skipped: "dry run"` without changing anything.
+
+`deploy.check` confirms the release reached the live site. Its command fetches
+`origin/main`, reads the `Last-Modified` header of `https://andryore.dev/` and
+succeeds when that time is not earlier than the latest `main` commit. It retries
+30 times, 20 seconds apart, within 900 seconds. It has no `paths` filter because
+Coolify rebuilds the site on every push to `main`
+([ADR 0003](../adr/0003-static-astro-on-coolify.md)). Run it by hand with
+`emet deploy-check`; a healthy site prints `state: "ok"`.
+
+## High-risk paths
+
+`review.highRiskPaths` raises a diff to the `high` reviewer tier when a changed
+path contains one of these tokens. Each token maps to the decision it protects:
+
+| Token               | Protects                                                                                                                                                                |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dockerfile`        | The container image served by Coolify ([ADR 0003](../adr/0003-static-astro-on-coolify.md)).                                                                             |
+| `docker/`           | The nginx config and security headers template ([ADR 0003](../adr/0003-static-astro-on-coolify.md), [ADR 0012](../adr/0012-csp-delivered-as-an-nginx-header.md)).       |
+| `csp`               | The hash-based CSP ([ADR 0010](../adr/0010-hash-based-csp-and-security-headers.md), [ADR 0012](../adr/0012-csp-delivered-as-an-nginx-header.md)).                       |
+| `src/server/`       | The runtime endpoint and the encrypted env loader ([ADR 0004](../adr/0004-live-status-endpoint.md), [ADR 0022](../adr/0022-secrets-in-dotenvx-encrypted-env-files.md)). |
+| `.env`              | Encrypted secrets ([ADR 0022](../adr/0022-secrets-in-dotenvx-encrypted-env-files.md)). `src/environment.d.ts` does not match: the token needs the dot before `env`.     |
+| `robots.txt`        | The AI crawler policy ([ADR 0013](../adr/0013-ai-crawler-policy.md)).                                                                                                   |
+| `analytics`         | The single cookieless script ([ADR 0014](../adr/0014-umami-cloud-cookieless-analytics.md), [ADR 0009](../adr/0009-no-third-party-requests.md)).                         |
+| `astro.config`      | The static build and the CSP fallback ([ADR 0003](../adr/0003-static-astro-on-coolify.md), [ADR 0010](../adr/0010-hash-based-csp-and-security-headers.md)).             |
+| `.github/rulesets/` | The branch rulesets ([ADR 0011](../adr/0011-public-repo-security-posture.md), [ADR 0026](../adr/0026-develop-promoted-to-main-by-merge-commit.md)).                     |
+| `repo-settings`     | The repository settings check ([ADR 0011](../adr/0011-public-repo-security-posture.md)).                                                                                |
