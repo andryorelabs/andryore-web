@@ -2,10 +2,11 @@
 
 ## Status
 
-Accepted. Amends [0026](0026-develop-promoted-to-main-by-merge-commit.md): a
+Accepted. Amends [0026](0026-develop-promoted-to-main-by-merge-commit.md) and
+[0011](0011-public-repo-security-posture.md): a
 promotion is opened and merged by `emet promote` and is followed by a sync pull
 request into `develop`, and the `develop` ruleset no longer requires a linear
-history.
+history, which 0011 described as squash-only with a linear history.
 
 Date: 2026-11-20
 
