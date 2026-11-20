@@ -236,11 +236,13 @@ Hooks live in `.husky/`:
 lowercase kebab-case, for example `feat/add-log-page`.
 
 `main` and `develop` are the two long-lived branches. Feature branches open PRs
-against `develop` and are squash-merged, so `develop` keeps a linear history. A
-promotion PR from `develop` to `main` ships a finished spec and is merged with a
-merge commit ([ADR 0015](adr/0015-develop-as-integration-branch.md),
-[ADR 0026](adr/0026-develop-promoted-to-main-by-merge-commit.md)), as the
-rulesets enforce ([Merging](#merging)). This section, [Commit format](#commit-format) and
+against `develop` and are squash-merged by convention. A promotion PR from
+`develop` to `main` ships a finished spec and is merged with a merge commit, and
+a sync PR from `main` back to `develop` follows it, also merged with a merge
+commit ([ADR 0015](adr/0015-develop-as-integration-branch.md),
+[ADR 0026](adr/0026-develop-promoted-to-main-by-merge-commit.md),
+[ADR 0028](adr/0028-emet-promote-and-sync-pull-request.md)), as the rulesets
+allow ([Merging](#merging)). This section, [Commit format](#commit-format) and
 [Merging](#merging) are the single home of the branch, commit and merge rules;
 other docs link here.
 
@@ -250,8 +252,9 @@ other docs link here.
 English, with a bulleted body when it helps. PRs into `develop` are
 squash-merged, so the PR title follows the same format and becomes the commit
 message on `develop`. A promotion is merged with a merge commit, so it adds one
-merge commit to `main` titled `chore: 🔀 promote develop to main`; commitlint is
-skipped on a promotion. The hook does not enforce the emoji; it is a convention.
+merge commit to `main` titled `chore: 🔖 promote develop`, and the sync PR adds
+one to `develop` titled `chore: 🔖 sync main into develop`; commitlint is
+skipped on both. The hook does not enforce the emoji; it is a convention.
 
 ## Code documentation
 
@@ -455,21 +458,29 @@ page (Deployments, then Redeploy on the earlier entry), or revert the commit on
 
 ## Merging
 
-PRs into `develop` are squash-merged, and `develop` keeps a linear history.
-Individual commits in a PR need not follow the commit format, but the PR title
-does, since it becomes the squashed commit message.
+Feature, wave and Renovate PRs into `develop` are squash-merged. The `develop`
+ruleset also accepts a merge commit, for the sync PR only, so squash is a
+convention there. Individual commits in a PR need not follow the commit format,
+but the PR title does, since it becomes the squashed commit message.
 
-A promotion is a PR from `develop` to `main` merged with a merge commit
-([ADR 0026](adr/0026-develop-promoted-to-main-by-merge-commit.md)):
+A promotion is a PR from `develop` to `main` merged with a merge commit. When a
+spec's last wave merges clean, `emet promote` opens it as
+`chore: 🔖 promote develop`, waits for CI and merges it
+([ADR 0026](adr/0026-develop-promoted-to-main-by-merge-commit.md),
+[ADR 0028](adr/0028-emet-promote-and-sync-pull-request.md)).
+
+The promotion's merge commit lands only on `main`, so `emet promote` then opens
+a sync PR from `main` to `develop` titled `chore: 🔖 sync main into develop` and
+merges it with a merge commit, which brings `develop` level with `main`. Its
+required checks may still be running when `emet promote` tries the merge; the
+sync PR then stays open until they pass, and you merge it by hand:
 
 ```sh
-gh pr create --base main --head develop --title "chore: 🔀 promote develop to main"
-gh pr merge --merge
+gh pr merge <n> --merge --auto
 ```
 
-No sync step exists: a merge commit keeps `develop` in the history of `main`, so
-`develop` never diverges from it. Commitlint is skipped on a promotion, and the
-`CI passed` check stays required. The branch and tag rulesets are committed in
+Commitlint is skipped on the promotion and on the sync PR, and the `CI passed`
+check stays required. The branch and tag rulesets are committed in
 [`.github/rulesets`](../.github/rulesets) (`main.json`, `develop.json`,
 `tags.json`) and applied with `gh api`, not by code in the repository.
 
