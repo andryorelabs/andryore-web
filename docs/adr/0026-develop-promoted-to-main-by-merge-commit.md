@@ -4,12 +4,19 @@
 
 Accepted. Amends [0015](0015-develop-as-integration-branch.md) and
 [0011](0011-public-repo-security-posture.md): a promotion is a merge commit, and
-the `main` ruleset no longer requires a linear history.
+the `main` ruleset no longer requires a linear history. Amended by
+[0028](0028-emet-promote-and-sync-pull-request.md): `emet promote` opens and
+merges the promotion, a sync pull request follows it, and `develop` accepts
+merge commits.
 
 Date: 2026-11-11
 
 Revised: 2026-11-16, the expected repository settings moved from
 `scripts/repo-settings.json` to `.github/repo-settings.json`.
+
+Revised: 2026-11-20, the promotion title, the sync step and the `develop`
+ruleset are now decided by
+[0028](0028-emet-promote-and-sync-pull-request.md).
 
 ## Context
 

@@ -30,7 +30,8 @@
   "handoff": {
     "maxLines": 60,
     "maxChars": 8000,
-    "autoChain": true
+    "autoChain": true,
+    "afterSpec": "promote"
   },
   "usage": {
     "oversizedReadLines": 400,
@@ -66,5 +67,38 @@
     "escalation": {
       "sonnet": "opus"
     }
+  },
+  "language": {
+    "conversation": "es",
+    "artifacts": "en"
+  },
+  "verify": {
+    "browser": {
+      "startCommand": "bun run dev --host 127.0.0.1 --port 4321",
+      "url": "http://127.0.0.1:4321",
+      "paths": ["src/**", "public/**", "astro.config.mjs"]
+    }
+  },
+  "deploy": {
+    "check": {
+      "command": "git fetch -q origin main && deployed=$(curl -fsSI https://andryore.dev/ | tr -d '\\r' | sed -n 's/^last-modified: //Ip') && [ -n \"$deployed\" ] && [ \"$(date -d \"$deployed\" +%s)\" -ge \"$(git log -1 --format=%ct origin/main)\" ]",
+      "retries": 30,
+      "intervalSeconds": 20,
+      "timeoutSeconds": 900
+    }
+  },
+  "review": {
+    "highRiskPaths": [
+      "dockerfile",
+      "docker/",
+      "csp",
+      "src/server/",
+      ".env",
+      "robots.txt",
+      "analytics",
+      "astro.config",
+      ".github/rulesets/",
+      "repo-settings"
+    ]
   }
 }

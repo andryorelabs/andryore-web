@@ -13,8 +13,8 @@ const REQUIRED_CHECKS = [
   "Check markdown links",
   "Analyze (actions, javascript-typescript)",
 ];
-const PROMOTION_SKIP_CONDITION =
-  "github.event_name == 'pull_request' && !(github.base_ref == 'main' && github.head_ref == 'develop' && !github.event.pull_request.head.repo.fork)";
+const PROMOTION_AND_SYNC_SKIP_CONDITION =
+  "github.event_name == 'pull_request' && !(((github.base_ref == 'main' && github.head_ref == 'develop') || (github.base_ref == 'develop' && github.head_ref == 'main')) && !github.event.pull_request.head.repo.fork)";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -77,7 +77,6 @@ describe("develop ruleset", () => {
   test.each([
     "deletion",
     "non_fast_forward",
-    "required_linear_history",
     "required_signatures",
     "pull_request",
     "required_status_checks",
@@ -85,10 +84,14 @@ describe("develop ruleset", () => {
     expect(findRule(developRuleset, type)).toBeDefined();
   });
 
-  test("requires a squash-merged pull request with resolved threads", () => {
+  test("does not require linear history, so the sync pull request can be a merge commit", () => {
+    expect(findRule(developRuleset, "required_linear_history")).toBeUndefined();
+  });
+
+  test("allows squash and merge commits, with resolved threads", () => {
     const parameters = ruleParameters(developRuleset, "pull_request");
 
-    expect(parameters.allowed_merge_methods).toEqual(["squash"]);
+    expect(parameters.allowed_merge_methods).toEqual(["squash", "merge"]);
     expect(parameters.required_review_thread_resolution).toBe(true);
   });
 
@@ -152,12 +155,12 @@ describe("repository settings", () => {
 });
 
 describe("commitlint job", () => {
-  test("skips the develop to main promotion pull request", () => {
+  test("skips the promotion and the main to develop sync pull requests", () => {
     const conditions = listWorkflowFiles()
       .map((file) => readWorkflow(file).jobs?.commitlint?.if)
       .filter((condition) => condition !== undefined);
 
-    expect(conditions).toEqual([PROMOTION_SKIP_CONDITION]);
+    expect(conditions).toEqual([PROMOTION_AND_SYNC_SKIP_CONDITION]);
   });
 });
 
