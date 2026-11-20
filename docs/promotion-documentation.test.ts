@@ -6,17 +6,25 @@ const developmentDocument = readFileSync(path.join(import.meta.dir, "development
 const normalizedDocument = developmentDocument.replaceAll(/\s+/g, " ");
 
 describe("promotion docs", () => {
-  it("documents the merge commit promotion", () => {
+  it("documents the merge commit promotion opened by emet promote", () => {
     expect(normalizedDocument).toContain("merge commit");
-    expect(normalizedDocument).toContain("gh pr merge --merge");
+    expect(normalizedDocument).toContain("emet promote");
+    expect(normalizedDocument).toContain("ADR 0028");
   });
 
   it("documents the promotion title", () => {
-    expect(normalizedDocument).toContain("chore: 🔀 promote develop to main");
+    expect(normalizedDocument).toContain("chore: 🔖 promote develop");
+    expect(normalizedDocument).not.toContain("chore: 🔀 promote develop to main");
   });
 
-  it("states that no sync step exists", () => {
-    expect(normalizedDocument).toContain("No sync step exists");
+  it("documents the sync pull request and its manual merge", () => {
+    expect(normalizedDocument).toContain("chore: 🔖 sync main into develop");
+    expect(normalizedDocument).toContain("gh pr merge <n> --merge --auto");
+  });
+
+  it("no longer states that no sync step exists or that develop is linear", () => {
+    expect(normalizedDocument).not.toContain("No sync step exists");
+    expect(normalizedDocument).not.toContain("develop` keeps a linear history");
   });
 
   it("never says a promotion is squash-merged", () => {
