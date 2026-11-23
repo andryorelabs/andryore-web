@@ -90,13 +90,13 @@
     "bun": "1.4.4"
   },
   "dependencies": {
-    "@astrojs/react": "^7.1.2",
+    "@astrojs/react": "^7.1.9",
     "@dotenvx/dotenvx": "^2.38.2",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "@radix-ui/react-dropdown-menu": "^2.2.1",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.4.12",
+    "astro": "^7.4.13",
     "clsx": "^2.1.1",
     "lucide-react": "^1.66.0",
     "react": "^19.3.1",
