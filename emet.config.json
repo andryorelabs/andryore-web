@@ -100,5 +100,16 @@
       ".github/rulesets/",
       "repo-settings"
     ]
+  },
+  "validate": {
+    "coupledSurfaces": [
+      {
+        "source": "src/content/products/*.md",
+        "dependents": "src/content/products/*.es.md"
+      }
+    ]
+  },
+  "specs": {
+    "enabled": true
   }
 }
